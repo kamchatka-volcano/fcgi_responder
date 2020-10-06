@@ -65,7 +65,7 @@ void Responder::onRecordReaded(const Record& record)
         onBeginRequest(record.requestId(), record.getMessage<MsgBeginRequest>());
         break;
     case RecordType::AbortRequest:
-        endRequest(record.requestId());
+        endRequest(record.requestId(), ProtocolStatus::RequestComplete);
         break;
     case RecordType::GetValues:
         onGetValues(record.getMessage<MsgGetValues>());
@@ -187,7 +187,7 @@ void Responder::onRequestReceived(uint16_t requestId)
     };
     std::for_each(dataStream.begin(), dataStream.end(), sendRecord);
     std::for_each(errorStream.begin(), errorStream.end(), sendRecord);
-    endRequest(requestId);
+    endRequest(requestId, ProtocolStatus::RequestComplete);
 }
 
 void Responder::setMaximumConnectionsNumber(int value)

@@ -1,7 +1,7 @@
 ## Overview
 **fcgi_responder** is a C++14 library implementing the [Responder role](https://fast-cgi.github.io/spec#62-responder) of the FCGI protocol.  
-It works on raw data, received from the Web server, and returns serialized output, required to be sent back to the server by the client.  
-Thus, the implementation of connection to the Web server lays outside of the library's responsibility, and clients can use whatever socket programming methods they prefer.  
+It works on raw data, received from the web server, and returns serialized output, required to be sent back to the server by the client.  
+Thus, the implementation of connection to the web server lays outside of the library's responsibility, and clients can use whatever socket programming methods they prefer.  
 This makes **fcgi_responder** being portable and having no external dependencies.  
 
 ## Hello world
@@ -52,7 +52,7 @@ public:
     }
     
     ///
-    /// Overriding fcgi::Responder::sendData to send response data to Web server
+    /// Overriding fcgi::Responder::sendData to send response data to web server
     /// 
     void sendData(const std::string& data) override
     {
@@ -61,7 +61,7 @@ public:
     }
     
     ///
-    /// Overriding fcgi::Responder::disonnect to close connection with Web server
+    /// Overriding fcgi::Responder::disonnect to close connection with web server
     /// 
     void disconnect() override
     {

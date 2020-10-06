@@ -216,6 +216,47 @@ TEST_P(TestResponder, Request)
     receiveMessage(MsgStdIn{}, 1);
 }
 
+TEST_F(TestResponder, Multiplexing)
+{
+    auto params = MsgParams{};
+    params.setParam("test", "hello world");
+    params.setParam("foo", "bar");
+
+    auto inStream = MsgStdIn{};
+    inStream.setData("HELLO WORLD");
+
+    auto params2 = MsgParams{};
+    params2.setParam("msg", "param");
+
+    auto expectedRequest = Request{};
+    RequestEditor(expectedRequest).addParamsMsg(params);
+    RequestEditor(expectedRequest).addStdInMsg(inStream);
+
+    auto expectedRequest2 = Request{};
+    RequestEditor(expectedRequest2).addParamsMsg(params2);
+
+    ::testing::InSequence seq;
+    EXPECT_CALL(responder_, processRequest(expectedRequest2));
+    expectMessageToBeSent(MsgStdOut{}, 2);
+    expectMessageToBeSent(MsgStdErr{}, 2);
+    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 2);
+    EXPECT_CALL(responder_, processRequest(expectedRequest));
+    expectMessageToBeSent(MsgStdOut{}, 1);
+    expectMessageToBeSent(MsgStdErr{}, 1);
+    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
+    EXPECT_CALL(responder_, disconnect()).Times(0);
+
+    receiveMessage(MsgBeginRequest{Role::Responder, ResultConnectionState::KeepOpen}, 1);
+    receiveMessage(params, 1);
+    receiveMessage(MsgBeginRequest{Role::Responder, ResultConnectionState::KeepOpen}, 2);
+    receiveMessage(params2, 2);
+    receiveMessage(MsgParams{}, 1);
+    receiveMessage(inStream, 1);
+    receiveMessage(MsgParams{}, 2);
+    receiveMessage(MsgStdIn{}, 2);
+    receiveMessage(MsgStdIn{}, 1);
+}
+
 TEST_P(TestResponderWithTestProcessor, Request)
 {
     auto params = MsgParams{};
@@ -239,8 +280,6 @@ TEST_P(TestResponderWithTestProcessor, Request)
     receiveMessage(MsgStdIn{}, 1);
 }
 
-
 INSTANTIATE_TEST_CASE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));
 INSTANTIATE_TEST_CASE_P(WithConnectionStateCheck, TestResponderWithTestProcessor, ::testing::Values(false, true));
-
 

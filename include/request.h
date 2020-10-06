@@ -5,13 +5,35 @@
 
 namespace fcgi{
 
+///
+/// \brief Object, containing request data from the web server
+///
 class Request{
     friend class RequestEditor;
 
 public:
     const std::string& stdIn() const;
+    ///
+    /// \brief param
+    /// Returns environment variable from the web server
+    /// \param name variable name
+    /// \return variable value
+    ///
     std::string param(const std::string& name) const;
+
+    ///
+    /// \brief paramList
+    /// Returns list of environment variable names in the current request
+    /// \return list of names
+    ///
     std::vector<std::string> paramList() const;
+
+    ///
+    /// \brief keepConnection
+    /// State of connection after the request's processing.
+    /// If true, connection stays open, otherwise it's closed after sending the response.
+    /// \return state
+    ///
     bool keepConnection() const;
 
 private:

@@ -1,5 +1,5 @@
 #include "msgbeginrequest.h"
-#include "constants.h"
+#include "constants_impl.h"
 #include "types.h"
 #include "encoder.h"
 #include "decoder.h"
