@@ -1,5 +1,4 @@
 #pragma once
-#include "constants.h"
 #include "response.h"
 #include "request.h"
 #include <unordered_map>
@@ -26,7 +25,6 @@ public:
     ///
     /// \brief setsMaximumConnectionsNumber
     /// Sets maximum connection number.
-    /// This value is only passed to the web server when it requests this information.
     /// \param value
     ///
     void setMaximumConnectionsNumber(int value);
@@ -34,8 +32,7 @@ public:
     ///
     /// \brief setMaximumRequestsNumber
     /// Sets maximum requests number.
-    /// This value is passed to the web server when it requests this information.
-    /// It's also used to drop incoming requests when their number exceeds this limit.
+    /// Incoming requests are dropped when their number exceeds this limit.
     /// \param value
     ///
     void setMaximumRequestsNumber(int value);
@@ -43,7 +40,8 @@ public:
     ///
     /// \brief setMultiplexingEnabled
     /// Enables or disables multiplexing of requests.
-    /// When it's enabled Responder can process <maximumRequestNumber> of requests at a time.
+    /// When it's enabled Responder can process <maximumRequestNumber> of requests at a time, otherwise
+    /// it can process only one request per connection.
     /// \param state
     ///
     void setMultiplexingEnabled(bool state);
@@ -69,8 +67,8 @@ public:
     ///
     /// \brief setErrorInfoHandler
     /// Protocol and stream errors are handled internally and silently,
-    /// if you need to get text information about this errors, you can register
-    /// handler function with this method.
+    /// this method can be used to get text information about these errors,
+    /// by registering a handler function.
     /// \param errorInfoHandler
     ///
     void setErrorInfoHandler(std::function<void(const std::string&)> errorInfoHandler);
@@ -132,9 +130,9 @@ private:
 
 private:
     struct Config{
-        int maxConnectionsNumber = cDefaultMaxConnectionsNumber;
-        int maxRequestsNumber = cDefaultMaxRequestsNumber;
-        bool multiplexingEnabled = cDefaultMultiplexingEnabled;
+        int maxConnectionsNumber = 1;
+        int maxRequestsNumber = 10;
+        bool multiplexingEnabled = true;
     } cfg_;
 
     std::unique_ptr<RecordReader> recordReader_;

@@ -39,13 +39,15 @@ public:
 
     ///
     /// \brief data
-    /// \return HTTP response data
+    /// Returns HTTP response data
+    /// \return
     ///
     const std::string& data() const;
 
     ///
     /// \brief errorMsg
-    /// \return Error information
+    /// Returns error information
+    /// \return
     ///
     const std::string& errorMsg() const;
 

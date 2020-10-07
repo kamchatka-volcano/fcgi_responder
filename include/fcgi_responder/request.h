@@ -6,16 +6,21 @@
 namespace fcgi{
 
 ///
-/// \brief Object, containing request data from the web server
+/// \brief Object containing request data from the web server
 ///
 class Request{
     friend class RequestEditor;
 
 public:
+    ///
+    /// \brief stdIn
+    /// HTTP request data
+    /// \return
+    ///
     const std::string& stdIn() const;
     ///
     /// \brief param
-    /// Returns environment variable from the web server
+    /// Returns environment variable passed from the web server
     /// \param name variable name
     /// \return variable value
     ///
@@ -23,14 +28,14 @@ public:
 
     ///
     /// \brief paramList
-    /// Returns list of environment variable names in the current request
+    /// Returns list of environment variable names passed from the web server
     /// \return list of names
     ///
     std::vector<std::string> paramList() const;
 
     ///
     /// \brief keepConnection
-    /// State of connection after the request's processing.
+    /// State of connection after the end of request's processing.
     /// If true, connection stays open, otherwise it's closed after sending the response.
     /// \return state
     ///

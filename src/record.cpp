@@ -1,6 +1,6 @@
 #include "record.h"
 #include "message.h"
-#include "constants_impl.h"
+#include "constants.h"
 #include "errors.h"
 #include "encoder.h"
 #include "decoder.h"
