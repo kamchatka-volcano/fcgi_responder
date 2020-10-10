@@ -12,6 +12,7 @@
 #include "streammaker.h"
 #include "requesteditor.h"
 #include "recordreader.h"
+#include "constants.h"
 #include <algorithm>
 
 using namespace fcgi;
@@ -22,6 +23,8 @@ Responder::Responder()
           onRecordReaded(record);
       }))
 {
+    recordBuffer_.resize(cMaxRecordSize);
+    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], cMaxRecordSize);
 }
 
 Responder::~Responder()
@@ -144,16 +147,22 @@ void Responder::onStdIn(uint16_t requestId, const MsgStdIn& msg)
 void Responder::send(uint16_t requestId, std::unique_ptr<Message> msg)
 {
     auto record = Record{std::move(msg), requestId};
-    auto recordStream = std::ostringstream{};
+    sendRecord(record);
+}
+
+void Responder::sendRecord(const Record &record)
+{
+    recordStream_.seekp(0);
+    recordBuffer_.resize(record.size());
     try{
-        record.toStream(recordStream);
+        record.toStream(recordStream_);
     }
     catch (std::exception& e){
         if (errorInfoHandler_)
             errorInfoHandler_(e.what());
         return;
     }
-    sendData(recordStream.str());
+    sendData(recordBuffer_);
 }
 
 bool Responder::isRecordExpected(const Record& record)
@@ -174,14 +183,8 @@ void Responder::onRequestReceived(uint16_t requestId)
     auto streamMaker = StreamMaker{};
     auto dataStream = streamMaker.makeStream(RecordType::StdOut, requestId, response.data());
     auto errorStream = streamMaker.makeStream(RecordType::StdErr, requestId, response.errorMsg());
-    auto sendRecord = [this](const Record& record)
-    {
-        auto recordStream = std::ostringstream{};
-        record.toStream(recordStream);
-        sendData(recordStream.str());
-    };
-    std::for_each(dataStream.begin(), dataStream.end(), sendRecord);
-    std::for_each(errorStream.begin(), errorStream.end(), sendRecord);
+    std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
+    std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
     endRequest(requestId, ProtocolStatus::RequestComplete);
 }
 

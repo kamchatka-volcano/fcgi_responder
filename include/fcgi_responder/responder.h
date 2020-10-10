@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
+#include <sstream>
 
 namespace fcgi{
 
@@ -125,6 +126,7 @@ private:
     void onRequestReceived(uint16_t requestId);
 
     void send(uint16_t requestId, std::unique_ptr<Message> msg);
+    void sendRecord(const Record& record);
     bool isRecordExpected(const Record& record);
     void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
 
@@ -138,6 +140,8 @@ private:
     std::unique_ptr<RecordReader> recordReader_;
     std::unordered_map<uint16_t, Request> requestMap_;
     std::function<void(const std::string&)> errorInfoHandler_;
+    std::ostringstream recordStream_;
+    std::string recordBuffer_;
 };
 
 }
