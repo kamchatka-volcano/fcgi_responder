@@ -1,4 +1,5 @@
 #include "msgparams.h"
+#include "errors.h"
 #include <algorithm>
 
 using namespace fcgi;
@@ -6,6 +7,14 @@ using namespace fcgi;
 MsgParams::MsgParams()
     : Message(RecordType::Params)
 {
+}
+
+std::size_t MsgParams::size() const
+{
+    auto result = 0u;
+    for(const auto& param : paramList_)
+        result += param.size();
+    return result;
 }
 
 void MsgParams::setParam(const std::string &name, const std::string &value)
@@ -51,22 +60,23 @@ void MsgParams::toStream(std::ostream &output) const
         param.toStream(output);
 }
 
-void MsgParams::fromStream(std::istream &input)
+void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
 {
-    input.seekg(0, input.end);
-    auto inputSize = input.tellg();
-    if (inputSize == 0)
-        return;
-    input.seekg(0, input.beg);
-
+    auto readedBytes = 0u;
     while(true){
         auto param = NameValue{};
         param.fromStream(input);
+        readedBytes += param.size();
         paramList_.push_back(param);
 
-        auto pos = input.tellg();
-        if (pos == inputSize)
+        if (readedBytes == inputSize)
             break;
+        if (readedBytes > inputSize)
+            throw MessageReadError{};
     }
 }
 
+bool MsgParams::operator==(const MsgParams& other) const
+{
+    return paramList_ == other.paramList_;
+}

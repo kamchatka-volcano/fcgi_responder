@@ -19,6 +19,7 @@ set(SRC
     src/encoder.cpp
     src/errors.cpp
     src/message.cpp
+    src/msgabortrequest.cpp
     src/msgbeginrequest.cpp
     src/msgendrequest.cpp
     src/msggetvalues.cpp

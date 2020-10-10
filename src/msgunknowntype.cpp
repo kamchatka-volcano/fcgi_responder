@@ -10,6 +10,11 @@ MsgUnknownType::MsgUnknownType()
 {
 }
 
+std::size_t MsgUnknownType::size() const
+{
+    return 8;
+}
+
 MsgUnknownType::MsgUnknownType(uint8_t unknownTypeValue)
     : Message(RecordType::UnknownType)
     , unknownTypeValue_(unknownTypeValue)
@@ -28,10 +33,14 @@ void MsgUnknownType::toStream(std::ostream &output) const
     encoder.addPadding(7); //reserved bytes
 }
 
-void MsgUnknownType::fromStream(std::istream &input)
+void MsgUnknownType::fromStream(std::istream &input, std::size_t)
 {
     auto decoder = Decoder(input);
     decoder >> unknownTypeValue_;
     decoder.skip(7); //reserved bytes
 }
 
+bool MsgUnknownType::operator==(const MsgUnknownType& other) const
+{
+    return unknownTypeValue_ == other.unknownTypeValue_;
+}

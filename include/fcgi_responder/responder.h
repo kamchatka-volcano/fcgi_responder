@@ -124,7 +124,7 @@ private:
     void onStdIn(uint16_t requestId, const MsgStdIn& msg);
     void onRequestReceived(uint16_t requestId);
 
-    void send(uint16_t requestId, const Message& msg);
+    void send(uint16_t requestId, std::unique_ptr<Message> msg);
     bool isRecordExpected(const Record& record);
     void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
 

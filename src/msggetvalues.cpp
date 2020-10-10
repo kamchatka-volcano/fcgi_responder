@@ -1,5 +1,6 @@
 #include "msggetvalues.h"
 #include "namevalue.h"
+#include "errors.h"
 #include <algorithm>
 
 using namespace fcgi;
@@ -7,6 +8,15 @@ using namespace fcgi;
 MsgGetValues::MsgGetValues()
     : Message (RecordType::GetValues)
 {
+}
+
+std::size_t MsgGetValues::size() const
+{
+    auto result = 0u;
+    for(auto request : valueRequestList_){
+        result += NameValue(valueRequestToString(request), "").size();
+    }
+    return result;
 }
 
 void MsgGetValues::requestValue(ValueRequest request)
@@ -30,23 +40,25 @@ void MsgGetValues::toStream(std::ostream &output) const
     }
 }
 
-void MsgGetValues::fromStream(std::istream &input)
+void MsgGetValues::fromStream(std::istream &input, std::size_t inputSize)
 {
-    input.seekg(0, input.end);
-    auto inputSize = input.tellg();
-    if (inputSize == 0)
-        return;
-    input.seekg(0, input.beg);
-
+    auto readedBytes = 0u;
     while(true){
         auto nameValue = NameValue{};
         nameValue.fromStream(input);
+        readedBytes += nameValue.size();
         auto request = valueRequestFromString(nameValue.name());
         if (request != ValueRequest::Invalid)
             valueRequestList_.push_back(request);
 
-        auto pos = input.tellg();
-        if (pos == inputSize)
+        if (readedBytes == inputSize)
             break;
+        if (readedBytes > inputSize)
+            throw MessageReadError{};
     }
+}
+
+bool MsgGetValues::operator==(const MsgGetValues& other) const
+{
+    return valueRequestList_ == other.valueRequestList_;
 }

@@ -1,11 +1,24 @@
 #include "msggetvaluesresult.h"
 #include "namevalue.h"
+#include "errors.h"
 
 using namespace fcgi;
 
 MsgGetValuesResult::MsgGetValuesResult()
     : Message(RecordType::GetValuesResult)
 {
+}
+
+std::size_t MsgGetValuesResult::size() const
+{
+    auto result = 0u;
+    for(const auto& requestValuePair : requestValueMap_){
+        if (requestValuePair.first == ValueRequest::Invalid)
+            continue;
+        auto nameValue = NameValue(valueRequestToString(requestValuePair.first), requestValuePair.second);
+        result += nameValue.size();
+    }
+    return result;
 }
 
 void MsgGetValuesResult::setRequestValue(ValueRequest request, const std::string value)
@@ -39,25 +52,25 @@ void MsgGetValuesResult::toStream(std::ostream &output) const
     }
 }
 
-void MsgGetValuesResult::fromStream(std::istream &input)
+void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
 {
-    input.seekg(0, input.end);
-    auto inputSize = input.tellg();
-    if (inputSize == 0)
-        return;
-    input.seekg(0, input.beg);
-
+    auto readedBytes = 0u;
     while(true){
         auto nameValue = NameValue{};
         nameValue.fromStream(input);
+        readedBytes += nameValue.size();
         auto request = valueRequestFromString(nameValue.name());
         if (request != ValueRequest::Invalid)
             requestValueMap_[request] = nameValue.value();
 
-        auto pos = input.tellg();
-        if (pos == inputSize)
+        if (readedBytes == inputSize)
             break;
+        if (readedBytes > inputSize)
+            throw MessageReadError{};
     }
 }
 
-
+bool MsgGetValuesResult::operator==(const MsgGetValuesResult& other) const
+{
+    return requestValueMap_ == other.requestValueMap_;
+}

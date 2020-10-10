@@ -57,17 +57,17 @@ namespace{
 template <typename ResponderType>
 class BaseTestResponder : public ::testing::TestWithParam<bool>{
 protected:
-    void receiveMessage(const fcgi::Message& msg, uint16_t requestId = 0)
+    void receiveMessage(std::unique_ptr<fcgi::Message> msg, uint16_t requestId = 0)
     {
-        responder_.receive(messageData(msg, requestId));
+        responder_.receive(messageData(std::move(msg), requestId));
     }
     void receiveMessage(RecordType recordType, uint16_t requestId = 0)
     {
         responder_.receive(messageData(recordType, requestId));
     }
-    void expectMessageToBeSent(const fcgi::Message& msg, uint16_t requestId = 0)
+    void expectMessageToBeSent(std::unique_ptr<fcgi::Message> msg, uint16_t requestId = 0)
     {
-        EXPECT_CALL(responder_, sendData(messageData(msg, requestId)));
+        EXPECT_CALL(responder_, sendData(messageData(std::move(msg), requestId)));
     }
     void checkConnectionState()
     {
@@ -95,82 +95,86 @@ public:
     MsgUnknown() :
         Message(RecordType::Invalid)
     {}
+    std::size_t size() const override
+    {
+        return 0;
+    }
 private:
     void toStream(std::ostream&) const override {}
-    void fromStream(std::istream&) override {}
+    void fromStream(std::istream&, std::size_t) override {}
 };
 
 TEST_F(TestResponder, UnknownType)
 {
-    expectMessageToBeSent(MsgUnknownType{static_cast<int>(RecordType::Invalid)}, 0);
-    receiveMessage(MsgUnknown{}, 1);
+    expectMessageToBeSent(std::make_unique<MsgUnknownType>(static_cast<int>(RecordType::Invalid)), 0);
+    receiveMessage(std::make_unique<MsgUnknown>(), 1);
 }
 
 TEST_F(TestResponder, GetValuesAllDefaultSettings)
 {
-    auto resultMsg = MsgGetValuesResult{};
-    resultMsg.setRequestValue(ValueRequest::MaxReqs, std::to_string(responder_.maximumRequestsNumber()));
-    resultMsg.setRequestValue(ValueRequest::MaxConns, std::to_string(responder_.maximumConnectionsNumber()));
-    resultMsg.setRequestValue(ValueRequest::MpxsConns, std::to_string(responder_.isMultiplexingEnabled() ? 1 : 0));
-    expectMessageToBeSent(resultMsg);
+    auto resultMsg = std::make_unique<MsgGetValuesResult>();
+    resultMsg->setRequestValue(ValueRequest::MaxReqs, std::to_string(responder_.maximumRequestsNumber()));
+    resultMsg->setRequestValue(ValueRequest::MaxConns, std::to_string(responder_.maximumConnectionsNumber()));
+    resultMsg->setRequestValue(ValueRequest::MpxsConns, std::to_string(responder_.isMultiplexingEnabled() ? 1 : 0));
+    expectMessageToBeSent(std::move(resultMsg));
 
-    auto requestMsg = MsgGetValues{};
-    requestMsg.requestValue(ValueRequest::MaxReqs);
-    requestMsg.requestValue(ValueRequest::MaxConns);
-    requestMsg.requestValue(ValueRequest::MpxsConns);
-    receiveMessage(requestMsg);
+    auto requestMsg = std::make_unique<MsgGetValues>();
+    requestMsg->requestValue(ValueRequest::MaxReqs);
+    requestMsg->requestValue(ValueRequest::MaxConns);
+    requestMsg->requestValue(ValueRequest::MpxsConns);
+    receiveMessage(std::move(requestMsg));
 }
 
 TEST_F(TestResponder, GetValueChangedSettings)
 {
     responder_.setMaximumRequestsNumber(99);
-    auto resultMsg = MsgGetValuesResult{};
-    resultMsg.setRequestValue(ValueRequest::MaxReqs, std::to_string(responder_.maximumRequestsNumber()));
-    resultMsg.setRequestValue(ValueRequest::MpxsConns, std::to_string(responder_.isMultiplexingEnabled() ? 1 : 0));
-    expectMessageToBeSent(resultMsg);
+    auto resultMsg = std::make_unique<MsgGetValuesResult>();
+    resultMsg->setRequestValue(ValueRequest::MaxReqs, std::to_string(responder_.maximumRequestsNumber()));
+    resultMsg->setRequestValue(ValueRequest::MpxsConns, std::to_string(responder_.isMultiplexingEnabled() ? 1 : 0));
+    expectMessageToBeSent(std::move(resultMsg));
 
-    auto requestMsg = MsgGetValues{};
-    requestMsg.requestValue(ValueRequest::MaxReqs);
-    requestMsg.requestValue(ValueRequest::MpxsConns);
-    receiveMessage(requestMsg);
+    auto requestMsg = std::make_unique<MsgGetValues>();
+    requestMsg->requestValue(ValueRequest::MaxReqs);
+    requestMsg->requestValue(ValueRequest::MpxsConns);
+    receiveMessage(std::move(requestMsg));
 }
 
 TEST_P(TestResponder, AbortRequest)
 {
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), 1);
     checkConnectionState();
 
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 1);
     receiveMessage(RecordType::AbortRequest, 1);
 }
 
 TEST_P(TestResponder, UnknownRole)
 {
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::UnknownRole});
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::UnknownRole));
     checkConnectionState();
 
-    receiveMessage(MsgBeginRequest{Role::Authorizer, resultConnectionState()});
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Authorizer, resultConnectionState()));
 }
 
 TEST_P(TestResponder, CantMultiplex)
 {
     responder_.setMultiplexingEnabled(false);
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::CantMpxConn}, 2);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::CantMpxConn), 2);
     checkConnectionState();
 
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 1);
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 2);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 2);
 }
 
 TEST_P(TestResponder, Overloaded)
 {
     responder_.setMaximumRequestsNumber(2);
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::Overloaded}, 3);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::Overloaded), 3);
     checkConnectionState();
 
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 1);
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 2);
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 3);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 2);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 3);
 }
 
 namespace fcgi{
@@ -191,93 +195,93 @@ bool operator==(const Request& lhs, const Request& rhs)
 
 TEST_P(TestResponder, Request)
 {
-    auto params = MsgParams{};
-    params.setParam("test", "hello world");
-    params.setParam("foo", "bar");
+    auto params = std::make_unique<MsgParams>();
+    params->setParam("test", "hello world");
+    params->setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = std::make_unique<MsgStdIn>();
+    inStream->setData("HELLO WORLD");
 
     auto expectedRequest = Request{};
-    RequestEditor(expectedRequest).addParamsMsg(params);
-    RequestEditor(expectedRequest).addStdInMsg(inStream);
+    RequestEditor(expectedRequest).addParamsMsg(*params);
+    RequestEditor(expectedRequest).addStdInMsg(*inStream);
 
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, processRequest(expectedRequest));
-    expectMessageToBeSent(MsgStdOut{}, 1);
-    expectMessageToBeSent(MsgStdErr{}, 1);
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
+    expectMessageToBeSent(std::make_unique<MsgStdOut>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgStdErr>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), 1);
     checkConnectionState();
 
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 1);
-    receiveMessage(params, 1);
-    receiveMessage(MsgParams{}, 1);
-    receiveMessage(inStream, 1);
-    receiveMessage(MsgStdIn{}, 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 1);
+    receiveMessage(std::move(params), 1);
+    receiveMessage(std::make_unique<MsgParams>(), 1);
+    receiveMessage(std::move(inStream), 1);
+    receiveMessage(std::make_unique<MsgStdIn>(), 1);
 }
 
 TEST_F(TestResponder, Multiplexing)
 {
-    auto params = MsgParams{};
-    params.setParam("test", "hello world");
-    params.setParam("foo", "bar");
+    auto params = std::make_unique<MsgParams>();
+    params->setParam("test", "hello world");
+    params->setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = std::make_unique<MsgStdIn>();
+    inStream->setData("HELLO WORLD");
 
-    auto params2 = MsgParams{};
-    params2.setParam("msg", "param");
+    auto params2 = std::make_unique<MsgParams>();
+    params2->setParam("msg", "param");
 
     auto expectedRequest = Request{};
-    RequestEditor(expectedRequest).addParamsMsg(params);
-    RequestEditor(expectedRequest).addStdInMsg(inStream);
+    RequestEditor(expectedRequest).addParamsMsg(*params);
+    RequestEditor(expectedRequest).addStdInMsg(*inStream);
 
     auto expectedRequest2 = Request{};
-    RequestEditor(expectedRequest2).addParamsMsg(params2);
+    RequestEditor(expectedRequest2).addParamsMsg(*params2);
 
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, processRequest(expectedRequest2));
-    expectMessageToBeSent(MsgStdOut{}, 2);
-    expectMessageToBeSent(MsgStdErr{}, 2);
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 2);
+    expectMessageToBeSent(std::make_unique<MsgStdOut>(), 2);
+    expectMessageToBeSent(std::make_unique<MsgStdErr>(), 2);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), 2);
     EXPECT_CALL(responder_, processRequest(expectedRequest));
-    expectMessageToBeSent(MsgStdOut{}, 1);
-    expectMessageToBeSent(MsgStdErr{}, 1);
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
+    expectMessageToBeSent(std::make_unique<MsgStdOut>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgStdErr>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), 1);
     EXPECT_CALL(responder_, disconnect()).Times(0);
 
-    receiveMessage(MsgBeginRequest{Role::Responder, ResultConnectionState::KeepOpen}, 1);
-    receiveMessage(params, 1);
-    receiveMessage(MsgBeginRequest{Role::Responder, ResultConnectionState::KeepOpen}, 2);
-    receiveMessage(params2, 2);
-    receiveMessage(MsgParams{}, 1);
-    receiveMessage(inStream, 1);
-    receiveMessage(MsgParams{}, 2);
-    receiveMessage(MsgStdIn{}, 2);
-    receiveMessage(MsgStdIn{}, 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, ResultConnectionState::KeepOpen), 1);
+    receiveMessage(std::move(params), 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, ResultConnectionState::KeepOpen), 2);
+    receiveMessage(std::move(params2), 2);
+    receiveMessage(std::make_unique<MsgParams>(), 1);
+    receiveMessage(std::move(inStream), 1);
+    receiveMessage(std::make_unique<MsgParams>(), 2);
+    receiveMessage(std::make_unique<MsgStdIn>(), 2);
+    receiveMessage(std::make_unique<MsgStdIn>(), 1);
 }
 
 TEST_P(TestResponderWithTestProcessor, Request)
 {
-    auto params = MsgParams{};
-    params.setParam("test", "hello world");
-    params.setParam("foo", "bar");
+    auto params = std::make_unique<MsgParams>();
+    params->setParam("test", "hello world");
+    params->setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = std::make_unique<MsgStdIn>();
+    inStream->setData("HELLO WORLD");
 
     ::testing::InSequence seq;
-    expectMessageToBeSent(MsgStdOut{"DLROW OLLEH"}, 1);
-    expectMessageToBeSent(MsgStdOut{}, 1);
-    expectMessageToBeSent(MsgStdErr{}, 1);
-    expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
+    expectMessageToBeSent(std::make_unique<MsgStdOut>("DLROW OLLEH"), 1);
+    expectMessageToBeSent(std::make_unique<MsgStdOut>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgStdErr>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), 1);
     checkConnectionState();
 
-    receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 1);
-    receiveMessage(params, 1);
-    receiveMessage(MsgParams{}, 1);
-    receiveMessage(inStream, 1);
-    receiveMessage(MsgStdIn{}, 1);
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), 1);
+    receiveMessage(std::move(params), 1);
+    receiveMessage(std::make_unique<MsgParams>(), 1);
+    receiveMessage(std::move(inStream), 1);
+    receiveMessage(std::make_unique<MsgStdIn>(), 1);
 }
 
 INSTANTIATE_TEST_CASE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));

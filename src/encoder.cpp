@@ -42,6 +42,7 @@ Encoder& Encoder::operator<<(const std::string& val)
 
 void Encoder::addPadding(std::size_t numOfBytes)
 {
-    auto padding = std::string(numOfBytes, 0);
-    output_.write(padding.c_str(), static_cast<std::streamsize>(padding.size()));
+    auto ch = char{};
+    for (auto i = 0u; i < numOfBytes; ++i)
+        output_.put(ch);
 }

@@ -11,23 +11,12 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
-namespace{
-
-bool operator==(const fcgi::Record& lhs, const fcgi::Record& rhs)
-{
-    return lhs.type() == rhs.type() &&
-           lhs.requestId() == rhs.requestId() &&
-           lhs.messageData() == rhs.messageData();
-}
-
-}
-
 TEST(Utils, RecordReader)
 {
-    auto msg = fcgi::MsgParams{};
-    msg.setParam("TEST", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-    msg.setParam("HELLO", "WORLD");
-    auto record = fcgi::Record{msg, 1};
+    auto msg = std::make_unique<fcgi::MsgParams>();
+    msg->setParam("TEST", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+    msg->setParam("HELLO", "WORLD");
+    auto record = fcgi::Record{std::move(msg), 1};
 
     auto recordData = std::string{};
     auto recordStream = std::ostringstream{};
@@ -35,9 +24,9 @@ TEST(Utils, RecordReader)
     recordData = recordStream.str();
 
     auto readedRecordList = std::vector<fcgi::Record>{};
-    auto recordReadHandler = [&readedRecordList](const fcgi::Record& record)
+    auto recordReadHandler = [&readedRecordList](fcgi::Record& record)
     {
-        readedRecordList.push_back(record);
+        readedRecordList.push_back(std::move(record));
     };
 
     auto recordReader = fcgi::RecordReader{recordReadHandler};
@@ -56,6 +45,7 @@ TEST(Utils, RecordReader)
     ASSERT_EQ(readedRecordList.size(), 1);
     ASSERT_TRUE(record == readedRecordList.front());
 }
+
 
 TEST(Utils, StreamMaker)
 {

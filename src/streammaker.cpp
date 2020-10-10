@@ -13,9 +13,9 @@ std::vector<Record> StreamMaker::makeStream(RecordType type, uint16_t requestId,
     auto result = std::vector<Record>{};
     auto processMessage = [&](const std::string& msgData)
     {
-        auto msg = StreamDataMessage{type, msgData};
-        auto record = Record(msg, requestId);
-        result.push_back(record);
+        auto msg = std::make_unique<StreamDataMessage>(type, msgData);
+        auto record = Record(std::move(msg), requestId);
+        result.push_back(std::move(record));
     };
 
     auto msgData = std::string{};

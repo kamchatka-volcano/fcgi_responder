@@ -14,6 +14,23 @@ NameValue::NameValue(const std::string& name, const std::string& value)
 {
 }
 
+std::size_t NameValue::size() const
+{
+    auto result = 0u;
+    if (name_.size() <= 127)
+        result += 1;
+    else
+        result += 4;
+    if (value_.size() <= 127)
+        result += 1;
+    else
+        result += 4;
+    result += name_.size();
+    result += value_.size();
+
+    return result;
+}
+
 const std::string& NameValue::name() const
 {
     return name_;
@@ -90,4 +107,10 @@ void NameValue::fromStream(std::istream& input)
     auto decoder = Decoder(input);
     decoder >> name_
             >> value_;
+}
+
+bool NameValue::operator==(const NameValue& other) const
+{
+    return name_ == other.name_ &&
+           value_ == other.value_;
 }

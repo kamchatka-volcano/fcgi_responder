@@ -17,6 +17,11 @@ MsgEndRequest::MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus)
 {
 }
 
+std::size_t MsgEndRequest::size() const
+{
+    return 8;
+}
+
 uint32_t MsgEndRequest::appStatus() const
 {
     return appStatus_;
@@ -35,7 +40,7 @@ void MsgEndRequest::toStream(std::ostream& output) const
     encoder.addPadding(3); //reserved bytes
 }
 
-void MsgEndRequest::fromStream(std::istream& input)
+void MsgEndRequest::fromStream(std::istream& input, std::size_t)
 {
     auto protocolStatus = uint8_t{};
     auto decoder = Decoder(input);
@@ -46,3 +51,8 @@ void MsgEndRequest::fromStream(std::istream& input)
     protocolStatus_ = protocolStatusFromInt(protocolStatus);
 }
 
+bool MsgEndRequest::operator==(const MsgEndRequest& other) const
+{
+    return appStatus_ == other.appStatus_ &&
+           protocolStatus_ == other.protocolStatus_;
+}

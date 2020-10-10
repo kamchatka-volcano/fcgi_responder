@@ -42,6 +42,7 @@ Decoder& Decoder::operator>>(std::string& val)
 
 void Decoder::skip(std::size_t numOfBytes)
 {
-    auto padding = std::string(numOfBytes, '0');
-    input_.read(&padding[0], static_cast<std::streamsize>(padding.size()));
+    auto ch = char{};
+    for (auto i = 0u; i < numOfBytes; ++i)
+        input_.get(ch);
 }
