@@ -4,7 +4,7 @@ It works on raw data, received from the web server, and returns serialized outpu
 Thus, the implementation of connection to the web server lays outside of the library's responsibility, and clients can use whatever socket programming methods they prefer.  
 This makes **fcgi_responder** being portable and having no external dependencies.  
 
-## Hello world
+## Usage
 This is a minimal example, using Qt framework for networking:
 ```C++
 #include <fcgi_responder/responder.h>
