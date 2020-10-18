@@ -57,24 +57,13 @@ std::size_t Record::size() const
 
 void Record::toStream(std::ostream& output) const
 {
-    try{
-        write(output);
-    }
-    catch(...){
-        throw RecordWriteError{};
-    }
+    write(output);
 }
 
 std::size_t Record::fromStream(std::istream& input, std::size_t inputSize)
 {
     auto result = std::size_t{};
-    try{
-        result = read(input, inputSize);
-    }
-    catch(const ProtocolError&){throw;}
-    catch(...){
-        throw RecordReadError{};
-    }
+    result = read(input, inputSize);
     return result;
 }
 
@@ -117,21 +106,28 @@ std::size_t Record::read(std::istream &input, std::size_t inputSize)
             >> paddingLength
             >> reservedByte;
 
-    if (inputSize - cHeaderSize < contentLength + paddingLength)
+    auto recordSize = static_cast<std::size_t>(cHeaderSize + contentLength + paddingLength);
+
+    if (inputSize < recordSize)
         return 0;
 
-    type_ = recordTypeFromInt(type);
-    if (type_ == RecordType::Invalid){
-        decoder.skip(contentLength);
-        decoder.skip(paddingLength);
-        throw InvalidRecordType(type);
+    try{
+        type_ = recordTypeFromInt(type);
+    }
+    catch(const InvalidValue& e){
+        throw InvalidRecordType(static_cast<uint8_t>(e.asInt()), recordSize);
     }
 
-    message_ = Message::createMessage(type_);
-    message_->read(input, contentLength);
-    decoder.skip(paddingLength);
+    try{
+        message_ = Message::createMessage(type_);
+        message_->read(input, contentLength);
+        decoder.skip(paddingLength);
+    }
+    catch(ProtocolError& e){
+        throw RecordReadError(e.what(), recordSize);
+    }
 
-    return cHeaderSize + contentLength + paddingLength;
+    return recordSize;
 }
 
 RecordType Record::messageType(const Message& msg) const
@@ -163,8 +159,8 @@ bool compareMessages(const fcgi::Record& lhs, const fcgi::Record& rhs)
     case fcgi::RecordType::EndRequest: return lhs.getMessage<fcgi::MsgEndRequest>() == rhs.getMessage<fcgi::MsgEndRequest>();
     case fcgi::RecordType::AbortRequest: return lhs.getMessage<fcgi::MsgAbortRequest>() == rhs.getMessage<fcgi::MsgAbortRequest>();
     case fcgi::RecordType::UnknownType: return lhs.getMessage<fcgi::MsgUnknownType>() == rhs.getMessage<fcgi::MsgUnknownType>();
-    default: return false;
     }
+    return false;
 }
 
 }

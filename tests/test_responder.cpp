@@ -6,7 +6,10 @@
 #include <msggetvaluesresult.h>
 #include <msgunknowntype.h>
 #include <msgparams.h>
+#include <msgabortrequest.h>
 #include <streamdatamessage.h>
+#include <encoder.h>
+#include <constants.h>
 #include <requesteditor.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -56,6 +59,13 @@ namespace{
 
 template <typename ResponderType>
 class BaseTestResponder : public ::testing::TestWithParam<bool>{
+public:
+    BaseTestResponder()
+    {
+        responder_.setErrorInfoHandler([&errorInfo = errorInfo_](const std::string& errorMsg){
+            errorInfo += errorMsg + "\n";
+        });
+    }
 protected:
     void receiveMessage(std::unique_ptr<fcgi::Message> msg, uint16_t requestId = 0)
     {
@@ -65,9 +75,17 @@ protected:
     {
         responder_.receive(messageData(recordType, requestId));
     }
+    void receiveMessage(const std::string& recordData)
+    {
+        responder_.receive(recordData);
+    }
     void expectMessageToBeSent(std::unique_ptr<fcgi::Message> msg, uint16_t requestId = 0)
     {
         EXPECT_CALL(responder_, sendData(messageData(std::move(msg), requestId)));
+    }
+    void expectNoMessagesToBeSent()
+    {
+        EXPECT_CALL(responder_, sendData(::testing::_)).Times(0);
     }
     void checkConnectionState()
     {
@@ -83,31 +101,28 @@ protected:
         return disconnectOnEnd ? ResultConnectionState::Close
                                : ResultConnectionState::KeepOpen;
     }
+
     ResponderType responder_;
+    std::string errorInfo_;
 };
 
 using TestResponder = BaseTestResponder<MockResponder>;
 using TestResponderWithTestProcessor = BaseTestResponder<MockResponderWithTestProcessor>;
 
-class MsgUnknown : public Message
-{
-public:
-    MsgUnknown() :
-        Message(RecordType::Invalid)
-    {}
-    std::size_t size() const override
-    {
-        return 0;
-    }
-private:
-    void toStream(std::ostream&) const override {}
-    void fromStream(std::istream&, std::size_t) override {}
-};
-
 TEST_F(TestResponder, UnknownType)
 {
-    expectMessageToBeSent(std::make_unique<MsgUnknownType>(static_cast<int>(RecordType::Invalid)), 0);
-    receiveMessage(std::make_unique<MsgUnknown>(), 1);
+    expectMessageToBeSent(std::make_unique<MsgUnknownType>(99), 0);
+
+    auto output = std::ostringstream{};
+    auto encoder = Encoder(output);
+    encoder  << cProtocolVersion
+             << static_cast<uint8_t>(99)
+             << static_cast<uint16_t>(1)
+             << static_cast<uint16_t>(0)
+             << static_cast<uint8_t>(0);
+    encoder.addPadding(1);
+    receiveMessage(output.str());
+    EXPECT_EQ(errorInfo_, "Record type \"99\" is invalid.\n");
 }
 
 TEST_F(TestResponder, GetValuesAllDefaultSettings)
@@ -282,6 +297,58 @@ TEST_P(TestResponderWithTestProcessor, Request)
     receiveMessage(std::make_unique<MsgParams>(), 1);
     receiveMessage(std::move(inStream), 1);
     receiveMessage(std::make_unique<MsgStdIn>(), 1);
+}
+
+TEST_F(TestResponder, UnexpectedRecord)
+{
+    expectNoMessagesToBeSent();
+    receiveMessage(std::make_unique<MsgAbortRequest>(), 1);
+    EXPECT_EQ(errorInfo_, "Received unexpected record, RecordType = 2, requestId = 1\n");
+}
+
+TEST_P(TestResponder, RecordReadError)
+{
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), 1);
+    checkConnectionState();
+
+    auto output = std::ostringstream{};
+    auto encoder = Encoder(output);
+    auto nameValue = fcgi::NameValue("wrongName", "0");
+    encoder  << cProtocolVersion
+             << static_cast<uint8_t>(RecordType::GetValues)
+             << static_cast<uint16_t>(1)
+             << static_cast<uint16_t>(nameValue.size())
+             << static_cast<uint8_t>(0);
+    encoder.addPadding(1);
+    nameValue.toStream(output);
+
+    auto receivedData = output.str();
+    receivedData += messageData(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), static_cast<uint16_t>(1));
+    receivedData += messageData(std::make_unique<MsgAbortRequest>(), static_cast<uint16_t>(1));
+    receiveMessage(receivedData);
+
+    EXPECT_EQ(errorInfo_, "Value request value \"wrongName\" is invalid.\n");
+}
+
+TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
+{
+    expectNoMessagesToBeSent();
+    auto output = std::ostringstream{};
+    auto encoder = Encoder(output);
+    auto nameValue = fcgi::NameValue("FCGI_MAX_CONNS", "");
+    encoder  << cProtocolVersion
+             << static_cast<uint8_t>(RecordType::GetValues)
+             << static_cast<uint16_t>(1)
+             << static_cast<uint16_t>(nameValue.size() - 1) //wrong size
+             << static_cast<uint8_t>(0);
+    encoder.addPadding(1);
+    nameValue.toStream(output);
+
+    auto receivedData = output.str();
+    receivedData += messageData(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), static_cast<uint16_t>(1));
+    receivedData += messageData(std::make_unique<MsgAbortRequest>(), static_cast<uint16_t>(1));
+    receiveMessage(receivedData);
+    EXPECT_EQ(errorInfo_, "Misaligned name-value\n");
 }
 
 INSTANTIATE_TEST_CASE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));

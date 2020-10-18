@@ -13,8 +13,6 @@ std::size_t MsgGetValuesResult::size() const
 {
     auto result = 0u;
     for(const auto& requestValuePair : requestValueMap_){
-        if (requestValuePair.first == ValueRequest::Invalid)
-            continue;
         auto nameValue = NameValue(valueRequestToString(requestValuePair.first), requestValuePair.second);
         result += nameValue.size();
     }
@@ -45,8 +43,6 @@ std::vector<ValueRequest> MsgGetValuesResult::requestList() const
 void MsgGetValuesResult::toStream(std::ostream &output) const
 {
     for(const auto& requestValuePair : requestValueMap_){
-        if (requestValuePair.first == ValueRequest::Invalid)
-            continue;
         auto nameValue = NameValue(valueRequestToString(requestValuePair.first), requestValuePair.second);
         nameValue.toStream(output);
     }
@@ -60,13 +56,12 @@ void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
         nameValue.fromStream(input);
         readedBytes += nameValue.size();
         auto request = valueRequestFromString(nameValue.name());
-        if (request != ValueRequest::Invalid)
-            requestValueMap_[request] = nameValue.value();
+        requestValueMap_[request] = nameValue.value();
 
         if (readedBytes == inputSize)
             break;
         if (readedBytes > inputSize)
-            throw MessageReadError{};
+            throw UnrecoverableProtocolError{"Misaligned name-value"};
     }
 }
 

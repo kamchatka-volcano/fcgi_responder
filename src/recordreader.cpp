@@ -26,6 +26,12 @@ void RecordReader::addData(const std::string &data)
     }
 }
 
+void RecordReader::removeBrokenRecord(std::size_t recordSize)
+{
+    readedBytes_ = recordSize;
+    addData({});
+}
+
 void RecordReader::clear()
 {
     buffer_.clear();

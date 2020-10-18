@@ -35,14 +35,18 @@ void Responder::receiveData(const std::string& data)
     try{
         recordReader_->addData(data);
     }
-    catch(const InvalidRecordType& e){
-        if (errorInfoHandler_)
-            errorInfoHandler_(e.what());
+    catch(const InvalidRecordType& e){        
+        notifyAboutError(e.what());
         send(0, std::make_unique<MsgUnknownType>(e.recordType()));
+        recordReader_->removeBrokenRecord(e.recordSize());
+
+    }
+    catch(const RecordReadError& e){
+        notifyAboutError(e.what());
+        recordReader_->removeBrokenRecord(e.recordSize());
     }
     catch(const std::exception& e){
-        if (errorInfoHandler_)
-            errorInfoHandler_(e.what());
+        notifyAboutError(e.what());
         recordReader_->clear();
     }
 }
@@ -50,11 +54,10 @@ void Responder::receiveData(const std::string& data)
 void Responder::onRecordReaded(const Record& record)
 {
     if (!isRecordExpected(record)){
-        if (errorInfoHandler_)
-            errorInfoHandler_("Received unexpected record, RecordType = "
-                              + std::to_string(static_cast<int>(record.type()))
-                              + ", requestId = "
-                              + std::to_string(record.requestId()));
+        notifyAboutError("Received unexpected record, RecordType = "
+                         + std::to_string(static_cast<int>(record.type()))
+                         + ", requestId = "
+                         + std::to_string(record.requestId()));
         return;
     }
 
@@ -125,7 +128,6 @@ void Responder::onGetValues(const MsgGetValues &msg)
         case ValueRequest::MpxsConns:
             result->setRequestValue(request, cfg_.multiplexingEnabled ? "1" : "0");
             break;
-        default: break;
         }
     }
     send(0, std::move(result));
@@ -157,9 +159,8 @@ void Responder::sendRecord(const Record &record)
     try{
         record.toStream(recordStream_);
     }
-    catch (std::exception& e){
-        if (errorInfoHandler_)
-            errorInfoHandler_(e.what());
+    catch (std::exception& e){        
+        notifyAboutError(e.what());
         return;
     }
     sendData(recordBuffer_);
@@ -222,3 +223,10 @@ bool Responder::isMultiplexingEnabled() const
 {
     return cfg_.multiplexingEnabled;
 }
+
+void Responder::notifyAboutError(const std::string &errorMsg)
+{
+    if (errorInfoHandler_)
+        errorInfoHandler_(errorMsg);
+}
+

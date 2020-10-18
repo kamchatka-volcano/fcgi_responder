@@ -130,6 +130,8 @@ private:
     bool isRecordExpected(const Record& record);
     void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
 
+    void notifyAboutError(const std::string& errorMsg);
+
 private:
     struct Config{
         int maxConnectionsNumber = 1;

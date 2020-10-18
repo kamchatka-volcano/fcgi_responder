@@ -72,7 +72,7 @@ void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
         if (readedBytes == inputSize)
             break;
         if (readedBytes > inputSize)
-            throw MessageReadError{};
+            throw UnrecoverableProtocolError{"Misaligned name-value"};
     }
 }
 

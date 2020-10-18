@@ -11,6 +11,7 @@ public:
     RecordReader(std::function<void(Record&)> recordReadedHandler);
     void addData(const std::string& data);
     void clear();
+    void removeBrokenRecord(std::size_t recordSize);
 
 private:
     std::string buffer_;

@@ -24,26 +24,14 @@ void Message::read(std::istream &input, std::size_t inputSize)
 {
     if (inputSize == 0)
         return;
-    if (inputSize < size())
-        throw MessageReadError{};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::ostream::eofbit);
-    try{
-        fromStream(input, inputSize);
-    }
-    catch(...){
-        throw MessageReadError{};
-    }
+    fromStream(input, inputSize);
 }
 
 void Message::write(std::ostream &output) const
 {
     output.exceptions(std::ostream::failbit | std::ostream::badbit | std::ostream::eofbit);
-    try{
-        toStream(output);
-    }
-    catch(...){
-        throw MessageWriteError{};
-    }
+    toStream(output);
 }
 
 RecordType Message::recordType() const
@@ -65,7 +53,7 @@ std::unique_ptr<Message> Message::createMessage(RecordType type)
     case RecordType::GetValues: return std::make_unique<MsgGetValues>();
     case RecordType::GetValuesResult: return std::make_unique<MsgGetValuesResult>();
     case RecordType::UnknownType: return std::make_unique<MsgUnknownType>();
-    default: return nullptr;
     }
+    return {};
 }
 
