@@ -34,6 +34,13 @@ public:
     std::vector<std::string> paramList() const;
 
     ///
+    /// \brief params
+    /// Returns params map
+    /// \return
+    ///
+    const std::unordered_map<std::string, std::string>& params() const;
+
+    ///
     /// \brief keepConnection
     /// State of connection after the end of request's processing.
     /// If true, connection stays open, otherwise it's closed after sending the response.

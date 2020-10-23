@@ -9,11 +9,7 @@ const std::string& Request::stdIn() const
 
 std::string Request::param(const std::string& name) const
 {
-    auto it = params_.find(name);
-    if (it == params_.end())
-        return {};
-    else
-        return it->second;
+    return params_.at(name);
 }
 
 std::vector<std::string> Request::paramList() const
@@ -22,6 +18,11 @@ std::vector<std::string> Request::paramList() const
     for (const auto& paramVal : params_)
         result.push_back(paramVal.first);
     return result;
+}
+
+const std::unordered_map<std::string, std::string>& Request::params() const
+{
+    return params_;
 }
 
 bool Request::keepConnection() const
