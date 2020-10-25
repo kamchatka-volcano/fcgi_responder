@@ -12,6 +12,12 @@ Response::Response(const std::string& data, const std::string& errorMsg)
 {
 }
 
+Response::Response(std::string&& data, std::string&& errorMsg)
+    : data_(std::move(data))
+    , errorMsg_(std::move(errorMsg))
+{
+}
+
 void Response::setData(const std::string& data)
 {
     data_ = data;

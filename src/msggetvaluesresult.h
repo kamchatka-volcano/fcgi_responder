@@ -1,6 +1,6 @@
 #pragma once
 #include "message.h"
-#include <map>
+#include "namevalue.h"
 #include <string>
 #include <vector>
 
@@ -10,17 +10,18 @@ class MsgGetValuesResult : public Message{
 public:
     MsgGetValuesResult();
     std::size_t size() const override;
-    void setRequestValue(ValueRequest request, const std::string value);
-    std::string requestValue(ValueRequest request) const;
+    const std::string& requestValue(ValueRequest request) const;
     std::vector<ValueRequest> requestList() const;
     bool operator==(const MsgGetValuesResult& other) const;
+
+    void setRequestValue(ValueRequest request, const std::string& value);
 
 private:
     void toStream(std::ostream& output) const override;
     void fromStream(std::istream& input, std::size_t inputSize) override;
 
 private:
-    std::map<ValueRequest, std::string> requestValueMap_;
+    std::vector<NameValue> requestValueList_;
 };
 
 }

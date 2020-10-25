@@ -9,10 +9,11 @@ class MsgParams : public Message{
 public:
     MsgParams();
     std::size_t size() const override;
-    void setParam(const std::string& name, const std::string& value);
-    std::string paramValue(const std::string& name) const;
+    const std::string& paramValue(const std::string& name) const;
     std::vector<std::string> paramList() const;
     bool operator==(const MsgParams& other) const;
+
+    void setParam(const std::string& name, const std::string& value);
 
 private:
     void toStream(std::ostream& output) const override;

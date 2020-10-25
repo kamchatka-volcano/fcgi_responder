@@ -24,6 +24,15 @@ public:
              const std::string& errorMsg);
 
     ///
+    /// \brief Response
+    /// Constructor
+    /// \param data - HTTP response
+    /// \param errorMsg - error information
+    ///
+    Response(std::string&& data,
+             std::string&& errorMsg);
+
+    ///
     /// \brief setData
     /// Sets HTTP response data
     /// \param data

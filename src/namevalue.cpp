@@ -14,6 +14,12 @@ NameValue::NameValue(const std::string& name, const std::string& value)
 {
 }
 
+NameValue::NameValue(std::string&& name, std::string&& value)
+    : name_(std::move(name))
+    , value_(std::move(value))
+{
+}
+
 std::size_t NameValue::size() const
 {
     auto result = 0u;

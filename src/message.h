@@ -14,7 +14,6 @@ public:
     virtual std::size_t size() const = 0;
     RecordType recordType() const;
 
-
     void write(std::ostream& output) const;
     void read(std::istream& input, std::size_t inputSize);
 

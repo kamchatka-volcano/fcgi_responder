@@ -1,6 +1,7 @@
 #include "msggetvaluesresult.h"
 #include "namevalue.h"
 #include "errors.h"
+#include <algorithm>
 
 using namespace fcgi;
 
@@ -12,40 +13,53 @@ MsgGetValuesResult::MsgGetValuesResult()
 std::size_t MsgGetValuesResult::size() const
 {
     auto result = 0u;
-    for(const auto& requestValuePair : requestValueMap_){
-        auto nameValue = NameValue(valueRequestToString(requestValuePair.first), requestValuePair.second);
+    for(const auto& nameValue : requestValueList_)
         result += nameValue.size();
-    }
     return result;
 }
 
-void MsgGetValuesResult::setRequestValue(ValueRequest request, const std::string value)
+void MsgGetValuesResult::setRequestValue(ValueRequest request, const std::string& value)
 {
-    requestValueMap_[request] = value;
+    const auto requestStr = valueRequestToString(request);
+    auto it = std::find_if(requestValueList_.begin(), requestValueList_.end(),
+    [&requestStr](const NameValue& nameValue)
+    {
+        return nameValue.name() == requestStr;
+    });
+
+    if (it == requestValueList_.end())
+        requestValueList_.push_back({requestStr, value});
+    else
+        it->setValue(value);
 }
 
-std::string MsgGetValuesResult::requestValue(ValueRequest request) const
+const std::string& MsgGetValuesResult::requestValue(ValueRequest request) const
 {
-    auto it = requestValueMap_.find(request);
-    if (it == requestValueMap_.end())
-        return {};
-    return it->second;
+    const auto requestStr = valueRequestToString(request);
+    auto it = std::find_if(requestValueList_.begin(), requestValueList_.end(),
+    [&requestStr](const NameValue& nameValue)
+    {
+        return nameValue.name() == requestStr;
+    });
+
+    if (it == requestValueList_.end())
+        throw std::out_of_range("fcgi::MsgGetValuesResult doesn't contain value for request '" + requestStr +  "'");
+    else
+        return it->value();
 }
 
 std::vector<ValueRequest> MsgGetValuesResult::requestList() const
 {
     auto result = std::vector<ValueRequest>{};
-    for (const auto& requestValuePair : requestValueMap_)
-        result.push_back(requestValuePair.first);
+    for (const auto& nameValue : requestValueList_)
+        result.push_back(valueRequestFromString(nameValue.name()));
     return result;
 }
 
 void MsgGetValuesResult::toStream(std::ostream &output) const
 {
-    for(const auto& requestValuePair : requestValueMap_){
-        auto nameValue = NameValue(valueRequestToString(requestValuePair.first), requestValuePair.second);
+    for(const auto& nameValue : requestValueList_)
         nameValue.toStream(output);
-    }
 }
 
 void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
@@ -55,8 +69,8 @@ void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
         auto nameValue = NameValue{};
         nameValue.fromStream(input);
         readedBytes += nameValue.size();
-        auto request = valueRequestFromString(nameValue.name());
-        requestValueMap_[request] = nameValue.value();
+        valueRequestFromString(nameValue.name()); //Check that request name is valid
+        requestValueList_.push_back(nameValue);
 
         if (readedBytes == inputSize)
             break;
@@ -67,5 +81,5 @@ void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
 
 bool MsgGetValuesResult::operator==(const MsgGetValuesResult& other) const
 {
-    return requestValueMap_ == other.requestValueMap_;
+    return requestValueList_ == other.requestValueList_;
 }

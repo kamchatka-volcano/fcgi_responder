@@ -38,7 +38,10 @@ set(SRC
 
 add_library(fcgi_responder STATIC ${SRC})
 set_target_properties(fcgi_responder PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(fcgi_responder PROPERTIES PUBLIC_HEADER "include/fcgi_responder/request.h;include/fcgi_responder/response.h;include/fcgi_responder/responder.h")
+set_target_properties(fcgi_responder PROPERTIES PUBLIC_HEADER "\
+    include/fcgi_responder/request.h;\
+    include/fcgi_responder/response.h;\
+    include/fcgi_responder/responder.h")
 
 target_include_directories(fcgi_responder PRIVATE include/fcgi_responder)
 target_include_directories(fcgi_responder PRIVATE src)

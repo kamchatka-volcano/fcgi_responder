@@ -41,7 +41,6 @@ public:
     const char* what() const noexcept override;
 
 private:
-
     InvalidValueType type_;
     uint32_t value_;
     std::string valueStr_;

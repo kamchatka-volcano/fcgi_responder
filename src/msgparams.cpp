@@ -27,12 +27,11 @@ void MsgParams::setParam(const std::string &name, const std::string &value)
 
     if (it == paramList_.end())
         paramList_.push_back({name, value});
-    else {
+    else
         it->setValue(value);
-    }
 }
 
-std::string MsgParams::paramValue(const std::string& name) const
+const std::string& MsgParams::paramValue(const std::string& name) const
 {
     auto it = std::find_if(paramList_.begin(), paramList_.end(),
     [&name](const NameValue& nameValue)
@@ -41,7 +40,7 @@ std::string MsgParams::paramValue(const std::string& name) const
     });
 
     if (it == paramList_.end())
-        return {};
+        throw std::out_of_range("fcgi::MsgParams doesn't contain param '" + name +  "'");
     else
         return it->value();
 }

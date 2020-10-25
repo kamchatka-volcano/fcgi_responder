@@ -24,7 +24,7 @@ public:
     /// \param name variable name
     /// \return variable value
     ///
-    std::string param(const std::string& name) const;
+    const std::string& param(const std::string& name) const;
 
     ///
     /// \brief paramList
@@ -39,6 +39,14 @@ public:
     /// \return
     ///
     const std::unordered_map<std::string, std::string>& params() const;
+
+    ///
+    /// \brief hasParam
+    /// Returns true if request has specified parameter
+    /// \param name
+    /// \return
+    ///
+    bool hasParam(const std::string& name) const;
 
     ///
     /// \brief keepConnection
