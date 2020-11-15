@@ -36,12 +36,15 @@ set(SRC
     src/streamdatamessage.cpp
     src/streammaker.cpp)
 
+set(PUBLIC_HEADERS
+    "include/fcgi_responder/request.h"
+    "include/fcgi_responder/response.h"
+    "include/fcgi_responder/responder.h"
+)
+
 add_library(fcgi_responder STATIC ${SRC})
 set_target_properties(fcgi_responder PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(fcgi_responder PROPERTIES PUBLIC_HEADER "\
-    include/fcgi_responder/request.h;\
-    include/fcgi_responder/response.h;\
-    include/fcgi_responder/responder.h")
+set_target_properties(fcgi_responder PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
 
 target_include_directories(fcgi_responder PRIVATE include/fcgi_responder)
 target_include_directories(fcgi_responder PRIVATE src)
