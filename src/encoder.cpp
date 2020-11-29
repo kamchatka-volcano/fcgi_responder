@@ -1,7 +1,7 @@
 #include "encoder.h"
 #include <algorithm>
 
-using namespace fcgi;
+namespace fcgi{
 
 Encoder::Encoder(std::ostream& stream)
     : output_(stream)
@@ -45,4 +45,6 @@ void Encoder::addPadding(std::size_t numOfBytes)
     auto ch = char{};
     for (auto i = 0u; i < numOfBytes; ++i)
         output_.put(ch);
+}
+
 }

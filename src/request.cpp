@@ -1,6 +1,6 @@
 #include "request.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 const std::string& Request::stdIn() const
 {
@@ -38,4 +38,6 @@ bool Request::hasParam(const std::string &name) const
 bool Request::keepConnection() const
 {
     return keepConnection_;
+}
+
 }

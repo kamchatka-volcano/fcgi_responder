@@ -3,7 +3,7 @@
 #include "decoder.h"
 #include <array>
 
-using namespace fcgi;
+namespace fcgi{
 
 MsgUnknownType::MsgUnknownType()
     : Message(RecordType::UnknownType)
@@ -43,4 +43,6 @@ void MsgUnknownType::fromStream(std::istream &input, std::size_t)
 bool MsgUnknownType::operator==(const MsgUnknownType& other) const
 {
     return unknownTypeValue_ == other.unknownTypeValue_;
+}
+
 }

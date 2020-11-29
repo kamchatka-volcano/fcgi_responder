@@ -3,7 +3,7 @@
 #include "decoder.h"
 #include <array>
 
-using namespace fcgi;
+namespace fcgi{
 
 MsgEndRequest::MsgEndRequest()
     : Message(RecordType::EndRequest)
@@ -55,4 +55,6 @@ bool MsgEndRequest::operator==(const MsgEndRequest& other) const
 {
     return appStatus_ == other.appStatus_ &&
            protocolStatus_ == other.protocolStatus_;
+}
+
 }

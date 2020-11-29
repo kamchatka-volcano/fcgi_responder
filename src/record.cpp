@@ -15,7 +15,7 @@
 #include <sstream>
 #include <string>
 
-using namespace fcgi;
+namespace fcgi{
 
 Record::Record()
     : type_(RecordType::UnknownType)
@@ -170,4 +170,6 @@ bool Record::operator==(const Record& other) const
     return type_ == other.type_ &&
            requestId_ == other.requestId_ &&
            compareMessages(*this, other);
+}
+
 }

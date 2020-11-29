@@ -1,6 +1,6 @@
 #include "response.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 Response::Response()
 {
@@ -38,3 +38,4 @@ const std::string& Response::errorMsg() const
     return errorMsg_;
 }
 
+}

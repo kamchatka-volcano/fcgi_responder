@@ -9,7 +9,7 @@
 #include "msgunknowntype.h"
 #include "streamdatamessage.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 Message::Message(RecordType type)
     : recordType_(type)
@@ -57,3 +57,4 @@ std::unique_ptr<Message> Message::createMessage(RecordType type)
     return {};
 }
 
+}

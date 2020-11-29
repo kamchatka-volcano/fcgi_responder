@@ -2,7 +2,7 @@
 #include "decoder.h"
 #include "encoder.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 NameValue::NameValue()
 {
@@ -119,4 +119,6 @@ bool NameValue::operator==(const NameValue& other) const
 {
     return name_ == other.name_ &&
            value_ == other.value_;
+}
+
 }

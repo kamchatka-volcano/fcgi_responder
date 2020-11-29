@@ -2,7 +2,7 @@
 #include "record.h"
 #include <sstream>
 
-using namespace fcgi;
+namespace fcgi{
 
 RecordReader::RecordReader(std::function<void(Record&)> recordReadedHandler)
     : recordReadedHandler_(recordReadedHandler)
@@ -35,4 +35,6 @@ void RecordReader::removeBrokenRecord(std::size_t recordSize)
 void RecordReader::clear()
 {
     buffer_.clear();
+}
+
 }

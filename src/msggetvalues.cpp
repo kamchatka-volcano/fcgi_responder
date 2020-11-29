@@ -3,7 +3,7 @@
 #include "errors.h"
 #include <algorithm>
 
-using namespace fcgi;
+namespace fcgi{
 
 MsgGetValues::MsgGetValues()
     : Message (RecordType::GetValues)
@@ -60,4 +60,6 @@ void MsgGetValues::fromStream(std::istream &input, std::size_t inputSize)
 bool MsgGetValues::operator==(const MsgGetValues& other) const
 {
     return valueRequestList_ == other.valueRequestList_;
+}
+
 }

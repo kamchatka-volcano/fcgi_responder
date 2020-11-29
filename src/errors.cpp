@@ -1,6 +1,6 @@
 #include "errors.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 ProtocolError::ProtocolError(const std::string& msg)
     : std::runtime_error(msg)
@@ -98,4 +98,6 @@ InvalidRecordType::InvalidRecordType(uint8_t typeValue, std::size_t recordSize)
 uint8_t InvalidRecordType::recordType() const
 {
     return typeValue_;
+}
+
 }

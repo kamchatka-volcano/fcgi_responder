@@ -3,7 +3,7 @@
 #include "streamdatamessage.h"
 #include "msgparams.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 RequestEditor::RequestEditor(Request& request)
     : request_(request)
@@ -24,4 +24,6 @@ void RequestEditor::addParamsMsg(const fcgi::MsgParams& msg)
 void RequestEditor::setKeepConnection(bool state)
 {
     request_.keepConnection_ = state;
+}
+
 }

@@ -1,7 +1,7 @@
 #include "streammaker.h"
 #include "streamdatamessage.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 StreamMaker::StreamMaker(std::size_t maxDataMessageSize)
     : maxDataMessageSize_(maxDataMessageSize)
@@ -31,4 +31,6 @@ std::vector<Record> StreamMaker::makeStream(RecordType type, uint16_t requestId,
         processMessage(msgData);
     processMessage("");
     return result;
+}
+
 }

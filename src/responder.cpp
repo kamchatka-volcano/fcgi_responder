@@ -15,7 +15,7 @@
 #include "constants.h"
 #include <algorithm>
 
-using namespace fcgi;
+namespace fcgi{
 
 Responder::Responder()
     : recordReader_(std::make_unique<RecordReader>([this](const Record& record)
@@ -230,3 +230,4 @@ void Responder::notifyAboutError(const std::string &errorMsg)
         errorInfoHandler_(errorMsg);
 }
 
+}

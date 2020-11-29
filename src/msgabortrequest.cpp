@@ -1,6 +1,6 @@
 #include "msgabortrequest.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 MsgAbortRequest::MsgAbortRequest()
     : Message(RecordType::AbortRequest)
@@ -23,4 +23,6 @@ void MsgAbortRequest::fromStream(std::istream&, std::size_t)
 bool MsgAbortRequest::operator==(const MsgAbortRequest&) const
 {
     return true;
+}
+
 }

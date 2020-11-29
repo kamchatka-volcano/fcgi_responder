@@ -4,7 +4,7 @@
 #include "encoder.h"
 #include "decoder.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 MsgBeginRequest::MsgBeginRequest()
     : Message(RecordType::BeginRequest)
@@ -57,4 +57,6 @@ bool MsgBeginRequest::operator==(const MsgBeginRequest& other) const
 {
     return role_ == other.role_ &&
            resultConectionState_ == other.resultConectionState_;
+}
+
 }

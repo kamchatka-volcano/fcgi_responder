@@ -1,6 +1,6 @@
 #include "streamdatamessage.h"
 
-using namespace fcgi;
+namespace fcgi{
 
 StreamDataMessage::StreamDataMessage(RecordType recordType, const std::string& data )
     : Message(recordType)
@@ -72,4 +72,6 @@ MsgData::MsgData(const std::string& data)
 bool MsgData::operator==(const MsgData& other) const
 {
     return data_ == other.data_;
+}
+
 }

@@ -2,7 +2,7 @@
 #include "errors.h"
 #include <algorithm>
 
-using namespace fcgi;
+namespace fcgi{
 
 MsgParams::MsgParams()
     : Message(RecordType::Params)
@@ -78,4 +78,6 @@ void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
 bool MsgParams::operator==(const MsgParams& other) const
 {
     return paramList_ == other.paramList_;
+}
+
 }
