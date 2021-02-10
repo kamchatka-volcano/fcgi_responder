@@ -93,7 +93,7 @@ protected:
     /// must be passed to Responder with this method
     /// \param data
     ///
-    void receiveData(const std::string& data);
+    void receiveData(const char* data, std::size_t size);
 
     ///
     /// \brief sendData

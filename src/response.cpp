@@ -33,9 +33,19 @@ const std::string& Response::data() const
     return data_;
 }
 
+std::string&& Response::moveOutData()
+{
+    return std::move(data_);
+}
+
 const std::string& Response::errorMsg() const
 {
     return errorMsg_;
+}
+
+std::string&& Response::moveOutErrorMsg()
+{
+    return std::move(errorMsg_);
 }
 
 }

@@ -26,7 +26,7 @@ void MsgParams::setParam(const std::string &name, const std::string &value)
     });
 
     if (it == paramList_.end())
-        paramList_.push_back({name, value});
+        paramList_.emplace_back(name, value);
     else
         it->setValue(value);
 }

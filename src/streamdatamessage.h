@@ -6,6 +6,7 @@ namespace fcgi{
 class StreamDataMessage : public Message{
 public:
     StreamDataMessage(RecordType recordType, const std::string& data = {});
+    StreamDataMessage(RecordType recordType, std::string&& data);
     std::size_t size() const override;
     void setData(const std::string& data);
     const std::string& data() const;
@@ -22,6 +23,7 @@ class MsgStdIn : public StreamDataMessage
 {
 public:
     MsgStdIn(const std::string& data = {});
+    MsgStdIn(std::string&& data);
     bool operator==(const MsgStdIn& other) const;
 };
 
@@ -29,6 +31,7 @@ class MsgStdOut : public StreamDataMessage
 {
 public:
     MsgStdOut(const std::string& data = {});
+    MsgStdOut(std::string&& data);
     bool operator==(const MsgStdOut& other) const;
 };
 
@@ -36,6 +39,7 @@ class MsgStdErr : public StreamDataMessage
 {
 public:
     MsgStdErr(const std::string& data = {});
+    MsgStdErr(std::string&& data);
     bool operator==(const MsgStdErr& other) const;
 };
 
@@ -43,6 +47,7 @@ class MsgData : public StreamDataMessage
 {
 public:
     MsgData(const std::string& data = {});
+    MsgData(std::string&& data);
     bool operator==(const MsgData& other) const;
 };
 

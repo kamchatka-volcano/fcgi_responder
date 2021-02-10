@@ -35,12 +35,12 @@ TEST(Utils, RecordReader)
     for (auto byte : recordData){
         chunk.push_back(byte);
         if (chunk.size() == 10){
-            recordReader.addData(chunk);
+            recordReader.addData(chunk.c_str(), chunk.size());
             chunk.clear();
         }
     }
     if (!chunk.empty())
-        recordReader.addData(chunk);
+        recordReader.addData(chunk.c_str(), chunk.size());
 
     ASSERT_EQ(readedRecordList.size(), 1);
     ASSERT_TRUE(record == readedRecordList.front());

@@ -60,6 +60,20 @@ public:
     ///
     const std::string& errorMsg() const;
 
+    ///
+    /// \brief moveOutData
+    /// Returns HTTP response data (moved out)
+    /// \return
+    ///
+    std::string&& moveOutData();
+
+    ///
+    /// \brief moveOutErrorMsg
+    /// Returns error information (moved out)
+    /// \return
+    ///
+    std::string&& moveOutErrorMsg();
+
 private:
     std::string data_;
     std::string errorMsg_;
