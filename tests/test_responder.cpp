@@ -24,7 +24,7 @@ public:
 
     void receive(const std::string& data)
     {
-        Responder::receiveData(data);
+        Responder::receiveData(data.c_str(), data.size());
     }
 };
 
@@ -42,7 +42,7 @@ public:
     }
     void receive(const std::string& data)
     {
-        Responder::receiveData(data);
+        Responder::receiveData(data.c_str(), data.size());
     }
 };
 

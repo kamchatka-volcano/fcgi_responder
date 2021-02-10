@@ -30,10 +30,10 @@ Responder::Responder()
 Responder::~Responder()
 {}
 
-void Responder::receiveData(const std::string& data)
+void Responder::receiveData(const char* data, std::size_t size)
 {
     try{
-        recordReader_->addData(data);
+        recordReader_->addData(data, size);
     }
     catch(const InvalidRecordType& e){        
         notifyAboutError(e.what());
@@ -135,13 +135,12 @@ void Responder::onGetValues(const MsgGetValues &msg)
 
 void Responder::onParams(uint16_t requestId, const MsgParams& msg)
 {
-
-    RequestEditor(requestMap_[requestId]).addParamsMsg(msg);
+    RequestEditor{requestMap_[requestId]}.addParamsMsg(msg);
 }
 
 void Responder::onStdIn(uint16_t requestId, const MsgStdIn& msg)
 {
-    RequestEditor(requestMap_[requestId]).addStdInMsg(msg);
+    RequestEditor{requestMap_[requestId]}.addStdInMsg(msg);
     if (msg.data().empty())
         onRequestReceived(requestId);
 }
@@ -182,8 +181,8 @@ void Responder::onRequestReceived(uint16_t requestId)
 {
     auto response = processRequest(requestMap_[requestId]);
     auto streamMaker = StreamMaker{};
-    auto dataStream = streamMaker.makeStream(RecordType::StdOut, requestId, response.data());
-    auto errorStream = streamMaker.makeStream(RecordType::StdErr, requestId, response.errorMsg());
+    auto dataStream = streamMaker.makeStream(RecordType::StdOut, requestId, response.moveOutData());
+    auto errorStream = streamMaker.makeStream(RecordType::StdErr, requestId, response.moveOutErrorMsg());
     std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
     std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
     endRequest(requestId, ProtocolStatus::RequestComplete);

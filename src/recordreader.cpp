@@ -1,40 +1,51 @@
 #include "recordreader.h"
 #include "record.h"
-#include <sstream>
+#include <algorithm>
 
 namespace fcgi{
 
 RecordReader::RecordReader(std::function<void(Record&)> recordReadedHandler)
     : recordReadedHandler_(recordReadedHandler)
-{
+{    
+    stream_.rdbuf()->pubsetbuf(&buffer_[0], static_cast<std::streamsize>(buffer_.size()));
+    begReceivedData_ = &buffer_[0];
+    endReceivedData_ = begReceivedData_;
 }
 
-void RecordReader::addData(const std::string &data)
+void RecordReader::addData(const char* data, std::size_t dataSize)
 {
-    if (readedBytes_ > 0){
-        buffer_.erase(buffer_.begin(), buffer_.begin() + static_cast<int32_t>(readedBytes_));
-        readedBytes_ = 0;
-    }
-    buffer_ += data;
+    std::copy(data, data + dataSize, endReceivedData_);
+    std::advance(endReceivedData_, dataSize);
+    stream_.seekg(std::distance(&buffer_[0], begReceivedData_));
     auto record = Record{};
-    auto bufferStream = std::istringstream{buffer_};
-    auto recordSize = record.fromStream(bufferStream, buffer_.size());
-    while (recordSize){
-        readedBytes_ += recordSize;
+    auto recordSize = record.fromStream(stream_, receivedDataSize());
+    while(recordSize){
+        begReceivedData_ += recordSize;
         recordReadedHandler_(record);
-        recordSize = record.fromStream(bufferStream, buffer_.size() - readedBytes_);
+        recordSize = record.fromStream(stream_, receivedDataSize());
     }
+    if (std::distance(&buffer_[0], begReceivedData_) > cMaxRecordSize){
+        std::copy(begReceivedData_, endReceivedData_, &buffer_[0]);
+        endReceivedData_ = &buffer_[0] + receivedDataSize();
+        begReceivedData_ = &buffer_[0];
+    }
+}
+
+std::size_t RecordReader::receivedDataSize() const
+{
+    return static_cast<std::size_t>(std::distance(begReceivedData_, endReceivedData_));
 }
 
 void RecordReader::removeBrokenRecord(std::size_t recordSize)
 {
-    readedBytes_ = recordSize;
-    addData({});
+    std::advance(begReceivedData_, recordSize);
+    addData(nullptr, 0);
 }
 
 void RecordReader::clear()
 {
-    buffer_.clear();
+    begReceivedData_ = &buffer_[0];
+    endReceivedData_ = begReceivedData_;
 }
 
 }

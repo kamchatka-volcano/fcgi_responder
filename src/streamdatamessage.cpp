@@ -8,6 +8,12 @@ StreamDataMessage::StreamDataMessage(RecordType recordType, const std::string& d
 {
 }
 
+StreamDataMessage::StreamDataMessage(RecordType recordType, std::string&& data)
+    : Message(recordType)
+    , data_(std::move(data))
+{
+}
+
 std::size_t StreamDataMessage::size() const
 {
     return data_.size();
@@ -39,6 +45,12 @@ MsgStdIn::MsgStdIn(const std::string& data)
 {
 }
 
+MsgStdIn::MsgStdIn(std::string&& data)
+    : StreamDataMessage(RecordType::StdIn, std::move(data))
+{
+}
+
+
 bool MsgStdIn::operator==(const MsgStdIn& other) const
 {
     return data_ == other.data_;
@@ -46,6 +58,11 @@ bool MsgStdIn::operator==(const MsgStdIn& other) const
 
 MsgStdOut::MsgStdOut(const std::string& data)
     : StreamDataMessage(RecordType::StdOut, data)
+{
+}
+
+MsgStdOut::MsgStdOut(std::string&& data)
+    : StreamDataMessage(RecordType::StdOut, std::move(data))
 {
 }
 
@@ -59,6 +76,11 @@ MsgStdErr::MsgStdErr(const std::string& data)
 {
 }
 
+MsgStdErr::MsgStdErr(std::string&& data)
+    : StreamDataMessage(RecordType::StdErr, std::move(data))
+{
+}
+
 bool MsgStdErr::operator==(const MsgStdErr& other) const
 {
     return data_ == other.data_;
@@ -66,6 +88,11 @@ bool MsgStdErr::operator==(const MsgStdErr& other) const
 
 MsgData::MsgData(const std::string& data)
     : StreamDataMessage(RecordType::Data, data)
+{
+}
+
+MsgData::MsgData(std::string&& data)
+    : StreamDataMessage(RecordType::Data, std::move(data))
 {
 }
 
