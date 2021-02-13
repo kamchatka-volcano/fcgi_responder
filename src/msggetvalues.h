@@ -5,18 +5,19 @@
 
 namespace fcgi{
 
-class MsgGetValues : public Message{
-public:
-    MsgGetValues();
-    std::size_t size() const override;
-    const std::vector<ValueRequest>& requestList() const;
-    bool operator==(const MsgGetValues& other) const;
+class MsgGetValues : public Message<MsgGetValues>{
+    friend class Message<MsgGetValues>;
 
+public:
+    MsgGetValues();    
+    const std::vector<ValueRequest>& requestList() const;
     void requestValue(ValueRequest request);
+    bool operator==(const MsgGetValues& other) const;
+    std::size_t size() const;
 
 private:
-    void toStream(std::ostream& output) const override;
-    void fromStream(std::istream& input, std::size_t inputSize) override;
+    void toStream(std::ostream& output) const;
+    void fromStream(std::istream& input, std::size_t inputSize);
 
 private:
     std::vector<ValueRequest> valueRequestList_;

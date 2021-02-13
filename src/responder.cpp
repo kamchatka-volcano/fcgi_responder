@@ -30,6 +30,13 @@ Responder::Responder()
 Responder::~Responder()
 {}
 
+template <typename TMsg>
+void sendMessage(Responder* responder, uint16_t requestId, const TMsg& msg)
+{
+    auto record = Record{msg, requestId};
+    responder->sendRecord(record);
+}
+
 void Responder::receiveData(const char* data, std::size_t size)
 {
     try{
@@ -37,7 +44,7 @@ void Responder::receiveData(const char* data, std::size_t size)
     }
     catch(const InvalidRecordType& e){        
         notifyAboutError(e.what());
-        send(0, std::make_unique<MsgUnknownType>(e.recordType()));
+        sendMessage(this, 0, MsgUnknownType{e.recordType()});
         recordReader_->removeBrokenRecord(e.recordSize(), data, size);
 
     }
@@ -84,19 +91,19 @@ void Responder::onRecordReaded(const Record& record)
 void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
 {
     if (msg.role() != Role::Responder){
-        send(requestId, std::make_unique<MsgEndRequest>(0, ProtocolStatus::UnknownRole));
+        sendMessage(this, requestId, MsgEndRequest{0, ProtocolStatus::UnknownRole});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
     }
     if (!cfg_.multiplexingEnabled && requestMap_.size() > 0 && !requestMap_.count(requestId)){
-        send(requestId, std::make_unique<MsgEndRequest>(0, ProtocolStatus::CantMpxConn));
+        sendMessage(this, requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
     }
     if (requestMap_.size() == static_cast<std::size_t>(cfg_.maxRequestsNumber) && !requestMap_.count(requestId)){
-        send(requestId, std::make_unique<MsgEndRequest>(0, ProtocolStatus::Overloaded));
+        sendMessage(this, requestId, MsgEndRequest{0, ProtocolStatus::Overloaded});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
@@ -107,7 +114,7 @@ void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
 
 void Responder::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
 {
-    send(requestId, std::make_unique<MsgEndRequest>(0, protocolStatus));
+    sendMessage(this, requestId, MsgEndRequest{0, protocolStatus});
     if (!requestMap_[requestId].keepConnection())
         disconnect();
 
@@ -116,21 +123,21 @@ void Responder::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
 
 void Responder::onGetValues(const MsgGetValues &msg)
 {
-    auto result = std::make_unique<MsgGetValuesResult>();
+    auto result = MsgGetValuesResult{};
     for (auto request : msg.requestList()){
         switch (request){
         case ValueRequest::MaxConns:
-            result->setRequestValue(request, std::to_string(cfg_.maxConnectionsNumber));
+            result.setRequestValue(request, std::to_string(cfg_.maxConnectionsNumber));
             break;
         case ValueRequest::MaxReqs:
-            result->setRequestValue(request, std::to_string(cfg_.maxRequestsNumber));
+            result.setRequestValue(request, std::to_string(cfg_.maxRequestsNumber));
             break;
         case ValueRequest::MpxsConns:
-            result->setRequestValue(request, cfg_.multiplexingEnabled ? "1" : "0");
+            result.setRequestValue(request, cfg_.multiplexingEnabled ? "1" : "0");
             break;
         }
     }
-    send(0, std::move(result));
+    sendMessage(this, 0, result);
 }
 
 void Responder::onParams(uint16_t requestId, const MsgParams& msg)
@@ -143,12 +150,6 @@ void Responder::onStdIn(uint16_t requestId, const MsgStdIn& msg)
     RequestEditor{requestMap_[requestId]}.addStdInMsg(msg);
     if (msg.data().empty())
         onRequestReceived(requestId);
-}
-
-void Responder::send(uint16_t requestId, std::unique_ptr<Message> msg)
-{
-    auto record = Record{std::move(msg), requestId};
-    sendRecord(record);
 }
 
 void Responder::sendRecord(const Record &record)
@@ -181,8 +182,8 @@ void Responder::onRequestReceived(uint16_t requestId)
 {
     auto response = processRequest(requestMap_[requestId]);
     auto streamMaker = StreamMaker{};
-    auto dataStream = streamMaker.makeStream(RecordType::StdOut, requestId, response.moveOutData());
-    auto errorStream = streamMaker.makeStream(RecordType::StdErr, requestId, response.moveOutErrorMsg());
+    auto dataStream = streamMaker.makeStream<MsgStdOut>(requestId, response.moveOutData());
+    auto errorStream = streamMaker.makeStream<MsgStdErr>(requestId, response.moveOutErrorMsg());
     std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
     std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
     endRequest(requestId, ProtocolStatus::RequestComplete);

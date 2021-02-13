@@ -3,16 +3,17 @@
 
 namespace fcgi{
 
-class MsgAbortRequest : public Message
-{
+class MsgAbortRequest : public Message<MsgAbortRequest>{
+    friend class Message<MsgAbortRequest>;
+
 public:
     MsgAbortRequest();
-    std::size_t size() const override;
     bool operator==(const MsgAbortRequest& other) const;
+    std::size_t size() const;
 
 private:
-    void toStream(std::ostream& output) const override;
-    void fromStream(std::istream& input, std::size_t inputSize) override;
+    void toStream(std::ostream& output) const;
+    void fromStream(std::istream& input, std::size_t inputSize);
 };
 
 }

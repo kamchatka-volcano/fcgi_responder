@@ -4,14 +4,6 @@
 #include "errors.h"
 #include "encoder.h"
 #include "decoder.h"
-#include "msgbeginrequest.h"
-#include "msgendrequest.h"
-#include "msggetvalues.h"
-#include "msggetvaluesresult.h"
-#include "msgparams.h"
-#include "msgunknowntype.h"
-#include "msgabortrequest.h"
-#include "streamdatamessage.h"
 #include <sstream>
 #include <string>
 
@@ -20,25 +12,16 @@ namespace fcgi{
 Record::Record()
     : type_(RecordType::UnknownType)
     , requestId_(0)
-    , message_(Message::createMessage(type_))
-{}
+{
+    initMessage();
+}
 
 Record::Record(RecordType type, uint16_t requestId)
     : type_(type)
     , requestId_(requestId)
-    , message_(Message::createMessage(type_))
 {
+    initMessage();
 }
-
-Record::Record(std::unique_ptr<Message> msg, uint16_t requestId)
-    : type_(msg->recordType())
-    , requestId_(requestId)
-    , message_(std::move(msg))
-{
-}
-
-Record::Record(Record&& record) = default;
-Record::~Record() = default;
 
 RecordType Record::type() const
 {
@@ -52,7 +35,7 @@ uint16_t Record::requestId() const
 
 std::size_t Record::size() const
 {
-    return cHeaderSize + message_->size() + calcPaddingLength();
+    return cHeaderSize + messageSize() + calcPaddingLength();
 }
 
 void Record::toStream(std::ostream& output) const
@@ -69,7 +52,7 @@ std::size_t Record::fromStream(std::istream& input, std::size_t inputSize)
 
 void Record::write(std::ostream &output) const
 {
-    auto contentLength = static_cast<uint16_t>(message_->size());
+    auto contentLength = static_cast<uint16_t>(messageSize());
     auto paddingLength = calcPaddingLength();
     auto reservedByte = uint8_t{};
 
@@ -80,7 +63,7 @@ void Record::write(std::ostream &output) const
             << contentLength
             << paddingLength
             << reservedByte;
-    message_->write(output);
+    writeMessage(output);
     encoder.addPadding(paddingLength);
 }
 
@@ -119,8 +102,8 @@ std::size_t Record::read(std::istream &input, std::size_t inputSize)
     }
 
     try{
-        message_ = Message::createMessage(type_);
-        message_->read(input, contentLength);
+        initMessage();
+        readMessage(input, contentLength);
         decoder.skip(paddingLength);
     }
     catch(ProtocolError& e){
@@ -130,17 +113,44 @@ std::size_t Record::read(std::istream &input, std::size_t inputSize)
     return recordSize;
 }
 
-RecordType Record::messageType(const Message& msg) const
-{
-    return msg.recordType();
-}
-
 uint8_t Record::calcPaddingLength() const
 {
-    auto result = static_cast<uint8_t>(8u - static_cast<uint8_t>((message_->size()) % 8));
+    auto result = static_cast<uint8_t>(8u - static_cast<uint8_t>(messageSize() % 8));
     if (result == 8u)
         result = 0;
     return result;
+}
+
+void Record::initMessage()
+{
+    switch(type_){
+    case RecordType::BeginRequest: message_.emplace<MsgBeginRequest>(); break;
+    case RecordType::AbortRequest: message_.emplace<MsgAbortRequest>(); break;
+    case RecordType::EndRequest: message_.emplace<MsgEndRequest>(); break;
+    case RecordType::Params: message_.emplace<MsgParams>(); break;
+    case RecordType::StdIn: message_.emplace<MsgStdIn>(); break;
+    case RecordType::StdOut: message_.emplace<MsgStdOut>(); break;
+    case RecordType::StdErr: message_.emplace<MsgStdErr>(); break;
+    case RecordType::Data: message_.emplace<MsgData>(); break;
+    case RecordType::GetValues: message_.emplace<MsgGetValues>(); break;
+    case RecordType::GetValuesResult: message_.emplace<MsgGetValuesResult>(); break;
+    case RecordType::UnknownType: message_.emplace<MsgUnknownType>(); break;
+    }
+}
+
+std::size_t Record::messageSize() const
+{
+    return std::visit([](auto&& msg){return msg.size();}, message_);
+}
+
+void Record::readMessage(std::istream &input, std::size_t inputSize)
+{
+    std::visit([&](auto&& msg){msg.read(input, inputSize);}, message_);
+}
+
+void Record::writeMessage(std::ostream &output) const
+{
+    std::visit([&](auto&& msg){msg.write(output);}, message_);
 }
 
 namespace  {

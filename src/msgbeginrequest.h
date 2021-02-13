@@ -4,18 +4,20 @@
 
 namespace fcgi{
 
-class MsgBeginRequest : public Message{
+class MsgBeginRequest : public Message<MsgBeginRequest>{
+    friend class Message<MsgBeginRequest>;
+
 public:
     MsgBeginRequest();
     MsgBeginRequest(Role role, ResultConnectionState connectionState);
-    std::size_t size() const override;
     Role role() const;
     ResultConnectionState resultConnectionState() const;
     bool operator==(const MsgBeginRequest& other) const;
+    std::size_t size() const;
 
 private:
-    void toStream(std::ostream& output) const override;
-    void fromStream(std::istream& input, std::size_t inputSize) override;
+    void toStream(std::ostream& output) const;
+    void fromStream(std::istream& input, std::size_t inputSize);
 
 
 private:

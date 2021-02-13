@@ -8,7 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -fPIC")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -18,7 +18,6 @@ set(SRC
     src/decoder.cpp
     src/encoder.cpp
     src/errors.cpp
-    src/message.cpp
     src/msgabortrequest.cpp
     src/msgbeginrequest.cpp
     src/msgendrequest.cpp

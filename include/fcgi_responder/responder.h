@@ -1,6 +1,7 @@
 #pragma once
 #include "response.h"
 #include "request.h"
+#include "record.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
@@ -13,7 +14,6 @@ class MsgGetValues;
 class MsgParams;
 class MsgStdIn;
 class Record;
-class Message;
 class RecordReader;
 enum class ProtocolStatus : uint8_t;
 
@@ -22,6 +22,7 @@ enum class ProtocolStatus : uint8_t;
 /// Responder role between application and web server.
 ///
 class Responder{
+
 public:
     ///
     /// \brief setsMaximumConnectionsNumber
@@ -124,9 +125,8 @@ private:
     void onParams(uint16_t requestId, const MsgParams& msg);
     void onStdIn(uint16_t requestId, const MsgStdIn& msg);
     void onRequestReceived(uint16_t requestId);
-
-    void send(uint16_t requestId, std::unique_ptr<Message> msg);
     void sendRecord(const Record& record);
+
     bool isRecordExpected(const Record& record);
     void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
 
@@ -144,6 +144,10 @@ private:
     std::function<void(const std::string&)> errorInfoHandler_;
     std::ostringstream recordStream_;
     std::string recordBuffer_;
+
+private:
+    template<typename TMsg>
+    friend void sendMessage(Responder* responder, uint16_t requestId, const TMsg& msg);
 };
 
 }

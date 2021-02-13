@@ -8,18 +8,29 @@
 #include <sstream>
 #include <memory>
 #include <cassert>
+#include "msgbeginrequest.h"
+#include "msgendrequest.h"
+#include "msggetvalues.h"
+#include "msggetvaluesresult.h"
+#include "msgparams.h"
+#include "msgunknowntype.h"
+#include "msgabortrequest.h"
+#include "streamdatamessage.h"
+#include <variant>
 
 namespace fcgi{
-
-class Message;
 
 class Record{
 public:
     Record();
     Record(RecordType type, uint16_t requestId = 0);
-    Record(std::unique_ptr<Message> msg, uint16_t requestId = 0);
-    Record(Record&& record);
-    ~Record();
+    template <typename TMessage>
+    Record(TMessage&& msg, uint16_t requestId = 0)
+        : type_(msg.recordType())
+        , requestId_(requestId)
+        , message_(std::forward<TMessage>(msg))
+    {
+    }
     RecordType type() const;
     uint16_t requestId() const;
     std::size_t size() const;
@@ -28,28 +39,41 @@ public:
     std::size_t fromStream(std::istream& input, std::size_t inputSize);
 
     template <typename MsgT>
-    MsgT& getMessage() const;
+    const MsgT& getMessage() const;
 
     bool operator==(const Record& other) const;
 
 private:
+    void initMessage();
+    std::size_t messageSize() const;
+    void readMessage(std::istream &input, std::size_t inputSize);
+    void writeMessage(std::ostream &output) const;
+
+
     void write(std::ostream& output) const;
     std::size_t read(std::istream& input, std::size_t inputSize);
-    RecordType messageType(const Message& msg) const;
     uint8_t calcPaddingLength() const;
 
 private:
     RecordType type_;
     uint16_t requestId_;
-    std::unique_ptr<Message> message_;
+    std::variant<MsgAbortRequest,
+                 MsgBeginRequest,
+                 MsgEndRequest,
+                 MsgGetValues,
+                 MsgGetValuesResult,
+                 MsgParams,
+                 MsgUnknownType,
+                 MsgStdIn,
+                 MsgStdOut,
+                 MsgStdErr,
+                 MsgData> message_;
 };
 
 template <typename MsgT>
-MsgT& Record::getMessage() const
+const MsgT& Record::getMessage() const
 {
-    assert(message_);
-    assert(type_ == messageType(*message_));
-    return *static_cast<MsgT*>(message_.get());
+    return std::get<MsgT>(message_);
 }
 
 }
