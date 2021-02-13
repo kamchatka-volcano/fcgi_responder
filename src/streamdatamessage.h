@@ -3,17 +3,19 @@
 
 namespace fcgi{
 
-class StreamDataMessage : public Message{
+class StreamDataMessage : public Message<StreamDataMessage>{
+    friend class Message<StreamDataMessage>;
+
 public:
     StreamDataMessage(RecordType recordType, const std::string& data = {});
     StreamDataMessage(RecordType recordType, std::string&& data);
-    std::size_t size() const override;
+    std::size_t size() const;
     void setData(const std::string& data);
     const std::string& data() const;
 
 private:
-    void toStream(std::ostream& output) const override;
-    void fromStream(std::istream& input, std::size_t inputSize) override;
+    void toStream(std::ostream& output) const;
+    void fromStream(std::istream& input, std::size_t inputSize);
 
 protected:
     std::string data_;

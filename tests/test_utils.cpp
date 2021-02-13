@@ -13,9 +13,9 @@
 
 TEST(Utils, RecordReader)
 {
-    auto msg = std::make_unique<fcgi::MsgParams>();
-    msg->setParam("TEST", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-    msg->setParam("HELLO", "WORLD");
+    auto msg = fcgi::MsgParams{};
+    msg.setParam("TEST", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+    msg.setParam("HELLO", "WORLD");
     auto record = fcgi::Record{std::move(msg), 1};
 
     auto recordData = std::string{};
@@ -26,7 +26,7 @@ TEST(Utils, RecordReader)
     auto readedRecordList = std::vector<fcgi::Record>{};
     auto recordReadHandler = [&readedRecordList](fcgi::Record& record)
     {
-        readedRecordList.push_back(std::move(record));
+        readedRecordList.push_back(record);
     };
 
     auto recordReader = std::make_unique<fcgi::RecordReader>(recordReadHandler);
@@ -51,7 +51,7 @@ TEST(Utils, StreamMaker)
 {
     auto str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     auto streamMaker = fcgi::StreamMaker(16);
-    auto recordList = streamMaker.makeStream(fcgi::RecordType::StdOut, 1, str);
+    auto recordList = streamMaker.makeStream<fcgi::MsgStdOut>(1, str);
 
     auto resultStr = std::string{};
     for (const auto& record : recordList)

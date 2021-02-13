@@ -7,21 +7,31 @@
 
 namespace fcgi{
 
+template <typename TMsg>
 class Message{
 public:
-    Message(RecordType type);
-    virtual ~Message();
-    virtual std::size_t size() const = 0;
-    RecordType recordType() const;
+    Message(RecordType type)
+        : recordType_(type)
+    {}
 
-    void write(std::ostream& output) const;
-    void read(std::istream& input, std::size_t inputSize);
+    RecordType recordType() const
+    {
+        return recordType_;
+    }
 
-static std::unique_ptr<Message> createMessage(RecordType type);
+    void write(std::ostream &output) const
+    {
+        output.exceptions(std::ostream::failbit | std::ostream::badbit | std::ostream::eofbit);
+        static_cast<const TMsg*>(this)->toStream(output);
+    }
 
-private:
-    virtual void toStream(std::ostream& output) const = 0;
-    virtual void fromStream(std::istream& input, std::size_t inputSize) = 0;
+    void read(std::istream &input, std::size_t inputSize)
+    {
+        if (inputSize == 0)
+            return;
+        input.exceptions(std::istream::failbit | std::istream::badbit | std::ostream::eofbit);
+        static_cast<TMsg*>(this)->fromStream(input, inputSize);
+    }
 
 private:
     RecordType recordType_;

@@ -5,19 +5,20 @@
 
 namespace fcgi{
 
-class MsgParams : public Message{
+class MsgParams : public Message<MsgParams>{
+    friend class Message<MsgParams>;
+
 public:
     MsgParams();
-    std::size_t size() const override;
     const std::string& paramValue(const std::string& name) const;
     std::vector<std::string> paramList() const;
-    bool operator==(const MsgParams& other) const;
-
     void setParam(const std::string& name, const std::string& value);
+    bool operator==(const MsgParams& other) const;
+    std::size_t size() const;
 
 private:
-    void toStream(std::ostream& output) const override;
-    void fromStream(std::istream& input, std::size_t inputSize) override;
+    void toStream(std::ostream& output) const;
+    void fromStream(std::istream& input, std::size_t inputSize);
 
 private:
     std::vector<NameValue> paramList_;
