@@ -67,6 +67,10 @@ public:
         });
     }
 protected:
+    void receiveData(const std::string& data)
+    {
+        responder_.receive(data);
+    }
     void receiveMessage(std::unique_ptr<fcgi::Message> msg, uint16_t requestId = 0)
     {
         responder_.receive(messageData(std::move(msg), requestId));
@@ -233,6 +237,39 @@ TEST_P(TestResponder, Request)
     receiveMessage(std::make_unique<MsgParams>(), 1);
     receiveMessage(std::move(inStream), 1);
     receiveMessage(std::make_unique<MsgStdIn>(), 1);
+}
+
+#include "streammaker.h"
+#include <iostream>
+
+TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
+{
+    auto streamRecordData = std::string(cMaxDataMessageSize, '0');
+    auto streamData = std::string{};
+    auto expectedRequest = Request{};
+    auto requestId = static_cast<uint16_t>(1);
+    for (auto i = 0; i < 3; ++i){
+        auto inStream = std::make_unique<MsgStdIn>();
+        inStream->setData(streamRecordData);
+        RequestEditor{expectedRequest}.addStdInMsg(*inStream);
+        streamData += messageData(std::move(inStream), requestId);
+        std::cout << streamData.size() << std::endl;
+    }
+    streamData += messageData(std::make_unique<MsgStdIn>(), requestId);
+    std::cout << streamData.size() << std::endl;
+
+
+    ::testing::InSequence seq;
+    EXPECT_CALL(responder_, processRequest(expectedRequest));
+    expectMessageToBeSent(std::make_unique<MsgStdOut>(), requestId);
+    expectMessageToBeSent(std::make_unique<MsgStdErr>(), requestId);
+    expectMessageToBeSent(std::make_unique<MsgEndRequest>(0, ProtocolStatus::RequestComplete), requestId);
+    checkConnectionState();
+
+    receiveMessage(std::make_unique<MsgBeginRequest>(Role::Responder, resultConnectionState()), requestId);
+    auto halfSize = streamData.size() / 2;
+    receiveData(streamData.substr(0, halfSize));
+    receiveData(streamData.substr(halfSize, streamData.size() - halfSize));
 }
 
 TEST_F(TestResponder, Multiplexing)

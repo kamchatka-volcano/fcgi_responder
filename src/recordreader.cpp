@@ -6,46 +6,49 @@ namespace fcgi{
 
 RecordReader::RecordReader(std::function<void(Record&)> recordReadedHandler)
     : recordReadedHandler_(recordReadedHandler)
+    , stream_(&buffer_)
 {    
-    stream_.rdbuf()->pubsetbuf(&buffer_[0], static_cast<std::streamsize>(buffer_.size()));
-    begReceivedData_ = &buffer_[0];
-    endReceivedData_ = begReceivedData_;
 }
 
-void RecordReader::addData(const char* data, std::size_t dataSize)
+void RecordReader::read(const char *data, std::size_t size)
 {
-    std::copy(data, data + dataSize, endReceivedData_);
-    std::advance(endReceivedData_, dataSize);
-    stream_.seekg(std::distance(&buffer_[0], begReceivedData_));
+    buffer_ = InputStreamDualBuffer{leftover_.c_str(), leftover_.size(), data, size};
+    stream_.rdbuf(&buffer_);
+    readedRecordsSize_ = 0;
+    findRecords(data, size);
+}
+
+void RecordReader::findRecords(const char *data, std::size_t size)
+{
     auto record = Record{};
-    auto recordSize = record.fromStream(stream_, receivedDataSize());
-    while(recordSize){
-        begReceivedData_ += recordSize;
+    const auto dataSize = leftover_.size() + size;
+    auto recordSize = record.fromStream(stream_, dataSize - readedRecordsSize_);
+    while (recordSize){        
+        leftover_.clear();
+        readedRecordsSize_ += recordSize;
         recordReadedHandler_(record);
-        recordSize = record.fromStream(stream_, receivedDataSize());
+        recordSize = record.fromStream(stream_, dataSize - readedRecordsSize_);
     }
-    if (std::distance(&buffer_[0], begReceivedData_) > cMaxRecordSize){
-        std::copy(begReceivedData_, endReceivedData_, &buffer_[0]);
-        endReceivedData_ = &buffer_[0] + receivedDataSize();
-        begReceivedData_ = &buffer_[0];
+    if (readedRecordsSize_ < dataSize){
+        if (leftover_.empty()){
+            const auto leftoverSize = dataSize - readedRecordsSize_;
+            leftover_ = std::string{data + size - leftoverSize, data + size};
+        }
+        else
+            leftover_ += std::string{data, data + size};
     }
 }
 
-std::size_t RecordReader::receivedDataSize() const
+void RecordReader::removeBrokenRecord(std::size_t recordSize, const char *data, std::size_t size)
 {
-    return static_cast<std::size_t>(std::distance(begReceivedData_, endReceivedData_));
-}
-
-void RecordReader::removeBrokenRecord(std::size_t recordSize)
-{
-    std::advance(begReceivedData_, recordSize);
-    addData(nullptr, 0);
+    readedRecordsSize_ += recordSize;
+    findRecords(data, size);
 }
 
 void RecordReader::clear()
 {
-    begReceivedData_ = &buffer_[0];
-    endReceivedData_ = begReceivedData_;
+    leftover_.clear();
+    readedRecordsSize_ = 0;
 }
 
 }

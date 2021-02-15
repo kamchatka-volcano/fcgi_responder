@@ -29,18 +29,18 @@ TEST(Utils, RecordReader)
         readedRecordList.push_back(std::move(record));
     };
 
-    auto recordReader = fcgi::RecordReader{recordReadHandler};
+    auto recordReader = std::make_unique<fcgi::RecordReader>(recordReadHandler);
 
     auto chunk = std::string{};
     for (auto byte : recordData){
         chunk.push_back(byte);
         if (chunk.size() == 10){
-            recordReader.addData(chunk.c_str(), chunk.size());
+            recordReader->read(chunk.c_str(), chunk.size());
             chunk.clear();
         }
     }
     if (!chunk.empty())
-        recordReader.addData(chunk.c_str(), chunk.size());
+        recordReader->read(chunk.c_str(), chunk.size());
 
     ASSERT_EQ(readedRecordList.size(), 1);
     ASSERT_TRUE(record == readedRecordList.front());

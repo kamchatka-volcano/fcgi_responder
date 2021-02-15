@@ -34,7 +34,8 @@ set(SRC
     src/responder.cpp
     src/response.cpp
     src/streamdatamessage.cpp
-    src/streammaker.cpp)
+    src/streammaker.cpp
+    src/inputstreamdualbuffer.cpp)
 
 set(PUBLIC_HEADERS
     "include/fcgi_responder/request.h"
