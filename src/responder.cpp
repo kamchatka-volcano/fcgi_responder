@@ -33,17 +33,17 @@ Responder::~Responder()
 void Responder::receiveData(const char* data, std::size_t size)
 {
     try{
-        recordReader_->addData(data, size);
+        recordReader_->read(data, size);
     }
     catch(const InvalidRecordType& e){        
         notifyAboutError(e.what());
         send(0, std::make_unique<MsgUnknownType>(e.recordType()));
-        recordReader_->removeBrokenRecord(e.recordSize());
+        recordReader_->removeBrokenRecord(e.recordSize(), data, size);
 
     }
     catch(const RecordReadError& e){
         notifyAboutError(e.what());
-        recordReader_->removeBrokenRecord(e.recordSize());
+        recordReader_->removeBrokenRecord(e.recordSize(), data, size);
     }
     catch(const std::exception& e){
         notifyAboutError(e.what());
