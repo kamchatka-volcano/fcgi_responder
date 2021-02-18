@@ -8,8 +8,12 @@ namespace fcgi{
 class NameValue{
 public:
     NameValue();
-    NameValue(const std::string& name, const std::string& value);
-    NameValue(std::string&& name, std::string&& value);
+
+    template<typename TStrName, typename TStrValue>
+    NameValue(TStrName&& name, TStrValue&& value)
+        : name_(std::forward<TStrName>(name))
+        , value_(std::forward<TStrValue>(value))
+    {}
 
     std::size_t size() const;
     const std::string& name() const;

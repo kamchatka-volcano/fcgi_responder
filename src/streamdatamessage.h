@@ -7,8 +7,13 @@ class StreamDataMessage : public Message<StreamDataMessage>{
     friend class Message<StreamDataMessage>;
 
 public:
-    StreamDataMessage(RecordType recordType, const std::string& data = {});
-    StreamDataMessage(RecordType recordType, std::string&& data);
+    template <typename TStr>
+    StreamDataMessage(RecordType recordType, TStr&& data)
+        : Message(recordType)
+        , data_(std::forward<TStr>(data))
+    {
+    }
+
     std::size_t size() const;
     void setData(const std::string& data);
     const std::string& data() const;
@@ -24,32 +29,44 @@ protected:
 class MsgStdIn : public StreamDataMessage
 {
 public:
-    MsgStdIn(const std::string& data = {});
-    MsgStdIn(std::string&& data);
+    MsgStdIn();
+    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
+    MsgStdIn(TStr&& data)
+        : StreamDataMessage(RecordType::StdIn, std::forward<TStr>(data))
+    {}
     bool operator==(const MsgStdIn& other) const;
 };
 
 class MsgStdOut : public StreamDataMessage
 {
 public:
-    MsgStdOut(const std::string& data = {});
-    MsgStdOut(std::string&& data);
+    MsgStdOut();
+    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
+    MsgStdOut(TStr&& data)
+        : StreamDataMessage(RecordType::StdOut, std::forward<TStr>(data))
+    {}
     bool operator==(const MsgStdOut& other) const;
 };
 
 class MsgStdErr : public StreamDataMessage
 {
 public:
-    MsgStdErr(const std::string& data = {});
-    MsgStdErr(std::string&& data);
+    MsgStdErr();
+    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
+    MsgStdErr(TStr&& data)
+        : StreamDataMessage(RecordType::StdErr, std::forward<TStr>(data))
+    {}
     bool operator==(const MsgStdErr& other) const;
 };
 
 class MsgData : public StreamDataMessage
 {
 public:
-    MsgData(const std::string& data = {});
-    MsgData(std::string&& data);
+    MsgData();
+    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
+    MsgData(TStr&& data)
+        : StreamDataMessage(RecordType::Data, std::forward<TStr>(data))
+    {}
     bool operator==(const MsgData& other) const;
 };
 

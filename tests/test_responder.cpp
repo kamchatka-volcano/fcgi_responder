@@ -71,7 +71,7 @@ protected:
     {
         responder_.receive(data);
     }
-    template <typename TMsg, typename std::enable_if<!std::is_convertible<TMsg, std::string>::value>::type* = nullptr>
+    template <typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
     void receiveMessage(TMsg&& msg, uint16_t requestId = 0)
     {
         responder_.receive(messageData(std::forward<TMsg>(msg), requestId));

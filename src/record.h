@@ -31,6 +31,7 @@ public:
         , message_(std::forward<TMessage>(msg))
     {
     }
+
     RecordType type() const;
     uint16_t requestId() const;
     std::size_t size() const;

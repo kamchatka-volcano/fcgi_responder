@@ -31,9 +31,9 @@ Responder::~Responder()
 {}
 
 template <typename TMsg>
-void sendMessage(Responder* responder, uint16_t requestId, const TMsg& msg)
+void sendMessage(Responder* responder, uint16_t requestId, TMsg&& msg)
 {
-    auto record = Record{msg, requestId};
+    auto record = Record{std::forward<TMsg>(msg), requestId};
     responder->sendRecord(record);
 }
 
@@ -137,7 +137,7 @@ void Responder::onGetValues(const MsgGetValues &msg)
             break;
         }
     }
-    sendMessage(this, 0, result);
+    sendMessage(this, 0, std::move(result));
 }
 
 void Responder::onParams(uint16_t requestId, const MsgParams& msg)
