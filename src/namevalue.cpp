@@ -8,18 +8,6 @@ NameValue::NameValue()
 {
 }
 
-NameValue::NameValue(const std::string& name, const std::string& value)
-    : name_(name)
-    , value_(value)
-{
-}
-
-NameValue::NameValue(std::string&& name, std::string&& value)
-    : name_(std::move(name))
-    , value_(std::move(value))
-{
-}
-
 std::size_t NameValue::size() const
 {
     auto result = 0u;

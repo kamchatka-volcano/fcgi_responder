@@ -2,18 +2,6 @@
 
 namespace fcgi{
 
-StreamDataMessage::StreamDataMessage(RecordType recordType, const std::string& data )
-    : Message(recordType)
-    , data_(data)
-{
-}
-
-StreamDataMessage::StreamDataMessage(RecordType recordType, std::string&& data)
-    : Message(recordType)
-    , data_(std::move(data))
-{
-}
-
 std::size_t StreamDataMessage::size() const
 {
     return data_.size();
@@ -40,61 +28,36 @@ void StreamDataMessage::fromStream(std::istream& input, std::size_t inputSize)
     input.read(&data_[0], static_cast<std::streamsize>(inputSize));
 }
 
-MsgStdIn::MsgStdIn(const std::string& data)
-    : StreamDataMessage(RecordType::StdIn, data)
-{
-}
-
-MsgStdIn::MsgStdIn(std::string&& data)
-    : StreamDataMessage(RecordType::StdIn, std::move(data))
-{
-}
-
+MsgStdIn::MsgStdIn()
+    : StreamDataMessage(RecordType::StdIn, std::string{})
+{}
 
 bool MsgStdIn::operator==(const MsgStdIn& other) const
 {
     return data_ == other.data_;
 }
 
-MsgStdOut::MsgStdOut(const std::string& data)
-    : StreamDataMessage(RecordType::StdOut, data)
-{
-}
-
-MsgStdOut::MsgStdOut(std::string&& data)
-    : StreamDataMessage(RecordType::StdOut, std::move(data))
-{
-}
+MsgStdOut::MsgStdOut()
+    : StreamDataMessage(RecordType::StdOut, std::string{})
+{}
 
 bool MsgStdOut::operator==(const MsgStdOut& other) const
 {
     return data_ == other.data_;
 }
 
-MsgStdErr::MsgStdErr(const std::string& data)
-    : StreamDataMessage(RecordType::StdErr, data)
-{
-}
-
-MsgStdErr::MsgStdErr(std::string&& data)
-    : StreamDataMessage(RecordType::StdErr, std::move(data))
-{
-}
+MsgStdErr::MsgStdErr()
+    : StreamDataMessage(RecordType::StdErr, std::string{})
+{}
 
 bool MsgStdErr::operator==(const MsgStdErr& other) const
 {
     return data_ == other.data_;
 }
 
-MsgData::MsgData(const std::string& data)
-    : StreamDataMessage(RecordType::Data, data)
-{
-}
-
-MsgData::MsgData(std::string&& data)
-    : StreamDataMessage(RecordType::Data, std::move(data))
-{
-}
+MsgData::MsgData()
+    : StreamDataMessage(RecordType::Data, std::string{})
+{}
 
 bool MsgData::operator==(const MsgData& other) const
 {
