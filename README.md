@@ -1,5 +1,5 @@
 ## Overview
-**fcgi_responder** is a C++14 library implementing the [Responder role](https://fast-cgi.github.io/spec#62-responder) of the FastCGI protocol.  
+**fcgi_responder** is a C++17 library implementing the [Responder role](https://fast-cgi.github.io/spec#62-responder) of the FastCGI protocol.  
 It works on raw data, received from the web server, and returns serialized output, required to be sent back to the server by the client.  
 Thus, the implementation of connection to the web server lays outside of the library's responsibility, and clients can use whatever socket programming methods they prefer.  
 This makes **fcgi_responder** being portable and having no external dependencies.  
