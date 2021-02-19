@@ -180,13 +180,20 @@ bool Responder::isRecordExpected(const Record& record)
 
 void Responder::onRequestReceived(uint16_t requestId)
 {
-    auto response = processRequest(requestMap_[requestId]);
+    processRequest(requestMap_[requestId],
+                   Response{[requestId, this](std::string&& data, std::string&& errorMsg){
+                                sendResponse(requestId, std::move(data), std::move(errorMsg));
+                            }});
+}
+
+void Responder::sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg)
+{
     auto streamMaker = StreamMaker{};
-    auto dataStream = streamMaker.makeStream<MsgStdOut>(requestId, response.moveOutData());
-    auto errorStream = streamMaker.makeStream<MsgStdErr>(requestId, response.moveOutErrorMsg());
+    auto dataStream = streamMaker.makeStream<MsgStdOut>(id, std::move(data));
+    auto errorStream = streamMaker.makeStream<MsgStdErr>(id, std::move(errorMsg));
     std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
     std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
-    endRequest(requestId, ProtocolStatus::RequestComplete);
+    endRequest(id, ProtocolStatus::RequestComplete);
 }
 
 void Responder::setMaximumConnectionsNumber(int value)

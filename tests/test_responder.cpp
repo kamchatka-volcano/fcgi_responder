@@ -20,7 +20,11 @@ class MockResponder : public Responder{
 public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
-    MOCK_METHOD1(processRequest, Response(const Request& request));
+    MOCK_METHOD1(doProcessRequest, void(const Request& request));
+    void processRequest(const Request& request, Response) override
+    {
+        doProcessRequest(request);
+    }
 
     void receive(const std::string& data)
     {
@@ -32,13 +36,11 @@ class MockResponderWithTestProcessor : public Responder{
 public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
-    Response processRequest(const Request& request)
+    void processRequest(const Request& request, Response response) override
     {
         auto testMsg = request.stdIn();
-        std::reverse(testMsg.begin(), testMsg.end());
-        auto response = Response{};
-        response.setData(testMsg);
-        return response;
+        std::reverse(testMsg.begin(), testMsg.end());        
+        response.setData(testMsg);        
     }
     void receive(const std::string& data)
     {
@@ -224,7 +226,7 @@ TEST_P(TestResponder, Request)
     RequestEditor(expectedRequest).addStdInMsg(inStream);
 
     ::testing::InSequence seq;
-    EXPECT_CALL(responder_, processRequest(expectedRequest));
+    EXPECT_CALL(responder_, doProcessRequest(expectedRequest));
     expectMessageToBeSent(MsgStdOut{}, 1);
     expectMessageToBeSent(MsgStdErr{}, 1);
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
@@ -253,7 +255,7 @@ TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
 
 
     ::testing::InSequence seq;
-    EXPECT_CALL(responder_, processRequest(expectedRequest));
+    EXPECT_CALL(responder_, doProcessRequest(expectedRequest));
     expectMessageToBeSent(MsgStdOut{}, requestId);
     expectMessageToBeSent(MsgStdErr{}, requestId);
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, requestId);
@@ -285,11 +287,11 @@ TEST_F(TestResponder, Multiplexing)
     RequestEditor(expectedRequest2).addParamsMsg(params2);
 
     ::testing::InSequence seq;
-    EXPECT_CALL(responder_, processRequest(expectedRequest2));
+    EXPECT_CALL(responder_, doProcessRequest(expectedRequest2));
     expectMessageToBeSent(MsgStdOut{}, 2);
     expectMessageToBeSent(MsgStdErr{}, 2);
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 2);
-    EXPECT_CALL(responder_, processRequest(expectedRequest));
+    EXPECT_CALL(responder_, doProcessRequest(expectedRequest));
     expectMessageToBeSent(MsgStdOut{}, 1);
     expectMessageToBeSent(MsgStdErr{}, 1);
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);

@@ -1,82 +1,60 @@
 #pragma once
 #include <string>
+#include <functional>
 
 namespace fcgi{
 
 ///
-/// \brief Object containing response data from the application
+/// \brief Move-only object used to send response data from the application
 ///
 class Response{
+    friend class Responder;
+    using ResponseSender = std::function<void(std::string&& data, std::string&& errorData)>;
+    Response(ResponseSender sender);
+
 public:
     ///
-    /// \brief Response
-    /// Conctructor
+    /// \brief Destructor
+    /// calls the send() method
     ///
-    Response();
-
-    ///
-    /// \brief Response
-    /// Constructor
-    /// \param data - HTTP response
-    /// \param errorMsg - error information
-    ///
-    Response(const std::string& data,
-             const std::string& errorMsg);
-
-    ///
-    /// \brief Response
-    /// Constructor
-    /// \param data - HTTP response
-    /// \param errorMsg - error information
-    ///
-    Response(std::string&& data,
-             std::string&& errorMsg);
+    ~Response();
+    Response(Response&&) = default;
+    Response& operator=(Response&&) = default;
 
     ///
     /// \brief setData
     /// Sets HTTP response data
     /// \param data
     ///
-    void setData(const std::string& data);
+    template <typename TStr>
+    void setData(TStr&& data)
+    {
+        data_ = std::forward<TStr>(data);
+    }
 
     ///
     /// \brief setErrorMsg
     /// Sets error information
     /// \param errorMsg
     ///
-    void setErrorMsg(const std::string& errorMsg);
+    template<typename TStr>
+    void setErrorMsg(TStr&& errorMsg)
+    {
+        errorMsg_ = std::forward<TStr>(errorMsg);
+    }
 
     ///
-    /// \brief data
-    /// Returns HTTP response data
-    /// \return
+    /// Sends the response data during the firt call only,
+    /// the next calls of this method do nothing.
+    /// If a call to this method is omitted during the response object's lifetime,
+    /// a call from the object's destructor will send the response data.
     ///
-    const std::string& data() const;
-
-    ///
-    /// \brief errorMsg
-    /// Returns error information
-    /// \return
-    ///
-    const std::string& errorMsg() const;
-
-    ///
-    /// \brief moveOutData
-    /// Returns HTTP response data (moved out)
-    /// \return
-    ///
-    std::string&& moveOutData();
-
-    ///
-    /// \brief moveOutErrorMsg
-    /// Returns error information (moved out)
-    /// \return
-    ///
-    std::string&& moveOutErrorMsg();
+    void send();
 
 private:
     std::string data_;
     std::string errorMsg_;
+    ResponseSender sender_;
 };
 
 }

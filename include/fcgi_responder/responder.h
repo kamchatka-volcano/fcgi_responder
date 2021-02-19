@@ -18,7 +18,7 @@ class RecordReader;
 enum class ProtocolStatus : uint8_t;
 
 ///
-/// \brief Abstract class which implements message flow of FCGI protocol's
+/// \brief Abstract class which implements message flow of the FastCGI protocol's
 /// Responder role between application and web server.
 ///
 class Responder{
@@ -26,14 +26,14 @@ class Responder{
 public:
     ///
     /// \brief setsMaximumConnectionsNumber
-    /// Sets maximum connection number.
+    /// Sets a maximum connection number.
     /// \param value
     ///
     void setMaximumConnectionsNumber(int value);
 
     ///
     /// \brief setMaximumRequestsNumber
-    /// Sets maximum requests number.
+    /// Sets a maximum requests number.
     /// Incoming requests are dropped when their number exceeds this limit.
     /// \param value
     ///
@@ -43,7 +43,7 @@ public:
     /// \brief setMultiplexingEnabled
     /// Enables or disables multiplexing of requests.
     /// When it's enabled Responder can process <maximumRequestNumber> of requests at a time, otherwise
-    /// it can process only one request per connection.
+    /// it can process only a single request per connection.
     /// \param state
     ///
     void setMultiplexingEnabled(bool state);
@@ -69,7 +69,7 @@ public:
     ///
     /// \brief setErrorInfoHandler
     /// Protocol and stream errors are handled internally and silently,
-    /// this method can be used to get text information about these errors,
+    /// this method can be used to get the text information about these errors,
     /// by registering a handler function.
     /// \param errorInfoHandler
     ///
@@ -98,25 +98,26 @@ protected:
 
     ///
     /// \brief sendData
-    /// Override this method to send response data to the web server
+    /// Implement this method to send response data to the web server
     /// \param data
     ///
     virtual void sendData(const std::string& data) = 0;
 
     ///
     /// \brief disconnect
-    /// Override this method to close connection with the web server
+    /// Implement this method to close the current connection with the web server
     ///
     virtual void disconnect() = 0;
 
     ///
     /// \brief processRequest
-    /// Override this method to form response data for the web server
-    /// and return it inside fcgi::Repsonse object;
+    /// Implement this method to form response data for the web server
+    /// and send it using the fcgi::Response object
     /// \param request
-    /// \return response data
+    /// \param response
     ///
-    virtual Response processRequest(const Request& request) = 0;
+    virtual void processRequest(const Request& request, Response response) = 0;
+
 
 private:
     void onRecordReaded(const Record& record);
@@ -126,6 +127,7 @@ private:
     void onStdIn(uint16_t requestId, const MsgStdIn& msg);
     void onRequestReceived(uint16_t requestId);
     void sendRecord(const Record& record);
+    void sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg);
 
     bool isRecordExpected(const Record& record);
     void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
@@ -140,7 +142,7 @@ private:
     } cfg_;
 
     std::unique_ptr<RecordReader> recordReader_;
-    std::unordered_map<uint16_t, Request> requestMap_;
+    std::unordered_map<uint16_t, Request> requestMap_;    
     std::function<void(const std::string&)> errorInfoHandler_;
     std::ostringstream recordStream_;
     std::string recordBuffer_;
