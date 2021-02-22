@@ -21,9 +21,4 @@ void RequestEditor::addParamsMsg(const fcgi::MsgParams& msg)
         request_.params_[paramName] = msg.paramValue(paramName);
 }
 
-void RequestEditor::setKeepConnection(bool state)
-{
-    request_.keepConnection_ = state;
-}
-
 }

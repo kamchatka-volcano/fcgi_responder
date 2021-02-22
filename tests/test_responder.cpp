@@ -21,7 +21,7 @@ public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
     MOCK_METHOD1(doProcessRequest, void(const Request& request));
-    void processRequest(const Request& request, Response) override
+    void processRequest(Request&& request, Response&&) override
     {
         doProcessRequest(request);
     }
@@ -36,7 +36,7 @@ class MockResponderWithTestProcessor : public Responder{
 public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
-    void processRequest(const Request& request, Response response) override
+    void processRequest(Request&& request, Response&& response) override
     {
         auto testMsg = request.stdIn();
         std::reverse(testMsg.begin(), testMsg.end());        

@@ -108,17 +108,29 @@ void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
             disconnect();
         return;
     }
-    RequestEditor(requestMap_[requestId]).setKeepConnection(
-                msg.resultConnectionState() == ResultConnectionState::KeepOpen);
+
+    createRequest(requestId, msg.resultConnectionState() == ResultConnectionState::KeepOpen);
 }
 
 void Responder::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
 {
     sendMessage(this, requestId, MsgEndRequest{0, protocolStatus});
-    if (!requestMap_[requestId].keepConnection())
+    if (!requestSettingsMap_[requestId].keepConnection)
         disconnect();
 
+    deleteRequest(requestId);
+}
+
+void Responder::createRequest(uint16_t requestId, bool keepConnection)
+{
+    requestMap_[requestId];
+    requestSettingsMap_[requestId].keepConnection = keepConnection;
+}
+
+void Responder::deleteRequest(uint16_t requestId)
+{
     requestMap_.erase(requestId);
+    requestSettingsMap_.erase(requestId);
 }
 
 void Responder::onGetValues(const MsgGetValues &msg)
@@ -180,7 +192,7 @@ bool Responder::isRecordExpected(const Record& record)
 
 void Responder::onRequestReceived(uint16_t requestId)
 {
-    processRequest(requestMap_[requestId],
+    processRequest(std::move(requestMap_[requestId]),
                    Response{[requestId, this](std::string&& data, std::string&& errorMsg){
                                 sendResponse(requestId, std::move(data), std::move(errorMsg));
                             }});

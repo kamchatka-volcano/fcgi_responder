@@ -48,18 +48,9 @@ public:
     ///
     bool hasParam(const std::string& name) const;
 
-    ///
-    /// \brief keepConnection
-    /// State of connection after the end of request's processing.
-    /// If true, connection stays open, otherwise it's closed after sending the response.
-    /// \return state
-    ///
-    bool keepConnection() const;
-
 private:
     std::string stdIn_;
     std::unordered_map<std::string, std::string> params_;
-    bool keepConnection_ = true;
 };
 
 } //namespace fcgi
