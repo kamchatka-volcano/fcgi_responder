@@ -116,7 +116,7 @@ protected:
     /// \param request
     /// \param response
     ///
-    virtual void processRequest(const Request& request, Response response) = 0;
+    virtual void processRequest(Request&& request, Response&& response) = 0;
 
 
 private:
@@ -133,6 +133,8 @@ private:
     void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
 
     void notifyAboutError(const std::string& errorMsg);
+    void createRequest(uint16_t requestId, bool keepConnection);
+    void deleteRequest(uint16_t requestId);
 
 private:
     struct Config{
@@ -141,8 +143,14 @@ private:
         bool multiplexingEnabled = true;
     } cfg_;
 
+    struct RequestSettings
+    {
+        bool keepConnection = true;
+    };
+
     std::unique_ptr<RecordReader> recordReader_;
-    std::unordered_map<uint16_t, Request> requestMap_;    
+    std::unordered_map<uint16_t, Request> requestMap_;
+    std::unordered_map<uint16_t, RequestSettings> requestSettingsMap_;
     std::function<void(const std::string&)> errorInfoHandler_;
     std::ostringstream recordStream_;
     std::string recordBuffer_;

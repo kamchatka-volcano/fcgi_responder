@@ -35,9 +35,4 @@ bool Request::hasParam(const std::string &name) const
     return params_.find(name) != params_.end();
 }
 
-bool Request::keepConnection() const
-{
-    return keepConnection_;
-}
-
 }

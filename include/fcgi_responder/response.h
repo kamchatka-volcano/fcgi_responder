@@ -44,12 +44,25 @@ public:
     }
 
     ///
+    /// \brief send
     /// Sends the response data during the firt call only,
     /// the next calls of this method do nothing.
     /// If a call to this method is omitted during the response object's lifetime,
     /// a call from the object's destructor will send the response data.
     ///
     void send();
+
+    ///
+    /// \brief isValid
+    /// \return check whether the reponse is valid and can be sent
+    ///
+    bool isValid() const;
+
+    ///
+    /// \brief operator bool()
+    /// \return check whether the reponse is valid and can be sent
+    ///
+    operator bool() const;
 
 private:
     std::string data_;
