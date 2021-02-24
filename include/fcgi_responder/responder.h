@@ -1,7 +1,6 @@
 #pragma once
 #include "response.h"
 #include "request.h"
-#include "record.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
