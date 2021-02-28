@@ -29,7 +29,6 @@ set(SRC
     src/record.cpp
     src/recordreader.cpp
     src/request.cpp
-    src/requesteditor.cpp
     src/responder.cpp
     src/response.cpp
     src/streamdatamessage.cpp

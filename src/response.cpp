@@ -8,7 +8,7 @@ Response::Response(ResponseSender sender)
 }
 
 Response::~Response()
-{    
+{
     send();
 }
 

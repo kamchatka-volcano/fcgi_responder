@@ -5,11 +5,13 @@
 
 namespace fcgi{
 
+class MsgStdIn;
+class MsgParams;
+
 ///
 /// \brief Object containing request data from the web server
 ///
 class Request{
-    friend class RequestEditor;
 
 public:
     ///
@@ -47,6 +49,12 @@ public:
     /// \return
     ///
     bool hasParam(const std::string& name) const;
+
+private:
+    void addParams(const fcgi::MsgParams& msg);
+    void addData(const fcgi::MsgStdIn& msg);
+    friend class Responder;
+    friend class RequestMaker;
 
 private:
     std::string stdIn_;

@@ -10,11 +10,32 @@
 #include <streamdatamessage.h>
 #include <encoder.h>
 #include <constants.h>
-#include <requesteditor.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
 using namespace fcgi;
+
+namespace fcgi{
+    class RequestMaker
+    {
+    public:
+        RequestMaker(Request& request)
+            : request_(request)
+        {}
+        void addData(const MsgStdIn& msg)
+        {
+            request_.addData(msg);
+        }
+        static Request makeRequest(const MsgParams& params, const MsgStdIn& data){
+            auto request = Request{};
+            request.addParams(params);
+            request.addData(data);
+            return request;
+        }
+    private:
+        Request& request_;
+    };
+}
 
 class MockResponder : public Responder{
 public:
@@ -221,10 +242,7 @@ TEST_P(TestResponder, Request)
     auto inStream = MsgStdIn{};
     inStream.setData("HELLO WORLD");
 
-    auto expectedRequest = Request{};
-    RequestEditor(expectedRequest).addParamsMsg(params);
-    RequestEditor(expectedRequest).addStdInMsg(inStream);
-
+    auto expectedRequest = RequestMaker::makeRequest(params, inStream);
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, doProcessRequest(expectedRequest));
     expectMessageToBeSent(MsgStdOut{}, 1);
@@ -248,7 +266,7 @@ TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
     for (auto i = 0; i < 3; ++i){
         auto inStream = MsgStdIn{};
         inStream.setData(streamRecordData);
-        RequestEditor{expectedRequest}.addStdInMsg(inStream);
+        RequestMaker{expectedRequest}.addData(inStream);
         streamData += messageData(std::move(inStream), requestId);        
     }
     streamData += messageData(MsgStdIn{}, requestId);
@@ -279,12 +297,8 @@ TEST_F(TestResponder, Multiplexing)
     auto params2 = MsgParams{};
     params2.setParam("msg", "param");
 
-    auto expectedRequest = Request{};
-    RequestEditor(expectedRequest).addParamsMsg(params);
-    RequestEditor(expectedRequest).addStdInMsg(inStream);
-
-    auto expectedRequest2 = Request{};
-    RequestEditor(expectedRequest2).addParamsMsg(params2);
+    auto expectedRequest = RequestMaker::makeRequest(params, inStream);
+    auto expectedRequest2 = RequestMaker::makeRequest(params2, {});
 
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, doProcessRequest(expectedRequest2));
