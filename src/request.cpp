@@ -1,4 +1,6 @@
 #include "request.h"
+#include "msgparams.h"
+#include "streamdatamessage.h"
 
 namespace fcgi{
 
@@ -33,6 +35,17 @@ const std::unordered_map<std::string, std::string>& Request::params() const
 bool Request::hasParam(const std::string &name) const
 {
     return params_.find(name) != params_.end();
+}
+
+void Request::addParams(const fcgi::MsgParams& msg)
+{
+    for(const auto& paramName : msg.paramList())
+        params_[paramName] = msg.paramValue(paramName);
+}
+
+void Request::addData(const fcgi::MsgStdIn& msg)
+{
+    stdIn_ += msg.data();
 }
 
 }

@@ -8,15 +8,7 @@ namespace fcgi{
 /// \brief Move-only object used to send response data from the application
 ///
 class Response{    
-    using ResponseSender = std::function<void(std::string&& data, std::string&& errorData)>;    
-
 public:
-    ///
-    /// \brief Constructor
-    /// \param sender
-    ///
-    Response(ResponseSender sender);
-
     ///
     /// \brief Destructor
     /// calls the send() method
@@ -67,6 +59,12 @@ public:
     /// \return check whether the reponse is valid and can be sent
     ///
     operator bool() const;
+
+private:
+    using ResponseSender = std::function<void(std::string&& data, std::string&& errorData)>;
+    Response(ResponseSender sender);
+    friend class Responder;
+    friend class ResponseMaker;
 
 private:
     std::string data_;

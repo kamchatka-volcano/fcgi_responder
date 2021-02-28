@@ -10,7 +10,6 @@
 #include "types.h"
 #include "errors.h"
 #include "streammaker.h"
-#include "requesteditor.h"
 #include "recordreader.h"
 #include "constants.h"
 #include <algorithm>
@@ -123,7 +122,7 @@ void Responder::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
 
 void Responder::createRequest(uint16_t requestId, bool keepConnection)
 {
-    requestMap_[requestId];
+    requestMap_.insert(std::make_pair(requestId, Request{}));
     requestSettingsMap_[requestId].keepConnection = keepConnection;
 }
 
@@ -154,12 +153,12 @@ void Responder::onGetValues(const MsgGetValues &msg)
 
 void Responder::onParams(uint16_t requestId, const MsgParams& msg)
 {
-    RequestEditor{requestMap_[requestId]}.addParamsMsg(msg);
+    requestMap_.at(requestId).addParams(msg);
 }
 
 void Responder::onStdIn(uint16_t requestId, const MsgStdIn& msg)
 {
-    RequestEditor{requestMap_[requestId]}.addStdInMsg(msg);
+    requestMap_.at(requestId).addData(msg);
     if (msg.data().empty())
         onRequestReceived(requestId);
 }
@@ -192,7 +191,7 @@ bool Responder::isRecordExpected(const Record& record)
 
 void Responder::onRequestReceived(uint16_t requestId)
 {
-    processRequest(std::move(requestMap_[requestId]),
+    processRequest(std::move(requestMap_.at(requestId)),
                    Response{[requestId, this](std::string&& data, std::string&& errorMsg){
                                 sendResponse(requestId, std::move(data), std::move(errorMsg));
                             }});
