@@ -12,7 +12,6 @@ This is a minimal example, using the Qt framework for networking:
 #include <QObject>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <memory>
 
 class FCGIGreeter : public QObject, public fcgi::Responder{
 public:
@@ -32,37 +31,37 @@ public:
     void onReadyRead()
     {
         auto data = socket_->readAll();
-        
+
         ///
         /// Passing readed socket data with fcgi::Responder::receiveData method
-        /// 
-        receiveData(data.toStdString());
+        ///
+        receiveData(data.data(), static_cast<std::size_t>(data.size()));
     }
-    
+
     ///
-    /// Overriding fcgi::Responder::processRequest to form response data 
-    /// 
-    fcgi::Response processRequest(const fcgi::Request&) override
+    /// Overriding fcgi::Responder::processRequest to form response data
+    ///
+    void processRequest(fcgi::Request&&, fcgi::Response&& response) override
     {
-        auto response = "HTTP/1.1 200\r\n "
-                        "Content-Type: text/html\r\n"
-                        "\r\n"
-                        "HELLO WORLD!";
-        return fcgi::Response{response, ""};
+        response.setData("HTTP/1.1 200\r\n "
+                         "Content-Type: text/html\r\n"
+                         "\r\n"
+                         "HELLO WORLD!");
+        response.send();
     }
-    
+
     ///
     /// Overriding fcgi::Responder::sendData to send response data to the web server
-    /// 
+    ///
     void sendData(const std::string& data) override
     {
         socket_->write(data.c_str(), static_cast<qint64>(data.size()));
         socket_->flush();
     }
-    
+
     ///
     /// Overriding fcgi::Responder::disonnect to close connection with the web server
-    /// 
+    ///
     void disconnect() override
     {
         socket_->disconnectFromServer();
