@@ -26,14 +26,13 @@ Responder::Responder()
     recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], cMaxRecordSize);
 }
 
-Responder::~Responder()
-{}
+Responder::~Responder() = default;
 
 template <typename TMsg>
-void sendMessage(Responder* responder, uint16_t requestId, TMsg&& msg)
+void sendMessage(Responder& responder, uint16_t requestId, TMsg&& msg)
 {
     auto record = Record{std::forward<TMsg>(msg), requestId};
-    responder->sendRecord(record);
+    responder.sendRecord(record);
 }
 
 void Responder::receiveData(const char* data, std::size_t size)
@@ -43,7 +42,7 @@ void Responder::receiveData(const char* data, std::size_t size)
     }
     catch(const InvalidRecordType& e){        
         notifyAboutError(e.what());
-        sendMessage(this, 0, MsgUnknownType{e.recordType()});
+        sendMessage(*this, 0, MsgUnknownType{e.recordType()});
         recordReader_->removeBrokenRecord(e.recordSize(), data, size);
 
     }
@@ -90,19 +89,19 @@ void Responder::onRecordReaded(const Record& record)
 void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
 {
     if (msg.role() != Role::Responder){
-        sendMessage(this, requestId, MsgEndRequest{0, ProtocolStatus::UnknownRole});
+        sendMessage(*this, requestId, MsgEndRequest{0, ProtocolStatus::UnknownRole});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
     }
     if (!cfg_.multiplexingEnabled && requestMap_.size() > 0 && !requestMap_.count(requestId)){
-        sendMessage(this, requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
+        sendMessage(*this, requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
     }
     if (requestMap_.size() == static_cast<std::size_t>(cfg_.maxRequestsNumber) && !requestMap_.count(requestId)){
-        sendMessage(this, requestId, MsgEndRequest{0, ProtocolStatus::Overloaded});
+        sendMessage(*this, requestId, MsgEndRequest{0, ProtocolStatus::Overloaded});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
@@ -113,7 +112,7 @@ void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
 
 void Responder::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
 {
-    sendMessage(this, requestId, MsgEndRequest{0, protocolStatus});
+    sendMessage(*this, requestId, MsgEndRequest{0, protocolStatus});
     if (!requestSettingsMap_[requestId].keepConnection)
         disconnect();
 
@@ -148,7 +147,7 @@ void Responder::onGetValues(const MsgGetValues &msg)
             break;
         }
     }
-    sendMessage(this, 0, std::move(result));
+    sendMessage(*this, 0, std::move(result));
 }
 
 void Responder::onParams(uint16_t requestId, const MsgParams& msg)

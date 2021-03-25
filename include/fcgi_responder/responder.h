@@ -156,7 +156,7 @@ private:
 
 private:
     template<typename TMsg>
-    friend void sendMessage(Responder* responder, uint16_t requestId, TMsg&& msg);
+    friend void sendMessage(Responder& responder, uint16_t requestId, TMsg&& msg);
 };
 
 }

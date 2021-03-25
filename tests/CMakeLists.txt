@@ -5,6 +5,7 @@ include_directories(${GTEST_INCLUDE_DIRS}, ..)
 
 set(SRC
     test_record_serialization.cpp 
+    test_request.cpp 
     test_utils.cpp 
     test_responder.cpp)
 

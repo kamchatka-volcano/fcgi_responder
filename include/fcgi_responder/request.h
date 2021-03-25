@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace fcgi{
@@ -36,13 +35,6 @@ public:
     std::vector<std::string> paramList() const;
 
     ///
-    /// \brief params
-    /// Returns params map
-    /// \return
-    ///
-    const std::unordered_map<std::string, std::string>& params() const;
-
-    ///
     /// \brief hasParam
     /// Returns true if request has specified parameter
     /// \param name
@@ -51,14 +43,16 @@ public:
     bool hasParam(const std::string& name) const;
 
 private:
+    void addParams(const std::vector<std::pair<std::string, std::string>>& params);
     void addParams(const fcgi::MsgParams& msg);
+    void postProcessParamsContainer();
     void addData(const fcgi::MsgStdIn& msg);
     friend class Responder;
     friend class RequestMaker;
 
 private:
     std::string stdIn_;
-    std::unordered_map<std::string, std::string> params_;
+    std::vector<std::pair<std::string, std::string>> params_;
 };
 
 } //namespace fcgi
