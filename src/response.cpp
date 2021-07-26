@@ -3,7 +3,7 @@
 namespace fcgi{
 
 Response::Response(ResponseSender sender)
-    : sender_(sender)
+    : sender_(std::move(sender))
 {
 }
 
@@ -31,6 +31,16 @@ bool Response::isValid() const
 Response::operator bool() const
 {
     return isValid();
+}
+
+void Response::setData(std::string data)
+{
+    data_ = std::move(data);
+}
+
+void Response::setErrorMsg(std::string errorMsg)
+{
+    errorMsg_ = std::move(errorMsg);
 }
 
 }

@@ -23,9 +23,9 @@ namespace fcgi{
 class Record{
 public:
     Record();
-    Record(RecordType type, uint16_t requestId = 0);
+    explicit Record(RecordType type, uint16_t requestId = 0);
     template <typename TMessage>
-    Record(TMessage&& msg, uint16_t requestId = 0)
+    explicit Record(TMessage&& msg, uint16_t requestId)
         : type_(msg.recordType())
         , requestId_(requestId)
         , message_(std::forward<TMessage>(msg))

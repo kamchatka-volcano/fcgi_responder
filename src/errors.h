@@ -5,18 +5,18 @@ namespace fcgi{
 
 class ProtocolError : public std::runtime_error{
 public:
-    ProtocolError(const std::string&);
+    explicit ProtocolError(const std::string&);
 };
 
 class UnrecoverableProtocolError : public std::runtime_error
 {
 public:
-    UnrecoverableProtocolError(const std::string&);
+    explicit UnrecoverableProtocolError(const std::string&);
 };
 
 class UnsupportedVersion : public ProtocolError{
 public:
-    UnsupportedVersion(uint8_t protocolVersion);
+    explicit UnsupportedVersion(uint8_t protocolVersion);
     uint8_t protocolVersion() const;
 
 private:

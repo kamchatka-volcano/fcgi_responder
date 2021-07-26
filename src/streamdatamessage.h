@@ -30,8 +30,8 @@ class MsgStdIn : public StreamDataMessage
 {
 public:
     MsgStdIn();
-    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
-    MsgStdIn(TStr&& data)
+    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
+    explicit MsgStdIn(TStr&& data)
         : StreamDataMessage(RecordType::StdIn, std::forward<TStr>(data))
     {}
     bool operator==(const MsgStdIn& other) const;
@@ -41,8 +41,8 @@ class MsgStdOut : public StreamDataMessage
 {
 public:
     MsgStdOut();
-    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
-    MsgStdOut(TStr&& data)
+    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
+    explicit MsgStdOut(TStr&& data)
         : StreamDataMessage(RecordType::StdOut, std::forward<TStr>(data))
     {}
     bool operator==(const MsgStdOut& other) const;
@@ -52,8 +52,8 @@ class MsgStdErr : public StreamDataMessage
 {
 public:
     MsgStdErr();
-    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
-    MsgStdErr(TStr&& data)
+    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
+    explicit MsgStdErr(TStr&& data)
         : StreamDataMessage(RecordType::StdErr, std::forward<TStr>(data))
     {}
     bool operator==(const MsgStdErr& other) const;
@@ -63,8 +63,8 @@ class MsgData : public StreamDataMessage
 {
 public:
     MsgData();
-    template <typename TStr, std::enable_if_t<std::is_convertible_v<TStr, std::string >>* = nullptr>
-    MsgData(TStr&& data)
+    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
+    explicit MsgData(TStr&& data)
         : StreamDataMessage(RecordType::Data, std::forward<TStr>(data))
     {}
     bool operator==(const MsgData& other) const;

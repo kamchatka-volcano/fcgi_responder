@@ -5,7 +5,7 @@ namespace fcgi{
 
 class Encoder{
 public:
-    Encoder(std::ostream& stream);
+    explicit Encoder(std::ostream& stream);
     Encoder& operator<<(uint8_t val);
     Encoder& operator<<(uint16_t val);
     Encoder& operator<<(uint32_t val);

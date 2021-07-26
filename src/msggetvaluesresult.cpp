@@ -28,7 +28,7 @@ void MsgGetValuesResult::setRequestValue(ValueRequest request, const std::string
     });
 
     if (it == requestValueList_.end())
-        requestValueList_.push_back({requestStr, value});
+        requestValueList_.emplace_back(requestStr, value);
     else
         it->setValue(value);
 }
@@ -64,17 +64,17 @@ void MsgGetValuesResult::toStream(std::ostream &output) const
 
 void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
 {
-    auto readedBytes = 0u;
+    auto readBytes = 0u;
     while(true){
         auto nameValue = NameValue{};
         nameValue.fromStream(input);
-        readedBytes += nameValue.size();
+        readBytes += nameValue.size();
         valueRequestFromString(nameValue.name()); //Check that request name is valid
         requestValueList_.push_back(nameValue);
 
-        if (readedBytes == inputSize)
+        if (readBytes == inputSize)
             break;
-        if (readedBytes > inputSize)
+        if (readBytes > inputSize)
             throw UnrecoverableProtocolError{"Misaligned name-value"};
     }
 }

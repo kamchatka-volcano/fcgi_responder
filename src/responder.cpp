@@ -19,7 +19,7 @@ namespace fcgi{
 Responder::Responder()
     : recordReader_(std::make_unique<RecordReader>([this](const Record& record)
       {
-          onRecordReaded(record);
+          onRecordRead(record);
       }))
 {
     recordBuffer_.resize(cMaxRecordSize);
@@ -56,7 +56,7 @@ void Responder::receiveData(const char* data, std::size_t size)
     }
 }
 
-void Responder::onRecordReaded(const Record& record)
+void Responder::onRecordRead(const Record& record)
 {
     if (!isRecordExpected(record)){
         notifyAboutError("Received unexpected record, RecordType = "
@@ -94,7 +94,7 @@ void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
             disconnect();
         return;
     }
-    if (!cfg_.multiplexingEnabled && requestMap_.size() > 0 && !requestMap_.count(requestId)){
+    if (!cfg_.multiplexingEnabled && !requestMap_.empty() && !requestMap_.count(requestId)){
         sendMessage(*this, requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
@@ -223,7 +223,7 @@ void Responder::setMultiplexingEnabled(bool state)
 
 void Responder::setErrorInfoHandler(std::function<void (const std::string &)> handler)
 {
-    errorInfoHandler_ = handler;
+    errorInfoHandler_ = std::move(handler);
 }
 
 int Responder::maximumConnectionsNumber() const

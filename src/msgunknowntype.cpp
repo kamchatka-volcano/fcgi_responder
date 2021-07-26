@@ -7,6 +7,7 @@ namespace fcgi{
 
 MsgUnknownType::MsgUnknownType()
     : Message(RecordType::UnknownType)
+    , unknownTypeValue_(0)
 {
 }
 

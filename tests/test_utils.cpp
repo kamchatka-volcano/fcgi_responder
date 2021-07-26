@@ -1,9 +1,6 @@
 #include <msgbeginrequest.h>
-#include <msgendrequest.h>
 #include <msggetvalues.h>
-#include <msggetvaluesresult.h>
 #include <msgparams.h>
-#include <msgunknowntype.h>
 #include <streamdatamessage.h>
 #include <record.h>
 #include <recordreader.h>
@@ -23,10 +20,10 @@ TEST(Utils, RecordReader)
     record.toStream(recordStream);
     recordData = recordStream.str();
 
-    auto readedRecordList = std::vector<fcgi::Record>{};
-    auto recordReadHandler = [&readedRecordList](fcgi::Record& record)
+    auto readRecordList = std::vector<fcgi::Record>{};
+    auto recordReadHandler = [&readRecordList](fcgi::Record& record)
     {
-        readedRecordList.push_back(record);
+        readRecordList.push_back(record);
     };
 
     auto recordReader = std::make_unique<fcgi::RecordReader>(recordReadHandler);
@@ -42,8 +39,8 @@ TEST(Utils, RecordReader)
     if (!chunk.empty())
         recordReader->read(chunk.c_str(), chunk.size());
 
-    ASSERT_EQ(readedRecordList.size(), 1);
-    ASSERT_TRUE(record == readedRecordList.front());
+    ASSERT_EQ(readRecordList.size(), 1);
+    ASSERT_TRUE(record == readRecordList.front());
 }
 
 

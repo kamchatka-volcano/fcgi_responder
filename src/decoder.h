@@ -5,7 +5,7 @@ namespace fcgi{
 
 class Decoder{
 public:
-    Decoder(std::istream& input);
+    explicit Decoder(std::istream& input);
     Decoder& operator>>(uint8_t& val);
     Decoder& operator>>(uint16_t& val);
     Decoder& operator>>(uint32_t& val);

@@ -6,7 +6,7 @@
 namespace fcgi{
 class RequestMaker{
 public:
-    RequestMaker(Request& request)
+    explicit RequestMaker(Request& request)
         : request_(request)
     {}
     void addParams(const std::vector<std::pair<std::string, std::string>>& params)

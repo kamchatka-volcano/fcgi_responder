@@ -8,13 +8,15 @@ namespace fcgi{
 
 MsgBeginRequest::MsgBeginRequest()
     : Message(RecordType::BeginRequest)
+    , role_(Role::Responder)
+    , resultConnectionState_(ResultConnectionState::Close)
 {
 }
 
 MsgBeginRequest::MsgBeginRequest(Role role, ResultConnectionState connectionState)
     : Message(RecordType::BeginRequest)
     , role_(role)
-    , resultConectionState_(connectionState)
+    , resultConnectionState_(connectionState)
 {
 }
 
@@ -30,14 +32,14 @@ Role MsgBeginRequest::role() const
 
 ResultConnectionState MsgBeginRequest::resultConnectionState() const
 {
-    return resultConectionState_;
+    return resultConnectionState_;
 }
 
 void MsgBeginRequest::toStream(std::ostream &output) const
 {
     auto encoder = Encoder(output);
     encoder << static_cast<uint16_t>(role_)
-            << static_cast<uint8_t>(resultConectionState_);
+            << static_cast<uint8_t>(resultConnectionState_);
     encoder.addPadding(5); //reserved bytes
 }
 
@@ -50,13 +52,13 @@ void MsgBeginRequest::fromStream(std::istream &input, std::size_t)
             >> flags;
     decoder.skip(5); //reservedBytes
     role_ = roleFromInt(role);
-    resultConectionState_ = static_cast<ResultConnectionState>(flags & cKeepConnectionMask);
+    resultConnectionState_ = static_cast<ResultConnectionState>(flags & cKeepConnectionMask);
 }
 
 bool MsgBeginRequest::operator==(const MsgBeginRequest& other) const
 {
     return role_ == other.role_ &&
-           resultConectionState_ == other.resultConectionState_;
+           resultConnectionState_ == other.resultConnectionState_;
 }
 
 }

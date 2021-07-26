@@ -7,6 +7,8 @@ namespace fcgi{
 
 MsgEndRequest::MsgEndRequest()
     : Message(RecordType::EndRequest)
+    , appStatus_(0)
+    , protocolStatus_(ProtocolStatus::UnknownRole)
 {
 }
 

@@ -33,7 +33,7 @@ public:
         auto data = socket_->readAll();
 
         ///
-        /// Passing readed socket data with fcgi::Responder::receiveData method
+        /// Passing read socket data with fcgi::Responder::receiveData method
         ///
         receiveData(data.data(), static_cast<std::size_t>(data.size()));
     }

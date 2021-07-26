@@ -4,9 +4,7 @@
 
 namespace fcgi{
 
-NameValue::NameValue()
-{
-}
+NameValue::NameValue() = default;
 
 std::size_t NameValue::size() const
 {

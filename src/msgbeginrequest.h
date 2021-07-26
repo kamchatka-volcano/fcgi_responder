@@ -22,7 +22,7 @@ private:
 
 private:
     Role role_;
-    ResultConnectionState resultConectionState_;
+    ResultConnectionState resultConnectionState_;
 };
 
 }

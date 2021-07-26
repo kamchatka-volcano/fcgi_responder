@@ -10,7 +10,7 @@ namespace fcgi{
 template <typename TMsg>
 class Message{
 public:
-    Message(RecordType type)
+    explicit Message(RecordType type)
         : recordType_(type)
     {}
 

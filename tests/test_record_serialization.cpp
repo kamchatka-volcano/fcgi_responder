@@ -4,14 +4,12 @@
 #include <msggetvaluesresult.h>
 #include <msgparams.h>
 #include <msgunknowntype.h>
-#include <msgabortrequest.h>
 #include <streamdatamessage.h>
 #include <record.h>
 #include <encoder.h>
 #include <errors.h>
 #include <namevalue.h>
 #include <gtest/gtest.h>
-#include <sstream>
 #include <functional>
 
 namespace{
@@ -40,9 +38,9 @@ TEST(RecordSerialization, MsgBeginRequest)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto& readedMsg = resultRecord.getMessage<fcgi::MsgBeginRequest>();
-    ASSERT_EQ(msg.role(), readedMsg.role());
-    ASSERT_EQ(msg.resultConnectionState(), readedMsg.resultConnectionState());
+    auto& readMsg = resultRecord.getMessage<fcgi::MsgBeginRequest>();
+    ASSERT_EQ(msg.role(), readMsg.role());
+    ASSERT_EQ(msg.resultConnectionState(), readMsg.resultConnectionState());
 }
 
 TEST(RecordSerialization, MsgEndRequest)
@@ -52,9 +50,9 @@ TEST(RecordSerialization, MsgEndRequest)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto readedMsg = resultRecord.getMessage<fcgi::MsgEndRequest>();
-    ASSERT_EQ(msg.appStatus(), readedMsg.appStatus());
-    ASSERT_EQ(msg.protocolStatus(), readedMsg.protocolStatus());
+    auto readMsg = resultRecord.getMessage<fcgi::MsgEndRequest>();
+    ASSERT_EQ(msg.appStatus(), readMsg.appStatus());
+    ASSERT_EQ(msg.protocolStatus(), readMsg.protocolStatus());
 
 }
 
@@ -65,8 +63,8 @@ TEST(RecordSerialization, MsgGetValues)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto readedMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
-    ASSERT_EQ(msg.requestList(), readedMsg.requestList());
+    auto readMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
+    ASSERT_EQ(msg.requestList(), readMsg.requestList());
 
     msg = fcgi::MsgGetValues{};
     msg.requestValue(fcgi::ValueRequest::MaxReqs);
@@ -76,8 +74,8 @@ TEST(RecordSerialization, MsgGetValues)
         auto resultRecord = fcgi::Record{};
         convertRecordTest(record, resultRecord);
 
-        readedMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
-        ASSERT_EQ(msg.requestList(), readedMsg.requestList());
+        readMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
+        ASSERT_EQ(msg.requestList(), readMsg.requestList());
     }
 }
 
@@ -88,8 +86,8 @@ TEST(RecordSerialization, MsgGetValuesResult)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto readedMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
-    ASSERT_EQ(msg.requestList(), readedMsg.requestList());
+    auto readMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
+    ASSERT_EQ(msg.requestList(), readMsg.requestList());
 
     msg = fcgi::MsgGetValuesResult{};
     msg.setRequestValue(fcgi::ValueRequest::MaxReqs, "10");
@@ -99,10 +97,10 @@ TEST(RecordSerialization, MsgGetValuesResult)
         auto resultRecord = fcgi::Record{};
         convertRecordTest(record, resultRecord);
 
-        readedMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
-        ASSERT_EQ(msg.requestList(), readedMsg.requestList());
+        readMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
+        ASSERT_EQ(msg.requestList(), readMsg.requestList());
         for(auto request : msg.requestList())
-            ASSERT_EQ(msg.requestValue(request), readedMsg.requestValue(request));
+            ASSERT_EQ(msg.requestValue(request), readMsg.requestValue(request));
     }
 }
 
@@ -114,8 +112,8 @@ TEST(RecordSerialization, MsgParams)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto readedMsg = resultRecord.getMessage<fcgi::MsgParams>();
-    ASSERT_EQ(msg.paramList(), readedMsg.paramList());
+    auto readMsg = resultRecord.getMessage<fcgi::MsgParams>();
+    ASSERT_EQ(msg.paramList(), readMsg.paramList());
 
     msg = fcgi::MsgParams{};
     msg.setParam("Hello", "World");
@@ -124,10 +122,10 @@ TEST(RecordSerialization, MsgParams)
         auto resultRecord = fcgi::Record{};
         convertRecordTest(record, resultRecord);
 
-        readedMsg = resultRecord.getMessage<fcgi::MsgParams>();
-        ASSERT_EQ(msg.paramList(), readedMsg.paramList());
+        readMsg = resultRecord.getMessage<fcgi::MsgParams>();
+        ASSERT_EQ(msg.paramList(), readMsg.paramList());
         for(const auto& param : msg.paramList())
-            ASSERT_EQ(msg.paramValue(param), readedMsg.paramValue(param));
+            ASSERT_EQ(msg.paramValue(param), readMsg.paramValue(param));
     }
 }
 
@@ -138,8 +136,8 @@ TEST(RecordSerialization, MsgUnkownType)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto readedMsg = resultRecord.getMessage<fcgi::MsgUnknownType>();
-    ASSERT_EQ(msg.unknownTypeValue(), readedMsg.unknownTypeValue());
+    auto readMsg = resultRecord.getMessage<fcgi::MsgUnknownType>();
+    ASSERT_EQ(msg.unknownTypeValue(), readMsg.unknownTypeValue());
 }
 
 TEST(RecordSerialization, MsgStdIn)
@@ -149,8 +147,8 @@ TEST(RecordSerialization, MsgStdIn)
     auto resultRecord = fcgi::Record{};
     convertRecordTest(record, resultRecord);
 
-    auto readedMsg = resultRecord.getMessage<fcgi::MsgStdIn>();
-    ASSERT_EQ(msg.data(), readedMsg.data());
+    auto readMsg = resultRecord.getMessage<fcgi::MsgStdIn>();
+    ASSERT_EQ(msg.data(), readMsg.data());
 }
 
 template<typename ExceptionType>

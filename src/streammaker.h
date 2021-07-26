@@ -8,7 +8,7 @@ namespace fcgi{
 
 class StreamMaker{
 public:
-    StreamMaker(std::size_t maxDataMessageSize = cMaxDataMessageSize);
+    explicit StreamMaker(std::size_t maxDataMessageSize = cMaxDataMessageSize);
     template <typename TMsg>
     std::vector<Record> makeStream(uint16_t requestId, std::string&& data)
     {

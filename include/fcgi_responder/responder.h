@@ -119,7 +119,7 @@ protected:
 
 
 private:
-    void onRecordReaded(const Record& record);
+    void onRecordRead(const Record& record);
     void onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg);
     void onGetValues(const MsgGetValues& msg);
     void onParams(uint16_t requestId, const MsgParams& msg);

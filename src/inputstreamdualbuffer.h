@@ -5,8 +5,8 @@ namespace fcgi{
 
 class InputStreamDualBuffer : public std::streambuf {
 public:
-    InputStreamDualBuffer(const char* firstBuf = nullptr, std::size_t firstBufSize = 0,
-                          const char* secondBuf = nullptr, std::size_t secondBufSize = 0);
+    explicit InputStreamDualBuffer(const char* firstBuf = nullptr, std::size_t firstBufSize = 0,
+                                   const char* secondBuf = nullptr, std::size_t secondBufSize = 0);
     int underflow() override;
 
 private:

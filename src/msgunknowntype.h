@@ -8,7 +8,7 @@ class MsgUnknownType : public Message<MsgUnknownType>{
 
 public:
     MsgUnknownType();
-    MsgUnknownType(uint8_t unknownTypeValue);
+    explicit MsgUnknownType(uint8_t unknownTypeValue);
     std::size_t size() const;
     uint8_t unknownTypeValue() const;
     bool operator==(const MsgUnknownType& other) const;

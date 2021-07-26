@@ -4,7 +4,6 @@
 #include "errors.h"
 #include "encoder.h"
 #include "decoder.h"
-#include <sstream>
 #include <string>
 
 namespace fcgi{
@@ -45,9 +44,7 @@ void Record::toStream(std::ostream& output) const
 
 std::size_t Record::fromStream(std::istream& input, std::size_t inputSize)
 {
-    auto result = std::size_t{};
-    result = read(input, inputSize);
-    return result;
+    return read(input, inputSize);
 }
 
 void Record::write(std::ostream &output) const

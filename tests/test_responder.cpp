@@ -19,7 +19,7 @@ namespace fcgi{
     class RequestMaker
     {
     public:
-        RequestMaker(Request& request)
+        explicit RequestMaker(Request& request)
             : request_(request)
         {}
         void addData(const MsgStdIn& msg)
