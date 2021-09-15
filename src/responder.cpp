@@ -1,4 +1,4 @@
-#include "responder.h"
+#include <fcgi_responder/responder.h>
 #include "record.h"
 #include "msgbeginrequest.h"
 #include "msgendrequest.h"

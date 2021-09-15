@@ -1,18 +1,17 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 
 project(fcgi_responder VERSION 1.0.0 DESCRIPTION "FCGI protocol responder role implementation library")
 
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
+if(NOT DEFINED FCGI_RESPONDER_SUBPROJECT)
+    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+        set(FCGI_RESPONDER_SUBPROJECT OFF)
+    else()
+        set(FCGI_RESPONDER_SUBPROJECT ON)
+    endif()
 endif()
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -fPIC")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+include(CheckPIESupported)
+check_pie_supported()
 
 set(SRC
     src/decoder.cpp
@@ -33,7 +32,8 @@ set(SRC
     src/response.cpp
     src/streamdatamessage.cpp
     src/streammaker.cpp
-    src/inputstreamdualbuffer.cpp)
+    src/inputstreamdualbuffer.cpp
+)
 
 set(PUBLIC_HEADERS
     "include/fcgi_responder/request.h"
@@ -42,19 +42,25 @@ set(PUBLIC_HEADERS
 )
 
 add_library(fcgi_responder STATIC ${SRC})
-set_target_properties(fcgi_responder PROPERTIES VERSION ${PROJECT_VERSION})
+target_compile_features(fcgi_responder PUBLIC cxx_std_17)
+set_target_properties(fcgi_responder PROPERTIES CXX_EXTENSIONS OFF)
 set_target_properties(fcgi_responder PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
+set_target_properties(fcgi_responder PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(fcgi_responder PRIVATE include/fcgi_responder)
+target_include_directories(fcgi_responder INTERFACE include/)
+target_include_directories(fcgi_responder PRIVATE include/)
 target_include_directories(fcgi_responder PRIVATE src)
 
 option(ENABLE_TESTS "Enable tests" OFF)
-if (${ENABLE_TESTS})
+if (ENABLE_TESTS AND NOT FCGI_RESPONDER_SUBPROJECT)
     enable_testing()
     add_subdirectory(tests)
 endif()
 
+
 include(GNUInstallDirs)
-install(TARGETS fcgi_responder
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fcgi_responder)
+if(NOT FCGI_RESPONDER_SUBPROJECT)
+    install(TARGETS fcgi_responder
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fcgi_responder)
+endif()

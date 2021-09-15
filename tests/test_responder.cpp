@@ -397,6 +397,6 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     EXPECT_EQ(errorInfo_, "Misaligned name-value\n");
 }
 
-INSTANTIATE_TEST_CASE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));
-INSTANTIATE_TEST_CASE_P(WithConnectionStateCheck, TestResponderWithTestProcessor, ::testing::Values(false, true));
+INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));
+INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponderWithTestProcessor, ::testing::Values(false, true));
 
