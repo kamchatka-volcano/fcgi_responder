@@ -1,6 +1,6 @@
 #pragma once
-#include "response.h"
 #include "request.h"
+#include "response.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
@@ -14,6 +14,7 @@ class MsgParams;
 class MsgStdIn;
 class Record;
 class RecordReader;
+class RequestRegistry;
 enum class ProtocolStatus : uint8_t;
 
 ///
@@ -148,7 +149,7 @@ private:
     };
 
     std::unique_ptr<RecordReader> recordReader_;
-    std::unordered_map<uint16_t, Request> requestMap_;
+    std::unique_ptr<RequestRegistry> requestRegistry_;
     std::unordered_map<uint16_t, RequestSettings> requestSettingsMap_;
     std::function<void(const std::string&)> errorInfoHandler_;
     std::ostringstream recordStream_;

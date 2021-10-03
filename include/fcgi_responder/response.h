@@ -7,15 +7,22 @@ namespace fcgi{
 ///
 /// \brief Move-only object used to send response data from the application
 ///
-class Response{    
+class Response{
+    using ResponseSender = std::function<void(std::string&& data, std::string&& errorData)>;
 public:
+    ///
+    /// \brief Constructor
+    /// \param sender - a response sending function
+    ///
+    explicit Response(ResponseSender sender);
+
     ///
     /// \brief Destructor
     /// calls the send() method
     ///
     ~Response();
-    Response(Response&&) = default;
-    Response& operator=(Response&&) = default;
+    Response(Response&&) noexcept;
+    Response& operator=(Response&&) noexcept;
 
     ///
     /// \brief setData
@@ -51,12 +58,6 @@ public:
     /// \return check whether the response is valid and can be sent
     ///
     operator bool() const;
-
-private:
-    using ResponseSender = std::function<void(std::string&& data, std::string&& errorData)>;
-    explicit Response(ResponseSender sender);
-    friend class Responder;
-    friend class ResponseMaker;
 
 private:
     std::string data_;

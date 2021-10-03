@@ -12,6 +12,7 @@
 #include "streammaker.h"
 #include "recordreader.h"
 #include "constants.h"
+#include "requestregistry.h"
 #include <algorithm>
 
 namespace fcgi{
@@ -21,6 +22,7 @@ Responder::Responder()
       {
           onRecordRead(record);
       }))
+    , requestRegistry_(std::make_unique<RequestRegistry>())
 {
     recordBuffer_.resize(cMaxRecordSize);
     recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], cMaxRecordSize);
@@ -94,13 +96,13 @@ void Responder::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
             disconnect();
         return;
     }
-    if (!cfg_.multiplexingEnabled && !requestMap_.empty() && !requestMap_.count(requestId)){
+    if (!cfg_.multiplexingEnabled && !requestRegistry_->isEmpty() && !requestRegistry_->hasRequest(requestId)){
         sendMessage(*this, requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
         return;
     }
-    if (requestMap_.size() == static_cast<std::size_t>(cfg_.maxRequestsNumber) && !requestMap_.count(requestId)){
+    if (requestRegistry_->requestCount() == cfg_.maxRequestsNumber && !requestRegistry_->hasRequest(requestId)){
         sendMessage(*this, requestId, MsgEndRequest{0, ProtocolStatus::Overloaded});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect();
@@ -121,13 +123,13 @@ void Responder::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
 
 void Responder::createRequest(uint16_t requestId, bool keepConnection)
 {
-    requestMap_.insert(std::make_pair(requestId, Request{}));
+    requestRegistry_->registerRequest(requestId);
     requestSettingsMap_[requestId].keepConnection = keepConnection;
 }
 
 void Responder::deleteRequest(uint16_t requestId)
 {
-    requestMap_.erase(requestId);
+    requestRegistry_->unregisterRequest(requestId);
     requestSettingsMap_.erase(requestId);
 }
 
@@ -152,12 +154,12 @@ void Responder::onGetValues(const MsgGetValues &msg)
 
 void Responder::onParams(uint16_t requestId, const MsgParams& msg)
 {
-    requestMap_.at(requestId).addParams(msg);
+    requestRegistry_->fillRequestData(requestId, msg);
 }
 
 void Responder::onStdIn(uint16_t requestId, const MsgStdIn& msg)
 {
-    requestMap_.at(requestId).addData(msg);
+    requestRegistry_->fillRequestData(requestId, msg);
     if (msg.data().empty())
         onRequestReceived(requestId);
 }
@@ -178,7 +180,7 @@ void Responder::sendRecord(const Record &record)
 
 bool Responder::isRecordExpected(const Record& record)
 {
-    auto requestRegistered = requestMap_.find(record.requestId()) != requestMap_.end();
+    const auto requestRegistered = requestRegistry_->hasRequest(record.requestId());
     if (record.type() == RecordType::GetValues)
         return true;
     if (record.type() == RecordType::BeginRequest && !requestRegistered)
@@ -190,7 +192,7 @@ bool Responder::isRecordExpected(const Record& record)
 
 void Responder::onRequestReceived(uint16_t requestId)
 {
-    processRequest(std::move(requestMap_.at(requestId)),
+    processRequest(requestRegistry_->makeRequest(requestId),
                    Response{[requestId, this](std::string&& data, std::string&& errorMsg){
                                 sendResponse(requestId, std::move(data), std::move(errorMsg));
                             }});

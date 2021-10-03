@@ -4,9 +4,6 @@
 
 namespace fcgi{
 
-class MsgStdIn;
-class MsgParams;
-
 ///
 /// \brief Object containing request data from the web server
 ///
@@ -14,7 +11,7 @@ class Request{
 
 public:
     ///
-    /// \brief stdIn
+    /// \brief stdIn_
     /// HTTP request data
     /// \return
     ///
@@ -42,17 +39,19 @@ public:
     ///
     bool hasParam(const std::string& name) const;
 
-private:
-    void addParams(const std::vector<std::pair<std::string, std::string>>& params);
-    void addParams(const fcgi::MsgParams& msg);
-    void postProcessParamsContainer();
-    void addData(const fcgi::MsgStdIn& msg);
-    friend class Responder;
-    friend class RequestMaker;
+    ///
+    /// \brief Constructor
+    /// \param params fcgi parameters
+    /// \param stdIn request data
+    Request(std::vector<std::pair<std::string, std::string>> params, std::string stdIn);
 
 private:
-    std::string stdIn_;
+    void sortParams();
+
+private:
     std::vector<std::pair<std::string, std::string>> params_;
+    std::string stdIn_;
+
 };
 
 } //namespace fcgi

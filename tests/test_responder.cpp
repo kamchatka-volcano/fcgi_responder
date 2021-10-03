@@ -1,5 +1,6 @@
 #include <responder.h>
 #include <record.h>
+#include <requestregistry.h>
 #include <msgbeginrequest.h>
 #include <msgendrequest.h>
 #include <msggetvalues.h>
@@ -7,6 +8,7 @@
 #include <msgunknowntype.h>
 #include <msgparams.h>
 #include <msgabortrequest.h>
+#include <requestregistry.h>
 #include <streamdatamessage.h>
 #include <encoder.h>
 #include <constants.h>
@@ -15,26 +17,14 @@
 
 using namespace fcgi;
 
-namespace fcgi{
-    class RequestMaker
-    {
-    public:
-        explicit RequestMaker(Request& request)
-            : request_(request)
-        {}
-        void addData(const MsgStdIn& msg)
-        {
-            request_.addData(msg);
-        }
-        static Request makeRequest(const MsgParams& params, const MsgStdIn& data){
-            auto request = Request{};
-            request.addParams(params);
-            request.addData(data);
-            return request;
-        }
-    private:
-        Request& request_;
-    };
+namespace {
+Request makeRequest(const MsgParams& params, const MsgStdIn& data){
+    auto requestParams = std::vector<std::pair<std::string, std::string>>{};
+    for (const auto& paramName : params.paramList())
+        requestParams.emplace_back(paramName, params.paramValue(paramName));
+
+    return Request{std::move(requestParams), data.data()};
+}
 }
 
 class MockResponder : public Responder{
@@ -242,7 +232,7 @@ TEST_P(TestResponder, Request)
     auto inStream = MsgStdIn{};
     inStream.setData("HELLO WORLD");
 
-    auto expectedRequest = RequestMaker::makeRequest(params, inStream);
+    auto expectedRequest = makeRequest(params, inStream);
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, doProcessRequest(expectedRequest));
     expectMessageToBeSent(MsgStdOut{}, 1);
@@ -261,17 +251,17 @@ TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
 {
     auto streamRecordData = std::string(cMaxDataMessageSize, '0');
     auto streamData = std::string{};
-    auto expectedRequest = Request{};
+    auto expectedRequestData = std::string{};
     auto requestId = static_cast<uint16_t>(1);
     for (auto i = 0; i < 3; ++i){
         auto inStream = MsgStdIn{};
         inStream.setData(streamRecordData);
-        RequestMaker{expectedRequest}.addData(inStream);
+        expectedRequestData += inStream.data();
         streamData += messageData(std::move(inStream), requestId);        
     }
     streamData += messageData(MsgStdIn{}, requestId);
 
-
+    auto expectedRequest = Request{{}, expectedRequestData};
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, doProcessRequest(expectedRequest));
     expectMessageToBeSent(MsgStdOut{}, requestId);
@@ -297,8 +287,8 @@ TEST_F(TestResponder, Multiplexing)
     auto params2 = MsgParams{};
     params2.setParam("msg", "param");
 
-    auto expectedRequest = RequestMaker::makeRequest(params, inStream);
-    auto expectedRequest2 = RequestMaker::makeRequest(params2, {});
+    auto expectedRequest = makeRequest(params, inStream);
+    auto expectedRequest2 = makeRequest(params2, {});
 
     ::testing::InSequence seq;
     EXPECT_CALL(responder_, doProcessRequest(expectedRequest2));
