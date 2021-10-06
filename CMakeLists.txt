@@ -57,6 +57,15 @@ if (ENABLE_TESTS AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(tests)
 endif()
 
+option(ENABLE_ASIO_EXAMPLE "Build asio example" OFF)
+if (ENABLE_ASIO_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(examples/using-asio)
+endif()
+
+option(ENABLE_QT_EXAMPLE "Build Qt example" OFF)
+if (ENABLE_QT_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(examples/using-qt)
+endif()
 
 include(GNUInstallDirs)
 if(NOT FCGI_RESPONDER_SUBPROJECT)
