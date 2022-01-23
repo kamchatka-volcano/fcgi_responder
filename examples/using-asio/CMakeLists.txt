@@ -9,4 +9,4 @@ add_executable(asio_example ${SRC})
 target_compile_features(asio_example PUBLIC cxx_std_17)
 set_target_properties(asio_example PROPERTIES CXX_EXTENSIONS OFF)
 
-target_link_libraries(asio_example PRIVATE fcgi_responder asio)
+target_link_libraries(asio_example PRIVATE fcgi_responder::fcgi_responder asio)

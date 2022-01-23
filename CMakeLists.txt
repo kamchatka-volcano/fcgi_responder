@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(fcgi_responder VERSION 1.0.0 DESCRIPTION "FCGI protocol responder role implementation library")
+project(fcgi_responder VERSION 1.0.0 DESCRIPTION "FastCGI protocol responder role implementation library")
 
-if(NOT DEFINED FCGI_RESPONDER_SUBPROJECT)
-    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-        set(FCGI_RESPONDER_SUBPROJECT OFF)
-    else()
-        set(FCGI_RESPONDER_SUBPROJECT ON)
-    endif()
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(FCGI_RESPONDER_SUBPROJECT OFF)
+else()
+    set(FCGI_RESPONDER_SUBPROJECT ON)
 endif()
 
 include(CheckPIESupported)
@@ -42,14 +40,21 @@ set(PUBLIC_HEADERS
 )
 
 add_library(fcgi_responder STATIC ${SRC})
+add_library(fcgi_responder::fcgi_responder ALIAS fcgi_responder)
 target_compile_features(fcgi_responder PUBLIC cxx_std_17)
 set_target_properties(fcgi_responder PROPERTIES CXX_EXTENSIONS OFF)
 set_target_properties(fcgi_responder PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
 set_target_properties(fcgi_responder PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(fcgi_responder INTERFACE include/)
 target_include_directories(fcgi_responder PRIVATE include/)
 target_include_directories(fcgi_responder PRIVATE src)
+target_include_directories(
+        fcgi_responder
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
 
 option(ENABLE_TESTS "Enable tests" OFF)
 if (ENABLE_TESTS AND NOT FCGI_RESPONDER_SUBPROJECT)
@@ -67,9 +72,34 @@ if (ENABLE_QT_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(examples/using-qt)
 endif()
 
-include(GNUInstallDirs)
-if(NOT FCGI_RESPONDER_SUBPROJECT)
+option(INSTALL_FCGI_RESPONDER "Install fcgi_responder library unconditionally" OFF)
+if(NOT FCGI_RESPONDER_SUBPROJECT OR INSTALL_FCGI_RESPONDER)
+    include(GNUInstallDirs)
+
+    set(FCGI_RESPONDER_PACK_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/fcgi_responder)
     install(TARGETS fcgi_responder
+            EXPORT fcgi_responder-targets
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fcgi_responder)
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fcgi_responder
+    )
+    install(EXPORT fcgi_responder-targets
+            FILE fcgi_responderTargets.cmake
+            NAMESPACE fcgi_responder::
+            DESTINATION ${FCGI_RESPONDER_PACK_PATH}
+    )
+
+    include(CMakePackageConfigHelpers)
+    write_basic_package_version_file(
+            ${CMAKE_CURRENT_BINARY_DIR}/fcgi_responderConfigVersion.cmake
+            COMPATIBILITY SameMajorVersion
+    )
+    configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/fcgi_responderConfig.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/fcgi_responderConfig.cmake
+            INSTALL_DESTINATION ${FCGI_RESPONDER_PACK_PATH}
+    )
+    install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/fcgi_responderConfig.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/fcgi_responderConfigVersion.cmake
+            DESTINATION ${FCGI_RESPONDER_PACK_PATH}
+    )
 endif()

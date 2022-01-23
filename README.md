@@ -111,10 +111,12 @@ FetchContent_Declare(fcgi_responder
     GIT_REPOSITORY "https://github.com/kamchatka-volcano/fcgi_responder.git"
     GIT_TAG "origin/master"
 )
+#uncomment if you need to install whaleroot with your target
+#set(INSTALL_FCGI_RESPONDER ON)
 FetchContent_MakeAvailable(fcgi_responder)
 
 add_executable(${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} PRIVATE fcgi_responder)
+target_link_libraries(${PROJECT_NAME} PRIVATE fcgi_responder::fcgi_responder)
 ```
 
 For the system-wide installation use these commands:
@@ -124,6 +126,12 @@ cd fcgi_responder
 cmake -S . -B build
 cmake --build build
 cmake --install build
+```
+
+Afterwards, you can use find_package() command to make installed library available inside your project:
+```
+find_package(fcgi_responder 1.0.0 REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE fcgi_responder::fcgi_responder)
 ```
 
 ## Running tests
