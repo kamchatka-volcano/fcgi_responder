@@ -111,7 +111,7 @@ FetchContent_Declare(fcgi_responder
     GIT_REPOSITORY "https://github.com/kamchatka-volcano/fcgi_responder.git"
     GIT_TAG "origin/master"
 )
-#uncomment if you need to install whaleroot with your target
+#uncomment if you need to install fcgi_responder with your target
 #set(INSTALL_FCGI_RESPONDER ON)
 FetchContent_MakeAvailable(fcgi_responder)
 
