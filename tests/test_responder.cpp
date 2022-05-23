@@ -210,16 +210,8 @@ TEST_P(TestResponder, Overloaded)
 namespace fcgi{
 bool operator==(const Request& lhs, const Request& rhs)
 {
-    auto equal =
-           lhs.paramList() == rhs.paramList() &&
+    return lhs.params() == rhs.params() &&
            lhs.stdIn() == rhs.stdIn();
-
-    if (!equal)
-        return false;
-    for (const auto& paramName : lhs.paramList())
-        if (lhs.param(paramName) != rhs.param(paramName))
-            return false;
-    return true;
 }
 }
 

@@ -2,7 +2,6 @@
 #include <algorithm>
 
 namespace {
-
 const std::string& emptyParamValue()
 {
     static const auto value = std::string{};
@@ -19,6 +18,21 @@ struct ParamLookupComparator{
         return val.first < key;
     }
 };
+
+void sortPairList(std::vector<std::pair<std::string, std::string>>& params)
+{
+    auto paramsEnd = std::unique(params.begin(), params.end(),
+                                 [](const auto& lhsPair, const auto& rhsPair){
+                                     return lhsPair.first == rhsPair.first;
+                                 });
+    const auto paramsSize = static_cast<std::size_t>(std::distance(params.begin(), paramsEnd));
+    params.resize(paramsSize);
+    std::sort(params.begin(), params.end(),
+              [](const auto& lhsPair, const auto& rhsPair){
+                  return lhsPair.first < rhsPair.first;
+              });
+}
+
 }
 
 namespace fcgi{
@@ -27,7 +41,7 @@ Request::Request(std::vector<std::pair<std::string, std::string>> params, std::s
     : params_(std::move(params))
     , stdIn_(std::move(stdIn))
 {
-    sortParams();
+    sortPairList(params_);
 }
 
 const std::string& Request::stdIn() const
@@ -43,32 +57,14 @@ const std::string& Request::param(const std::string& name) const
     return itRange.first->second;
 }
 
-std::vector<std::string> Request::paramList() const
+const std::vector<std::pair<std::string, std::string>>& Request::params() const
 {
-    auto result = std::vector<std::string>{};
-    std::transform(params_.begin(), params_.end(),
-                   std::back_inserter(result),
-                   [](const auto& paramPair){return paramPair.first;});
-    return result;
+    return params_;
 }
 
 bool Request::hasParam(const std::string &name) const
 {
     return std::binary_search(params_.begin(), params_.end(), name, ParamLookupComparator{});
-}
-
-void Request::sortParams()
-{
-    auto paramsEnd = std::unique(params_.begin(), params_.end(),
-                                 [](const auto& lhsPair, const auto& rhsPair){
-                                     return lhsPair.first == rhsPair.first;
-                                 });
-    const auto paramsSize = static_cast<std::size_t>(std::distance(params_.begin(), paramsEnd));
-    params_.resize(paramsSize);
-    std::sort(params_.begin(), params_.end(),
-              [](const auto& lhsPair, const auto& rhsPair){
-                  return lhsPair.first < rhsPair.first;
-              });
 }
 
 }
