@@ -25,11 +25,11 @@ public:
     const std::string& param(const std::string& name) const;
 
     ///
-    /// \brief paramList
-    /// Returns list of environment variable names passed from the web server
-    /// \return list of names
+    /// \brief params
+    /// Returns list of environment variable name-value pairs passed from the web server
+    /// \return list of name-value pairs
     ///
-    std::vector<std::string> paramList() const;
+    const std::vector<std::pair<std::string, std::string>>& params() const;
 
     ///
     /// \brief hasParam
@@ -44,9 +44,6 @@ public:
     /// \param params fcgi parameters
     /// \param stdIn request data
     Request(std::vector<std::pair<std::string, std::string>> params, std::string stdIn);
-
-private:
-    void sortParams();
 
 private:
     std::vector<std::pair<std::string, std::string>> params_;

@@ -20,4 +20,3 @@ if(NOT asio_POPULATED)
     target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
     target_link_libraries(asio INTERFACE Threads::Threads)
 endif()
-

@@ -23,5 +23,4 @@ TEST(Request, Params)
     ASSERT_EQ(true, request.hasParam("foo"));
     ASSERT_EQ(false, request.hasParam("baz"));
     ASSERT_EQ("", request.param("baz"));
-    ASSERT_EQ((std::vector<std::string>{"bar", "foo"}), request.paramList());
 }

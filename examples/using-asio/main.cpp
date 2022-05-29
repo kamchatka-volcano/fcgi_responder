@@ -49,9 +49,9 @@ private:
     ///
     /// Overriding fcgi::Responder::processRequest to form response data
     ///
-    void processRequest(fcgi::Request&& request, fcgi::Response&& response) override
+    void processRequest(fcgi::Request&&, fcgi::Response&& response) override
     {
-        response.setData("HTTP/1.1 200\r\n "
+        response.setData("HTTP/1.1 200 OK\r\n "
                          "Content-Type: text/html\r\n"
                          "\r\n"
                          "HELLO WORLD USING ASIO!");

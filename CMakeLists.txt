@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(fcgi_responder VERSION 1.0.0 DESCRIPTION "FastCGI protocol responder role implementation library")
+project(fcgi_responder VERSION 1.1.0 DESCRIPTION "FastCGI protocol responder role implementation library")
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(FCGI_RESPONDER_SUBPROJECT OFF)
@@ -27,6 +27,7 @@ set(SRC
     src/recordreader.cpp
     src/request.cpp
     src/responder.cpp
+    src/requester.cpp
     src/response.cpp
     src/streamdatamessage.cpp
     src/streammaker.cpp
@@ -37,6 +38,7 @@ set(PUBLIC_HEADERS
     "include/fcgi_responder/request.h"
     "include/fcgi_responder/response.h"
     "include/fcgi_responder/responder.h"
+    "include/fcgi_responder/requester.h"
 )
 
 add_library(fcgi_responder STATIC ${SRC})
@@ -67,9 +69,19 @@ if (ENABLE_ASIO_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(examples/using-asio)
 endif()
 
+option(ENABLE_ASIO_REQUESTER_EXAMPLE "Build asio requester example" OFF)
+if (ENABLE_ASIO_REQUESTER_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(examples/using-asio-requester)
+endif()
+
 option(ENABLE_QT_EXAMPLE "Build Qt example" OFF)
 if (ENABLE_QT_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(examples/using-qt)
+endif()
+
+option(ENABLE_QT_REQUESTER_EXAMPLE "Build qt requester example" OFF)
+if (ENABLE_QT_REQUESTER_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(examples/using-qt-requester)
 endif()
 
 option(INSTALL_FCGI_RESPONDER "Install fcgi_responder library unconditionally" OFF)
