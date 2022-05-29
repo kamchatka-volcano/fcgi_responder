@@ -45,6 +45,14 @@ public:
     /// \param stdIn request data
     Request(std::vector<std::pair<std::string, std::string>> params, std::string stdIn);
 
+    ///
+    /// \brief paramList
+    /// Returns list of environment variable names passed from the web server
+    /// \return list of names
+    ///
+    [[deprecated]]
+    std::vector<std::string> paramList() const;
+
 private:
     std::vector<std::pair<std::string, std::string>> params_;
     std::string stdIn_;

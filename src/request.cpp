@@ -62,6 +62,15 @@ const std::vector<std::pair<std::string, std::string>>& Request::params() const
     return params_;
 }
 
+std::vector<std::string> Request::paramList() const
+{
+    auto result = std::vector<std::string>{};
+    std::transform(params_.begin(), params_.end(),
+                   std::back_inserter(result),
+                   [](const auto& paramPair){return paramPair.first;});
+    return result;
+}
+
 bool Request::hasParam(const std::string &name) const
 {
     return std::binary_search(params_.begin(), params_.end(), name, ParamLookupComparator{});
