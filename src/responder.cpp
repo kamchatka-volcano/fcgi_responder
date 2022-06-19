@@ -18,10 +18,9 @@
 namespace fcgi{
 
 Responder::Responder()
-    : recordReader_(std::make_unique<RecordReader>([this](const Record& record)
-      {
-          onRecordRead(record);
-      }))
+    : recordReader_(std::make_unique<RecordReader>(
+            [this](const Record& record){ onRecordRead(record);},
+            [this](uint8_t recordType){ sendMessage(0, MsgUnknownType{recordType});}))
     , requestRegistry_(std::make_unique<RequestRegistry>())
 {
     recordBuffer_.resize(cMaxRecordSize);
@@ -43,23 +42,7 @@ template void Responder::sendMessage<MsgGetValuesResult>(uint16_t requestId, Msg
 
 void Responder::receiveData(const char* data, std::size_t size)
 {
-    try{
-        recordReader_->read(data, size);
-    }
-    catch(const InvalidRecordType& e){        
-        notifyAboutError(e.what());
-        sendMessage(0, MsgUnknownType{e.recordType()});
-        recordReader_->removeBrokenRecord(e.recordSize(), data, size);
-
-    }
-    catch(const RecordReadError& e){
-        notifyAboutError(e.what());
-        recordReader_->removeBrokenRecord(e.recordSize(), data, size);
-    }
-    catch(const std::exception& e){
-        notifyAboutError(e.what());
-        recordReader_->clear();
-    }
+    recordReader_->read(data, size);
 }
 
 void Responder::onRecordRead(const Record& record)
@@ -175,7 +158,7 @@ void Responder::sendRecord(const Record &record)
     try{
         record.toStream(recordStream_);
     }
-    catch (std::exception& e){        
+    catch (std::exception& e){
         notifyAboutError(e.what());
         return;
     }
@@ -230,6 +213,7 @@ void Responder::setMultiplexingEnabled(bool state)
 void Responder::setErrorInfoHandler(std::function<void (const std::string &)> handler)
 {
     errorInfoHandler_ = std::move(handler);
+    recordReader_->setErrorInfoHandler(errorInfoHandler_);
 }
 
 int Responder::maximumConnectionsNumber() const

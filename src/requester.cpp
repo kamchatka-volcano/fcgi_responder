@@ -177,22 +177,7 @@ void Requester::sendRecord(const Record &record)
 
 void Requester::receiveData(const char* data, std::size_t size)
 {
-    try{
-        recordReader_->read(data, size);
-    }
-    catch(const InvalidRecordType& e){
-        notifyAboutError(e.what());
-        recordReader_->removeBrokenRecord(e.recordSize(), data, size);
-
-    }
-    catch(const RecordReadError& e){
-        notifyAboutError(e.what());
-        recordReader_->removeBrokenRecord(e.recordSize(), data, size);
-    }
-    catch(const std::exception& e){
-        notifyAboutError(e.what());
-        recordReader_->clear();
-    }
+    recordReader_->read(data, size);
 }
 
 bool Requester::isRecordExpected(const Record& record)
@@ -293,6 +278,7 @@ void Requester::onStdErr(uint16_t requestId, const MsgStdErr& msg)
 void Requester::setErrorInfoHandler(const std::function<void (const std::string &)>& handler)
 {
     errorInfoHandler_ = handler;
+    recordReader_->setErrorInfoHandler(errorInfoHandler_);
 }
 
 void Requester::notifyAboutError(const std::string &errorMsg)

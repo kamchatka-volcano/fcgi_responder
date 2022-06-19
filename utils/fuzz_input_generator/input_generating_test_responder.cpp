@@ -1,4 +1,4 @@
-#include <responder.h>
+#include <fcgi_responder/responder.h>
 #include <record.h>
 #include <requestregistry.h>
 #include <msgbeginrequest.h>
@@ -8,16 +8,28 @@
 #include <msgunknowntype.h>
 #include <msgparams.h>
 #include <msgabortrequest.h>
-#include <requestregistry.h>
 #include <streamdatamessage.h>
 #include <encoder.h>
 #include <constants.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <fstream>
+#include <filesystem>
 
 using namespace fcgi;
 
+static const auto outputDir = std::filesystem::path{"."};
+
 namespace {
+
+void createUnitTestInputDataFile(const std::string& data)
+{
+    auto testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
+    auto testName = std::string{testInfo->name()};
+    auto output = std::ofstream{outputDir / testName, std::ios::app};
+    output << data;
+}
+
 Request makeRequest(const MsgParams& params, const MsgStdIn& data){
     auto requestParams = std::vector<std::pair<std::string, std::string>>{};
     for (const auto& paramName : params.paramList())
@@ -82,15 +94,19 @@ public:
 protected:
     void receiveData(const std::string& data)
     {
+        createUnitTestInputDataFile(data);
         responder_.receive(data);
     }
     template <typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
     void receiveMessage(TMsg&& msg, uint16_t requestId = 0)
     {
-        responder_.receive(messageData(std::forward<TMsg>(msg), requestId));
+        auto message = messageData(std::forward<TMsg>(msg), requestId);
+        createUnitTestInputDataFile(message);
+        responder_.receive(message);
     }
     void receiveMessage(const std::string& recordData)
     {
+        createUnitTestInputDataFile(recordData);
         responder_.receive(recordData);
     }
     template <typename TMsg>
@@ -104,7 +120,7 @@ protected:
     }
     void checkConnectionState()
     {
-        auto disconnectOnEnd = GetParam();
+        auto disconnectOnEnd = true;//GetParam();
         if (disconnectOnEnd)
             EXPECT_CALL(responder_, disconnect());
         else
@@ -112,7 +128,7 @@ protected:
     }
     ResultConnectionState resultConnectionState()
     {
-        auto disconnectOnEnd = GetParam();
+        auto disconnectOnEnd = true;//GetParam();
         return disconnectOnEnd ? ResultConnectionState::Close
                                : ResultConnectionState::KeepOpen;
     }
@@ -169,7 +185,7 @@ TEST_F(TestResponder, GetValueChangedSettings)
     receiveMessage(std::move(requestMsg));
 }
 
-TEST_P(TestResponder, AbortRequest)
+TEST_F(TestResponder, AbortRequest)
 {
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
     checkConnectionState();
@@ -178,7 +194,7 @@ TEST_P(TestResponder, AbortRequest)
     receiveMessage(RecordType::AbortRequest, 1);
 }
 
-TEST_P(TestResponder, UnknownRole)
+TEST_F(TestResponder, UnknownRole)
 {
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::UnknownRole});
     checkConnectionState();
@@ -186,7 +202,7 @@ TEST_P(TestResponder, UnknownRole)
     receiveMessage(MsgBeginRequest{Role::Authorizer, resultConnectionState()});
 }
 
-TEST_P(TestResponder, CantMultiplex)
+TEST_F(TestResponder, CantMultiplex)
 {
     responder_.setMultiplexingEnabled(false);
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::CantMpxConn}, 2);
@@ -196,7 +212,7 @@ TEST_P(TestResponder, CantMultiplex)
     receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 2);
 }
 
-TEST_P(TestResponder, Overloaded)
+TEST_F(TestResponder, Overloaded)
 {
     responder_.setMaximumRequestsNumber(2);
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::Overloaded}, 3);
@@ -215,7 +231,7 @@ bool operator==(const Request& lhs, const Request& rhs)
 }
 }
 
-TEST_P(TestResponder, Request)
+TEST_F(TestResponder, Request)
 {
     auto params = MsgParams{};
     params.setParam("test", "hello world");
@@ -239,7 +255,7 @@ TEST_P(TestResponder, Request)
     receiveMessage(MsgStdIn{}, 1);
 }
 
-TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
+TEST_F(TestResponder, ReceivingMessagesInLargeChunks)
 {
     auto streamRecordData = std::string(cMaxDataMessageSize, '0');
     auto streamData = std::string{};
@@ -304,7 +320,7 @@ TEST_F(TestResponder, Multiplexing)
     receiveMessage(MsgStdIn{}, 1);
 }
 
-TEST_P(TestResponderWithTestProcessor, Request)
+TEST_F(TestResponderWithTestProcessor, Request)
 {
     auto params = MsgParams{};
     params.setParam("test", "hello world");
@@ -334,7 +350,7 @@ TEST_F(TestResponder, UnexpectedRecord)
     EXPECT_EQ(errorInfo_, "Received unexpected record, RecordType = 2, requestId = 1\n");
 }
 
-TEST_P(TestResponder, RecordReadError)
+TEST_F(TestResponder, RecordMessageReadError)
 {
     expectMessageToBeSent(MsgEndRequest{0, ProtocolStatus::RequestComplete}, 1);
     checkConnectionState();
@@ -358,7 +374,7 @@ TEST_P(TestResponder, RecordReadError)
     EXPECT_EQ(errorInfo_, "Record message read error: Value request value \"wrongName\" is invalid.\n");
 }
 
-TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
+TEST_F(TestResponder, RecordReadErrorMisalignedNameValue)
 {
     expectNoMessagesToBeSent();
     auto output = std::ostringstream{};
@@ -379,6 +395,6 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     EXPECT_EQ(errorInfo_, "Record message read error: Misaligned name-value\nProtocol version \"83\" isn't supported.\n");
 }
 
-INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));
-INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponderWithTestProcessor, ::testing::Values(false, true));
+//INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));
+//INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponderWithTestProcessor, ::testing::Values(false, true));
 

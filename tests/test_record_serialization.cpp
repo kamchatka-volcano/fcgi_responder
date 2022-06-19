@@ -248,9 +248,9 @@ TEST(RecordSerializationError, MsgGetValueMisalignedNameValue)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgGetValues{};
     auto wrongSize = msgData.size() - 1;
-    assert_exception<fcgi::UnrecoverableProtocolError>(
+    assert_exception<fcgi::ProtocolError>(
         [&](){msg.read(input, wrongSize);},
-        [](const fcgi::UnrecoverableProtocolError& e){
+        [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
 }
@@ -299,9 +299,9 @@ TEST(RecordSerializationError, MsgGetValueResultMisalignedNameValue)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgGetValuesResult{};
     auto wrongSize = msgData.size() - 1;
-    assert_exception<fcgi::UnrecoverableProtocolError>(
+    assert_exception<fcgi::ProtocolError>(
         [&](){msg.read(input, wrongSize);},
-        [](const fcgi::UnrecoverableProtocolError& e){
+        [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
 }
@@ -333,9 +333,9 @@ TEST(RecordSerializationError, MsgParamsMisalignedNameValue)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgParams{};
     auto wrongSize = msgData.size() - 1;
-    assert_exception<fcgi::UnrecoverableProtocolError>(
+    assert_exception<fcgi::ProtocolError>(
         [&](){msg.read(input, wrongSize);},
-        [](const fcgi::UnrecoverableProtocolError& e){
+        [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
 }
@@ -432,7 +432,6 @@ TEST(RecordSerializationError, RecordInvalidType)
         [&](){record.fromStream(input, recordData.size());},
         [](const fcgi::InvalidRecordType& e){
             EXPECT_EQ(e.recordType(), 99);
-            EXPECT_EQ(e.recordSize(), 8);
             EXPECT_EQ(std::string{e.what()}, "Record type \"99\" is invalid.");
         });
 }
@@ -455,10 +454,10 @@ TEST(RecordSerializationError, RecordInvalidMessageReadError)
     auto recordData = output.str();
     auto input = std::istringstream{recordData};
     auto record =  fcgi::Record{};
-    assert_exception<fcgi::RecordReadError>(
+    assert_exception<fcgi::RecordMessageReadError>(
         [&](){record.fromStream(input, recordData.size());},
-        [](const fcgi::RecordReadError& e){
+        [](const fcgi::RecordMessageReadError& e){
             EXPECT_EQ(e.recordSize(), 16);
-            EXPECT_EQ(std::string{e.what()}, "Role value \"99\" is invalid.");
+            EXPECT_EQ(std::string{e.what()}, "Record message read error: Role value \"99\" is invalid.");
         });
 }

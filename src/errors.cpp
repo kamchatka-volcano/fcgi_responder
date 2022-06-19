@@ -7,11 +7,6 @@ ProtocolError::ProtocolError(const std::string& msg)
 {
 }
 
-UnrecoverableProtocolError::UnrecoverableProtocolError(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-
 UnsupportedVersion::UnsupportedVersion(uint8_t protocolVersion)
     : ProtocolError("Protocol version \"" + std::to_string(protocolVersion) + "\" isn't supported.")
     , protocolVersion_(protocolVersion)
@@ -79,19 +74,18 @@ const char* InvalidValue::what() const noexcept
     return msg_.c_str();
 }
 
-RecordReadError::RecordReadError(const std::string& msg, std::size_t recordSize)
-    : ProtocolError(msg)
+RecordMessageReadError::RecordMessageReadError(const std::string& msg, std::size_t recordSize)
+    : ProtocolError("Record message read error: " + msg)
     , recordSize_(recordSize)
-{
-}
+{}
 
-std::size_t RecordReadError::recordSize() const
+std::size_t RecordMessageReadError::recordSize() const
 {
     return recordSize_;
 }
 
-InvalidRecordType::InvalidRecordType(uint8_t typeValue, std::size_t recordSize)
-    : RecordReadError("Record type \"" + std::to_string(typeValue) + "\" is invalid.", recordSize)
+InvalidRecordType::InvalidRecordType(uint8_t typeValue)
+    : ProtocolError("Record type \"" + std::to_string(typeValue) + "\" is invalid.")
     , typeValue_(typeValue)
 {}
 

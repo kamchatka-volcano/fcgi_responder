@@ -64,6 +64,16 @@ if (ENABLE_TESTS AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(tests)
 endif()
 
+option(ENABLE_FUZZ_TESTS "Enable fuzz tests" ON)
+if (ENABLE_FUZZ_TESTS AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(fuzz_tests)
+endif()
+
+option(ENABLE_FUZZ_INPUT_GENERATOR "Enable fuzz input generator" ON)
+if (ENABLE_FUZZ_INPUT_GENERATOR AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(utils/fuzz_input_generator)
+endif()
+
 option(ENABLE_ASIO_EXAMPLE "Build asio example" OFF)
 if (ENABLE_ASIO_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(examples/using-asio)

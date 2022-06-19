@@ -65,18 +65,15 @@ void MsgGetValuesResult::toStream(std::ostream &output) const
 void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
 {
     auto readBytes = 0u;
-    while(true){
-        auto nameValue = NameValue{};
+    while(readBytes < inputSize){
+        auto nameValue = NameValue{inputSize};
         nameValue.fromStream(input);
         readBytes += nameValue.size();
         valueRequestFromString(nameValue.name()); //Check that request name is valid
         requestValueList_.push_back(nameValue);
-
-        if (readBytes == inputSize)
-            break;
-        if (readBytes > inputSize)
-            throw UnrecoverableProtocolError{"Misaligned name-value"};
     }
+    if (readBytes != inputSize)
+        throw ProtocolError{"Misaligned name-value"};
 }
 
 bool MsgGetValuesResult::operator==(const MsgGetValuesResult& other) const
