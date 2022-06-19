@@ -87,24 +87,23 @@ std::size_t Record::read(std::istream &input, std::size_t inputSize)
             >> reservedByte;
 
     auto recordSize = static_cast<std::size_t>(cHeaderSize + contentLength + paddingLength);
-
-    if (inputSize < recordSize)
-        return 0;
-
     try{
         type_ = recordTypeFromInt(type);
     }
     catch(const InvalidValue& e){
-        throw InvalidRecordType(static_cast<uint8_t>(e.asInt()), recordSize);
+        throw InvalidRecordType{static_cast<uint8_t>(e.asInt())};
     }
+
+    if (inputSize < recordSize)
+        return 0;
 
     try{
         initMessage();
         readMessage(input, contentLength);
         decoder.skip(paddingLength);
     }
-    catch(ProtocolError& e){
-        throw RecordReadError(e.what(), recordSize);
+    catch(const std::exception& e){
+        throw RecordMessageReadError{e.what(), recordSize};
     }
 
     return recordSize;
@@ -172,11 +171,11 @@ bool compareMessages(const fcgi::Record& lhs, const fcgi::Record& rhs)
 
 }
 
-bool Record::operator==(const Record& other) const
+bool operator==(const Record& lhs, const Record& rhs)
 {
-    return type_ == other.type_ &&
-           requestId_ == other.requestId_ &&
-           compareMessages(*this, other);
+    return lhs.type_ == rhs.type_ &&
+           lhs.requestId_ == rhs.requestId_ &&
+           compareMessages(lhs, rhs);
 }
 
 }

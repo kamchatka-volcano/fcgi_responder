@@ -42,7 +42,7 @@ public:
     template <typename MsgT>
     const MsgT& getMessage() const;
 
-    bool operator==(const Record& other) const;
+    friend bool operator==(const Record& lhs, const Record& rhs);
 
 private:
     void initMessage();
@@ -76,5 +76,6 @@ const MsgT& Record::getMessage() const
 {
     return std::get<MsgT>(message_);
 }
+bool operator==(const Record& lhs, const Record& rhs);
 
 }

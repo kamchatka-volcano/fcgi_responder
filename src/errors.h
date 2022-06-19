@@ -47,18 +47,18 @@ private:
     std::string msg_;
 };
 
-class RecordReadError : public ProtocolError{
+class RecordMessageReadError : public ProtocolError{
 public:
-    RecordReadError(const std::string& msg, std::size_t recordSize);
+    explicit RecordMessageReadError(const std::string&, std::size_t recordSize);
     std::size_t recordSize() const;
 
 private:
     std::size_t recordSize_;
 };
 
-class InvalidRecordType : public RecordReadError{
+class InvalidRecordType : public ProtocolError{
 public:
-    InvalidRecordType(uint8_t recordType, std::size_t recordSize);
+    explicit InvalidRecordType(uint8_t recordType);
     uint8_t recordType() const;
 
 private:

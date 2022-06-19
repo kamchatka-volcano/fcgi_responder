@@ -50,8 +50,8 @@ public:
     void processRequest(Request&& request, Response&& response) override
     {
         auto testMsg = request.stdIn();
-        std::reverse(testMsg.begin(), testMsg.end());        
-        response.setData(testMsg);        
+        std::reverse(testMsg.begin(), testMsg.end());
+        response.setData(testMsg);
     }
     void receive(const std::string& data)
     {
@@ -249,7 +249,7 @@ TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
         auto inStream = MsgStdIn{};
         inStream.setData(streamRecordData);
         expectedRequestData += inStream.data();
-        streamData += messageData(std::move(inStream), requestId);        
+        streamData += messageData(std::move(inStream), requestId);
     }
     streamData += messageData(MsgStdIn{}, requestId);
 
@@ -355,7 +355,7 @@ TEST_P(TestResponder, RecordReadError)
     receivedData += messageData(MsgAbortRequest{}, static_cast<uint16_t>(1));
     receiveMessage(receivedData);
 
-    EXPECT_EQ(errorInfo_, "Value request value \"wrongName\" is invalid.\n");
+    EXPECT_EQ(errorInfo_, "Record message read error: Value request value \"wrongName\" is invalid.\n");
 }
 
 TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
@@ -376,7 +376,7 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     receivedData += messageData(MsgBeginRequest{Role::Responder, resultConnectionState()}, static_cast<uint16_t>(1));
     receivedData += messageData(MsgAbortRequest{}, static_cast<uint16_t>(1));
     receiveMessage(receivedData);
-    EXPECT_EQ(errorInfo_, "Misaligned name-value\n");
+    EXPECT_EQ(errorInfo_, "Record message read error: Misaligned name-value\nProtocol version \"83\" isn't supported.\n");
 }
 
 INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));

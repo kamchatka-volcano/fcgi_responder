@@ -11,17 +11,28 @@ namespace fcgi{
 class Record;
 
 class RecordReader{
+    enum class ReadResultAction{
+        ContinueReading,
+        StopReading
+    };
+
 public:
-    explicit RecordReader(std::function<void(Record&)> recordReadHandler);
+    RecordReader(std::function<void(Record&)> recordReadHandler,
+                 std::function<void(uint8_t)> invalidRecordTypeHandler = {});
     void read(const char* data, std::size_t size);
-    void clear();
-    void removeBrokenRecord(std::size_t recordSize, const char *data, std::size_t size);
+    void setErrorInfoHandler(const std::function<void(const std::string&)>& errorInfoHandler);
 
 private:
-    void findRecords(const char* data, std::size_t size);    
+    ReadResultAction doRead(const char* data, std::size_t size);
+    void findRecords(const char* data, std::size_t size);
+    void notifyAboutError(const std::string& errorInfo);
+    void clear();
+    void skipBrokenRecord(std::size_t recordSize);
 
-private:    
+private:
     std::function<void(Record&)> recordReadHandler_;
+    std::function<void(uint8_t)> invalidRecordTypeHandler_;
+    std::function<void(const std::string&)> errorInfoHandler_;
     InputStreamDualBuffer buffer_;
     std::istream stream_;
     std::string leftover_;
