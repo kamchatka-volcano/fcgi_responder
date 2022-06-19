@@ -62,17 +62,14 @@ void MsgParams::toStream(std::ostream &output) const
 void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
 {
     auto readBytes = 0u;
-    while(true){
-        auto param = NameValue{};
+    while(readBytes < inputSize){
+        auto param = NameValue{inputSize};
         param.fromStream(input);
         readBytes += param.size();
         paramList_.push_back(param);
-
-        if (readBytes == inputSize)
-            break;
-        if (readBytes > inputSize)
-            throw UnrecoverableProtocolError{"Misaligned name-value"};
     }
+    if (readBytes != inputSize)
+        throw ProtocolError{"Misaligned name-value"};
 }
 
 bool MsgParams::operator==(const MsgParams& other) const

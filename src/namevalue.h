@@ -7,7 +7,7 @@ namespace fcgi{
 
 class NameValue{
 public:
-    NameValue();
+    explicit NameValue(std::size_t maxSize);
 
     template<typename TStrName, typename TStrValue>
     NameValue(TStrName&& name, TStrValue&& value)
@@ -30,6 +30,7 @@ public:
 private:
     std::string name_;
     std::string value_;
+    std::size_t maxSize_ = 0;
 };
 
 }

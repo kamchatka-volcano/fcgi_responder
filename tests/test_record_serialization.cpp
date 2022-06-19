@@ -248,9 +248,9 @@ TEST(RecordSerializationError, MsgGetValueMisalignedNameValue)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgGetValues{};
     auto wrongSize = msgData.size() - 1;
-    assert_exception<fcgi::UnrecoverableProtocolError>(
+    assert_exception<fcgi::ProtocolError>(
         [&](){msg.read(input, wrongSize);},
-        [](const fcgi::UnrecoverableProtocolError& e){
+        [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
 }
@@ -299,9 +299,9 @@ TEST(RecordSerializationError, MsgGetValueResultMisalignedNameValue)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgGetValuesResult{};
     auto wrongSize = msgData.size() - 1;
-    assert_exception<fcgi::UnrecoverableProtocolError>(
+    assert_exception<fcgi::ProtocolError>(
         [&](){msg.read(input, wrongSize);},
-        [](const fcgi::UnrecoverableProtocolError& e){
+        [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
 }
@@ -333,9 +333,9 @@ TEST(RecordSerializationError, MsgParamsMisalignedNameValue)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgParams{};
     auto wrongSize = msgData.size() - 1;
-    assert_exception<fcgi::UnrecoverableProtocolError>(
+    assert_exception<fcgi::ProtocolError>(
         [&](){msg.read(input, wrongSize);},
-        [](const fcgi::UnrecoverableProtocolError& e){
+        [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
 }

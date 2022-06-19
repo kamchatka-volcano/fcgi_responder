@@ -1,10 +1,14 @@
 #include "namevalue.h"
 #include "decoder.h"
 #include "encoder.h"
+#include "errors.h"
 
 namespace fcgi{
 
-NameValue::NameValue() = default;
+NameValue::NameValue(std::size_t maxSize)
+    : maxSize_(maxSize)
+{
+}
 
 std::size_t NameValue::size() const
 {
@@ -70,7 +74,7 @@ uint32_t readLengthFromStream(std::istream& input)
 void writeLengthToStream(uint32_t length, std::ostream& output)
 {
     auto encoder = Encoder(output);
-    if (length <= 127){        
+    if (length <= 127){
         encoder << static_cast<uint8_t>(length);
     }
     else{
@@ -94,6 +98,9 @@ void NameValue::fromStream(std::istream& input)
 {
     auto nameLength = readLengthFromStream(input);
     auto valueLength = readLengthFromStream(input);
+    if (nameLength + valueLength > maxSize_)
+        throw ProtocolError("Name and value length exceeds max size");
+
     name_.resize(nameLength);
     value_.resize(valueLength);
     auto decoder = Decoder(input);

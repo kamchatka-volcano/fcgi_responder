@@ -8,12 +8,6 @@ public:
     explicit ProtocolError(const std::string&);
 };
 
-class UnrecoverableProtocolError : public std::runtime_error
-{
-public:
-    explicit UnrecoverableProtocolError(const std::string&);
-};
-
 class UnsupportedVersion : public ProtocolError{
 public:
     explicit UnsupportedVersion(uint8_t protocolVersion);

@@ -7,11 +7,6 @@ ProtocolError::ProtocolError(const std::string& msg)
 {
 }
 
-UnrecoverableProtocolError::UnrecoverableProtocolError(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-
 UnsupportedVersion::UnsupportedVersion(uint8_t protocolVersion)
     : ProtocolError("Protocol version \"" + std::to_string(protocolVersion) + "\" isn't supported.")
     , protocolVersion_(protocolVersion)
