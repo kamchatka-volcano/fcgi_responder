@@ -23,7 +23,7 @@ Request makeRequest(const MsgParams& params, const MsgStdIn& data){
     for (const auto& paramName : params.paramList())
         requestParams.emplace_back(paramName, params.paramValue(paramName));
 
-    return Request{std::move(requestParams), data.data()};
+    return Request{std::move(requestParams), std::string{data.data()}};
 }
 }
 
@@ -221,8 +221,7 @@ TEST_P(TestResponder, Request)
     params.setParam("test", "hello world");
     params.setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = MsgStdIn{"HELLO WORLD"};
 
     auto expectedRequest = makeRequest(params, inStream);
     ::testing::InSequence seq;
@@ -246,8 +245,7 @@ TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
     auto expectedRequestData = std::string{};
     auto requestId = static_cast<uint16_t>(1);
     for (auto i = 0; i < 3; ++i){
-        auto inStream = MsgStdIn{};
-        inStream.setData(streamRecordData);
+        auto inStream = MsgStdIn{streamRecordData};
         expectedRequestData += inStream.data();
         streamData += messageData(std::move(inStream), requestId);
     }
@@ -273,8 +271,7 @@ TEST_F(TestResponder, Multiplexing)
     params.setParam("test", "hello world");
     params.setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = MsgStdIn{"HELLO WORLD"};
 
     auto params2 = MsgParams{};
     params2.setParam("msg", "param");
@@ -310,8 +307,7 @@ TEST_P(TestResponderWithTestProcessor, Request)
     params.setParam("test", "hello world");
     params.setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = MsgStdIn{"HELLO WORLD"};
 
     ::testing::InSequence seq;
     expectMessageToBeSent(MsgStdOut{"DLROW OLLEH"}, 1);

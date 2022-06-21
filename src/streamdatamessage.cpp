@@ -2,66 +2,90 @@
 
 namespace fcgi{
 
+StreamDataMessage::StreamDataMessage(RecordType recordType)
+    : Message(recordType)
+    , data_{std::string{}}
+{
+}
+
+StreamDataMessage::StreamDataMessage(RecordType recordType, std::string_view data)
+    : Message(recordType)
+    , data_{data}
+{
+}
+
 std::size_t StreamDataMessage::size() const
 {
-    return data_.size();
+    return std::visit([](auto& data){return data.size();}, data_);
 }
 
-void StreamDataMessage::setData(const std::string& data)
+std::string_view StreamDataMessage::data() const
 {
-    data_ = data;
-}
-
-const std::string& StreamDataMessage::data() const
-{
-    return data_;
+    return std::visit([](auto& data){return std::string_view{data};}, data_);
 }
 
 void StreamDataMessage::toStream(std::ostream& output) const
 {
-    output.write(&data_[0], static_cast<int>(data_.size()));
+    output.write(data().data(), static_cast<int>(data().size()));
 }
 
 void StreamDataMessage::fromStream(std::istream& input, std::size_t inputSize)
 {
-    data_.resize(inputSize);
-    input.read(&data_[0], static_cast<std::streamsize>(inputSize));
+    auto& data = std::get<std::string>(data_);
+    data.resize(inputSize);
+    input.read(&data[0], static_cast<std::streamsize>(inputSize));
 }
 
 MsgStdIn::MsgStdIn()
-    : StreamDataMessage(RecordType::StdIn, std::string{})
+    : StreamDataMessage(RecordType::StdIn)
 {}
 
-bool MsgStdIn::operator==(const MsgStdIn& other) const
+MsgStdIn::MsgStdIn(std::string_view data)
+    : StreamDataMessage(RecordType::StdIn, data)
+{}
+
+bool operator==(const MsgStdIn& lhs, const MsgStdIn& rhs)
 {
-    return data_ == other.data_;
+    return lhs.data() == rhs.data();
 }
 
 MsgStdOut::MsgStdOut()
-    : StreamDataMessage(RecordType::StdOut, std::string{})
+    : StreamDataMessage(RecordType::StdOut)
 {}
 
-bool MsgStdOut::operator==(const MsgStdOut& other) const
+MsgStdOut::MsgStdOut(std::string_view data)
+    : StreamDataMessage(RecordType::StdOut, data)
+{}
+
+bool operator==(const MsgStdOut& lhs, const MsgStdOut& rhs)
 {
-    return data_ == other.data_;
+    return lhs.data() == rhs.data();
 }
 
 MsgStdErr::MsgStdErr()
-    : StreamDataMessage(RecordType::StdErr, std::string{})
+    : StreamDataMessage(RecordType::StdErr)
 {}
 
-bool MsgStdErr::operator==(const MsgStdErr& other) const
+MsgStdErr::MsgStdErr(std::string_view data)
+    : StreamDataMessage(RecordType::StdErr, data)
+{}
+
+bool operator==(const MsgStdErr& lhs, const MsgStdErr& rhs)
 {
-    return data_ == other.data_;
+    return lhs.data() == rhs.data();
 }
 
 MsgData::MsgData()
-    : StreamDataMessage(RecordType::Data, std::string{})
+    : StreamDataMessage(RecordType::Data)
 {}
 
-bool MsgData::operator==(const MsgData& other) const
+MsgData::MsgData(std::string_view data)
+    : StreamDataMessage(RecordType::Data, data)
+{}
+
+bool operator==(const MsgData& lhs, const MsgData& rhs)
 {
-    return data_ == other.data_;
+    return lhs.data() == rhs.data();
 }
 
 }

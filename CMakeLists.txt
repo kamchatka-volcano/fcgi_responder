@@ -30,7 +30,6 @@ set(SRC
     src/requester.cpp
     src/response.cpp
     src/streamdatamessage.cpp
-    src/streammaker.cpp
     src/inputstreamdualbuffer.cpp
     src/requestregistry.cpp)
 
@@ -92,6 +91,11 @@ endif()
 option(ENABLE_QT_REQUESTER_EXAMPLE "Build qt requester example" OFF)
 if (ENABLE_QT_REQUESTER_EXAMPLE AND NOT FCGI_RESPONDER_SUBPROJECT)
     add_subdirectory(examples/using-qt-requester)
+endif()
+
+option(ENABLE_LIBFCGI_BENCHMARK "Enable fuzz input generator" ON)
+if (ENABLE_LIBFCGI_BENCHMARK AND NOT FCGI_RESPONDER_SUBPROJECT)
+    add_subdirectory(utils/libfcgi_benchmark)
 endif()
 
 option(INSTALL_FCGI_RESPONDER "Install fcgi_responder library unconditionally" OFF)

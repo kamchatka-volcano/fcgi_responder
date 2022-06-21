@@ -1,5 +1,7 @@
 #pragma once
 #include "message.h"
+#include <variant>
+#include <string_view>
 
 namespace fcgi{
 
@@ -7,67 +9,50 @@ class StreamDataMessage : public Message<StreamDataMessage>{
     friend class Message<StreamDataMessage>;
 
 public:
-    template <typename TStr>
-    StreamDataMessage(RecordType recordType, TStr&& data)
-        : Message(recordType)
-        , data_(std::forward<TStr>(data))
-    {
-    }
+    explicit StreamDataMessage(RecordType recordType);
+    StreamDataMessage(RecordType recordType, std::string_view data);
 
     std::size_t size() const;
-    void setData(const std::string& data);
-    const std::string& data() const;
+    std::string_view data() const;
 
 private:
     void toStream(std::ostream& output) const;
     void fromStream(std::istream& input, std::size_t inputSize);
 
-protected:
-    std::string data_;
+private:
+    std::variant<std::string, std::string_view> data_;
 };
 
 class MsgStdIn : public StreamDataMessage
 {
 public:
     MsgStdIn();
-    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
-    explicit MsgStdIn(TStr&& data)
-        : StreamDataMessage(RecordType::StdIn, std::forward<TStr>(data))
-    {}
-    bool operator==(const MsgStdIn& other) const;
+    explicit MsgStdIn(std::string_view data);
 };
+bool operator==(const MsgStdIn& lhs, const MsgStdIn& rhs);
 
 class MsgStdOut : public StreamDataMessage
 {
 public:
     MsgStdOut();
-    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
-    explicit MsgStdOut(TStr&& data)
-        : StreamDataMessage(RecordType::StdOut, std::forward<TStr>(data))
-    {}
-    bool operator==(const MsgStdOut& other) const;
+    explicit MsgStdOut(std::string_view data);
 };
+bool operator==(const MsgStdOut& lhs, const MsgStdOut& rhs);
 
 class MsgStdErr : public StreamDataMessage
 {
 public:
     MsgStdErr();
-    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
-    explicit MsgStdErr(TStr&& data)
-        : StreamDataMessage(RecordType::StdErr, std::forward<TStr>(data))
-    {}
-    bool operator==(const MsgStdErr& other) const;
+    explicit MsgStdErr(std::string_view data);
 };
+bool operator==(const MsgStdErr& lhs, const MsgStdErr& rhs);
 
 class MsgData : public StreamDataMessage
 {
 public:
     MsgData();
-    template <typename TStr, typename TEnableIfString = std::enable_if_t<std::is_convertible_v<TStr, std::string >, void>>
-    explicit MsgData(TStr&& data)
-        : StreamDataMessage(RecordType::Data, std::forward<TStr>(data))
-    {}
-    bool operator==(const MsgData& other) const;
+    explicit MsgData(std::string_view data);
 };
+bool operator==(const MsgData& lhs, const MsgData& rhs);
 
 }

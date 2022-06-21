@@ -187,9 +187,8 @@ void Responder::onRequestReceived(uint16_t requestId)
 
 void Responder::sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg)
 {
-    auto streamMaker = StreamMaker{};
-    auto dataStream = streamMaker.makeStream<MsgStdOut>(id, std::move(data));
-    auto errorStream = streamMaker.makeStream<MsgStdErr>(id, std::move(errorMsg));
+    auto dataStream = makeStream<MsgStdOut>(id, data);
+    auto errorStream = makeStream<MsgStdErr>(id, errorMsg);
     std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
     std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
     endRequest(id, ProtocolStatus::RequestComplete);
