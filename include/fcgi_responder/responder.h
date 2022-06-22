@@ -1,21 +1,11 @@
 #pragma once
 #include "request.h"
 #include "response.h"
-#include <unordered_map>
-#include <functional>
 #include <memory>
-#include <sstream>
 
 namespace fcgi{
 
-class MsgBeginRequest;
-class MsgGetValues;
-class MsgParams;
-class MsgStdIn;
-class Record;
-class RecordReader;
-class RequestRegistry;
-enum class ProtocolStatus : uint8_t;
+class ResponderImpl;
 
 ///
 /// \brief Abstract class which implements message flow of the FastCGI protocol's
@@ -75,18 +65,14 @@ public:
     ///
     void setErrorInfoHandler(std::function<void(const std::string&)> errorInfoHandler);
 
-protected:
-    ///
-    /// \brief Responder
-    /// Constructor
-    ///
-    Responder();
+    Responder(const Responder&) = delete;
+    Responder& operator=(const Responder&) = delete;
 
-    ///
-    /// \brief ~Responder
-    /// Destructor
-    ///
+protected:
+    Responder();
     virtual ~Responder();
+    Responder(Responder&& other) = default;
+    Responder& operator=(Responder&& other) = default;
 
     ///
     /// \brief receiveData
@@ -118,46 +104,12 @@ protected:
     ///
     virtual void processRequest(Request&& request, Response&& response) = 0;
 
+private:
+    ResponderImpl& impl();
+    const ResponderImpl& impl() const;
 
 private:
-    void onRecordRead(const Record& record);
-    void onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg);
-    void onGetValues(const MsgGetValues& msg);
-    void onParams(uint16_t requestId, const MsgParams& msg);
-    void onStdIn(uint16_t requestId, const MsgStdIn& msg);
-    void onRequestReceived(uint16_t requestId);
-    void sendRecord(const Record& record);
-    void sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg);
-
-    bool isRecordExpected(const Record& record);
-    void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
-
-    void notifyAboutError(const std::string& errorMsg);
-    void createRequest(uint16_t requestId, bool keepConnection);
-    void deleteRequest(uint16_t requestId);
-
-private:
-    struct Config{
-        int maxConnectionsNumber = 1;
-        int maxRequestsNumber = 10;
-        bool multiplexingEnabled = true;
-    } cfg_;
-
-    struct RequestSettings
-    {
-        bool keepConnection = true;
-    };
-
-    std::unique_ptr<RecordReader> recordReader_;
-    std::unique_ptr<RequestRegistry> requestRegistry_;
-    std::unordered_map<uint16_t, RequestSettings> requestSettingsMap_;
-    std::function<void(const std::string&)> errorInfoHandler_;
-    std::ostringstream recordStream_;
-    std::string recordBuffer_;
-
-private:
-    template<typename TMsg>
-    void sendMessage(uint16_t requestId, TMsg&& msg);
+    std::unique_ptr<ResponderImpl> impl_;
 };
 
 }

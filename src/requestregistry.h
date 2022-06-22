@@ -1,4 +1,5 @@
 #pragma once
+#include "streamdatamessage.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -6,7 +7,6 @@
 namespace fcgi{
 class Request;
 class MsgParams;
-class MsgStdIn;
 
 class RequestRegistry{
     struct RequestData{

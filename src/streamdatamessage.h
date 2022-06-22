@@ -5,54 +5,55 @@
 
 namespace fcgi{
 
-class StreamDataMessage : public Message<StreamDataMessage>{
-    friend class Message<StreamDataMessage>;
+template <RecordType recordType>
+class StreamDataMessage : public Message<StreamDataMessage<recordType>>{
+    friend class Message<StreamDataMessage<recordType>>;
 
 public:
-    explicit StreamDataMessage(RecordType recordType);
-    StreamDataMessage(RecordType recordType, std::string_view data);
+    StreamDataMessage()
+        : Message<StreamDataMessage>(recordType)
+        , data_{std::string{}}
+    {}
 
-    std::size_t size() const;
-    std::string_view data() const;
+    explicit StreamDataMessage(std::string_view data)
+        : Message<StreamDataMessage>(recordType)
+        , data_{data}
+    {}
+
+    std::size_t size() const
+    {
+        return std::visit([](auto& data){return data.size();}, data_);
+    }
+    std::string_view data() const
+    {
+        return std::visit([](auto& data){return std::string_view{data};}, data_);
+    }
 
 private:
-    void toStream(std::ostream& output) const;
-    void fromStream(std::istream& input, std::size_t inputSize);
+    void toStream(std::ostream& output) const
+    {
+        output.write(data().data(), static_cast<int>(data().size()));
+    }
+    void fromStream(std::istream& input, std::size_t inputSize)
+    {
+        auto& data = std::get<std::string>(data_);
+        data.resize(inputSize);
+        input.read(&data[0], static_cast<std::streamsize>(inputSize));
+    }
 
 private:
     std::variant<std::string, std::string_view> data_;
 };
 
-class MsgStdIn : public StreamDataMessage
+template<RecordType recordType>
+bool operator==(const StreamDataMessage<recordType>& lhs, const StreamDataMessage<recordType>& rhs)
 {
-public:
-    MsgStdIn();
-    explicit MsgStdIn(std::string_view data);
-};
-bool operator==(const MsgStdIn& lhs, const MsgStdIn& rhs);
+    return lhs.data() == rhs.data();
+}
 
-class MsgStdOut : public StreamDataMessage
-{
-public:
-    MsgStdOut();
-    explicit MsgStdOut(std::string_view data);
-};
-bool operator==(const MsgStdOut& lhs, const MsgStdOut& rhs);
-
-class MsgStdErr : public StreamDataMessage
-{
-public:
-    MsgStdErr();
-    explicit MsgStdErr(std::string_view data);
-};
-bool operator==(const MsgStdErr& lhs, const MsgStdErr& rhs);
-
-class MsgData : public StreamDataMessage
-{
-public:
-    MsgData();
-    explicit MsgData(std::string_view data);
-};
-bool operator==(const MsgData& lhs, const MsgData& rhs);
+using MsgStdIn  = StreamDataMessage<RecordType::StdIn>;
+using MsgStdOut = StreamDataMessage<RecordType::StdOut>;
+using MsgStdErr = StreamDataMessage<RecordType::StdErr>;
+using MsgData   = StreamDataMessage<RecordType::Data>;
 
 }
