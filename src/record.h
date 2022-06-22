@@ -1,13 +1,4 @@
 #pragma once
-#include "types.h"
-#include "errors.h"
-#include <cstdint>
-#include <string>
-#include <istream>
-#include <ostream>
-#include <sstream>
-#include <memory>
-#include <cassert>
 #include "msgbeginrequest.h"
 #include "msgendrequest.h"
 #include "msggetvalues.h"
@@ -16,6 +7,12 @@
 #include "msgunknowntype.h"
 #include "msgabortrequest.h"
 #include "streamdatamessage.h"
+#include "types.h"
+#include "errors.h"
+#include <cstdint>
+#include <istream>
+#include <ostream>
+#include <memory>
 #include <variant>
 
 namespace fcgi{
@@ -26,7 +23,7 @@ public:
     explicit Record(RecordType type, uint16_t requestId = 0);
     template <typename TMessage>
     explicit Record(TMessage&& msg, uint16_t requestId)
-        : type_(msg.recordType())
+        : type_(std::remove_reference_t<TMessage>::recordType)
         , requestId_(requestId)
         , message_(std::forward<TMessage>(msg))
     {

@@ -5,11 +5,6 @@
 
 namespace fcgi{
 
-MsgGetValues::MsgGetValues()
-    : Message (RecordType::GetValues)
-{
-}
-
 std::size_t MsgGetValues::size() const
 {
     auto result = 0u;
@@ -54,9 +49,9 @@ void MsgGetValues::fromStream(std::istream &input, std::size_t inputSize)
         throw ProtocolError{"Misaligned name-value"};
 }
 
-bool MsgGetValues::operator==(const MsgGetValues& other) const
+bool operator==(const MsgGetValues &lhs, const MsgGetValues &rhs)
 {
-    return valueRequestList_ == other.valueRequestList_;
+    return lhs.valueRequestList_ == rhs.valueRequestList_;
 }
 
 }

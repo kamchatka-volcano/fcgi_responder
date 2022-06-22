@@ -1,5 +1,4 @@
 #include "record.h"
-#include "message.h"
 #include "constants.h"
 #include "errors.h"
 #include "encoder.h"
@@ -66,7 +65,6 @@ void Record::write(std::ostream &output) const
 
 std::size_t Record::read(std::istream &input, std::size_t inputSize)
 {
-    input.exceptions( std::istream::failbit | std::istream::badbit);
     if (inputSize < hardcoded::headerSize)
         return 0;
 
@@ -141,12 +139,12 @@ std::size_t Record::messageSize() const
 
 void Record::readMessage(std::istream &input, std::size_t inputSize)
 {
-    std::visit([&](auto&& msg){msg.read(input, inputSize);}, message_);
+    std::visit([&](auto&& msg){msg.fromStream(input, inputSize);}, message_);
 }
 
 void Record::writeMessage(std::ostream &output) const
 {
-    std::visit([&](auto&& msg){msg.write(output);}, message_);
+    std::visit([&](auto&& msg){msg.toStream(output);}, message_);
 }
 
 namespace  {

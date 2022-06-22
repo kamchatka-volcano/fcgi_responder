@@ -1,19 +1,21 @@
 #pragma once
-#include "message.h"
+#include "types.h"
+#include <ostream>
+#include <istream>
 
 namespace fcgi{
 
-class MsgAbortRequest : public Message<MsgAbortRequest>{
-    friend class Message<MsgAbortRequest>;
+class MsgAbortRequest{
+public:
+    static const RecordType recordType = RecordType::AbortRequest;
 
 public:
-    MsgAbortRequest();
-    bool operator==(const MsgAbortRequest& other) const;
-    std::size_t size() const;
+    static std::size_t size();
 
-private:
     void toStream(std::ostream& output) const;
     void fromStream(std::istream& input, std::size_t inputSize);
 };
+
+bool operator==(const MsgAbortRequest& lhs, const MsgAbortRequest& rhs);
 
 }

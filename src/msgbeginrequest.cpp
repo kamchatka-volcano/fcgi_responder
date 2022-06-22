@@ -7,20 +7,18 @@
 namespace fcgi{
 
 MsgBeginRequest::MsgBeginRequest()
-    : Message(RecordType::BeginRequest)
-    , role_(Role::Responder)
+    : role_(Role::Responder)
     , resultConnectionState_(ResultConnectionState::Close)
 {
 }
 
 MsgBeginRequest::MsgBeginRequest(Role role, ResultConnectionState connectionState)
-    : Message(RecordType::BeginRequest)
-    , role_(role)
+    : role_(role)
     , resultConnectionState_(connectionState)
 {
 }
 
-std::size_t MsgBeginRequest::size() const
+std::size_t MsgBeginRequest::size()
 {
     return 8;
 }
@@ -55,10 +53,10 @@ void MsgBeginRequest::fromStream(std::istream &input, std::size_t)
     resultConnectionState_ = static_cast<ResultConnectionState>(flags & hardcoded::keepConnectionMask);
 }
 
-bool MsgBeginRequest::operator==(const MsgBeginRequest& other) const
+bool operator==(const MsgBeginRequest& lhs, const MsgBeginRequest& rhs)
 {
-    return role_ == other.role_ &&
-           resultConnectionState_ == other.resultConnectionState_;
+    return lhs.role_ == rhs.role_ &&
+           lhs.resultConnectionState_ == rhs.resultConnectionState_;
 }
 
 }

@@ -1,24 +1,30 @@
 #pragma once
-#include "message.h"
+#include "types.h"
+#include <istream>
+#include <ostream>
 
 namespace fcgi{
 
-class MsgUnknownType : public Message<MsgUnknownType>{
-    friend class Message<MsgUnknownType>;
+class MsgUnknownType{
+public:
+    static const RecordType recordType = RecordType::UnknownType;
 
 public:
-    MsgUnknownType();
+    MsgUnknownType() = default;
     explicit MsgUnknownType(uint8_t unknownTypeValue);
-    std::size_t size() const;
     uint8_t unknownTypeValue() const;
-    bool operator==(const MsgUnknownType& other) const;
+    static std::size_t size();
 
-private:
     void toStream(std::ostream& output) const;
     void fromStream(std::istream& input, std::size_t inputSize);
 
 private:
-    uint8_t unknownTypeValue_;
+    friend bool operator==(const MsgUnknownType& lhs, const MsgUnknownType& rhs);
+
+private:
+    uint8_t unknownTypeValue_ = 0;
 };
+
+bool operator==(const MsgUnknownType& lhs, const MsgUnknownType& rhs);
 
 }

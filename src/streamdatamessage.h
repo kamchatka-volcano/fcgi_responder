@@ -1,23 +1,21 @@
 #pragma once
-#include "message.h"
+#include "types.h"
 #include <variant>
 #include <string_view>
+#include <istream>
+#include <ostream>
 
 namespace fcgi{
 
-template <RecordType recordType>
-class StreamDataMessage : public Message<StreamDataMessage<recordType>>{
-    friend class Message<StreamDataMessage<recordType>>;
+template <RecordType recordTypeValue>
+class StreamDataMessage{
+public:
+    static const RecordType recordType = recordTypeValue;
 
 public:
-    StreamDataMessage()
-        : Message<StreamDataMessage>(recordType)
-        , data_{std::string{}}
-    {}
-
+    StreamDataMessage() = default;
     explicit StreamDataMessage(std::string_view data)
-        : Message<StreamDataMessage>(recordType)
-        , data_{data}
+        : data_{data}
     {}
 
     std::size_t size() const
@@ -29,11 +27,11 @@ public:
         return std::visit([](auto& data){return std::string_view{data};}, data_);
     }
 
-private:
     void toStream(std::ostream& output) const
     {
         output.write(data().data(), static_cast<int>(data().size()));
     }
+
     void fromStream(std::istream& input, std::size_t inputSize)
     {
         auto& data = std::get<std::string>(data_);

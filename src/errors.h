@@ -1,5 +1,6 @@
 #pragma once
 #include <stdexcept>
+#include <variant>
 
 namespace fcgi{
 
@@ -36,14 +37,13 @@ public:
 
 private:
     InvalidValueType type_;
-    uint32_t value_;
-    std::string valueStr_;
+    std::variant<uint32_t, std::string> value_;
     std::string msg_;
 };
 
 class RecordMessageReadError : public ProtocolError{
 public:
-    explicit RecordMessageReadError(const std::string&, std::size_t recordSize);
+    RecordMessageReadError(const std::string&, std::size_t recordSize);
     std::size_t recordSize() const;
 
 private:

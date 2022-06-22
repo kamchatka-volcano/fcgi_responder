@@ -2,12 +2,7 @@
 
 namespace fcgi{
 
-MsgAbortRequest::MsgAbortRequest()
-    : Message(RecordType::AbortRequest)
-{
-}
-
-std::size_t MsgAbortRequest::size() const
+std::size_t MsgAbortRequest::size()
 {
     return 0;
 }
@@ -20,7 +15,7 @@ void MsgAbortRequest::fromStream(std::istream&, std::size_t)
 {
 }
 
-bool MsgAbortRequest::operator==(const MsgAbortRequest&) const
+bool operator==(const MsgAbortRequest&, const MsgAbortRequest&)
 {
     return true;
 }

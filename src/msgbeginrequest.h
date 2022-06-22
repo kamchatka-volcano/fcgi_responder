@@ -1,29 +1,33 @@
 #pragma once
-#include "message.h"
 #include "types.h"
+#include <istream>
+#include <ostream>
 
 namespace fcgi{
 
-class MsgBeginRequest : public Message<MsgBeginRequest>{
-    friend class Message<MsgBeginRequest>;
+class MsgBeginRequest{
+public:
+    static const RecordType recordType = RecordType::BeginRequest;
 
 public:
     MsgBeginRequest();
     MsgBeginRequest(Role role, ResultConnectionState connectionState);
     Role role() const;
     ResultConnectionState resultConnectionState() const;
-    bool operator==(const MsgBeginRequest& other) const;
-    std::size_t size() const;
+    static std::size_t size();
 
-private:
     void toStream(std::ostream& output) const;
     void fromStream(std::istream& input, std::size_t inputSize);
 
+private:
+    friend bool operator==(const MsgBeginRequest& lhs, const MsgBeginRequest& rhs);
 
 private:
     Role role_;
     ResultConnectionState resultConnectionState_;
 };
+
+bool operator==(const MsgBeginRequest& lhs, const MsgBeginRequest& rhs);
 
 }
 

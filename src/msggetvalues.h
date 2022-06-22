@@ -1,26 +1,30 @@
 #pragma once
-#include "message.h"
 #include "types.h"
 #include <vector>
+#include <istream>
+#include <ostream>
 
 namespace fcgi{
 
-class MsgGetValues : public Message<MsgGetValues>{
-    friend class Message<MsgGetValues>;
+class MsgGetValues{
+public:
+    static const RecordType recordType = RecordType::GetValues;
 
 public:
-    MsgGetValues();    
     const std::vector<ValueRequest>& requestList() const;
     void requestValue(ValueRequest request);
-    bool operator==(const MsgGetValues& other) const;
     std::size_t size() const;
 
-private:
     void toStream(std::ostream& output) const;
     void fromStream(std::istream& input, std::size_t inputSize);
 
 private:
+    friend bool operator==(const MsgGetValues& lhs, const MsgGetValues& rhs);
+
+private:
     std::vector<ValueRequest> valueRequestList_;
 };
+
+bool operator==(const MsgGetValues& lhs, const MsgGetValues& rhs);
 
 }

@@ -45,8 +45,7 @@ InvalidValue::InvalidValue(InvalidValueType type, uint32_t value)
 InvalidValue::InvalidValue(InvalidValueType type, const std::string& value)
     : ProtocolError("")
     , type_(type)
-    , value_(0)
-    , valueStr_(value)
+    , value_(value)
     , msg_(invalidValueTypeToString(type_) + " value \"" + asString() + "\" is invalid.")
 {
 }
@@ -58,15 +57,15 @@ InvalidValueType InvalidValue::type() const
 
 uint32_t InvalidValue::asInt() const
 {
-    return value_;
+    return std::get<uint32_t>(value_);
 }
 
 std::string InvalidValue::asString() const
 {
-    if (type_ == InvalidValueType::ValueRequest)
-        return valueStr_;
+    if (std::holds_alternative<std::string>(value_))
+        return std::get<std::string>(value_);
     else
-        return std::to_string(value_);
+        return std::to_string(std::get<uint32_t>(value_));
 }
 
 const char* InvalidValue::what() const noexcept
