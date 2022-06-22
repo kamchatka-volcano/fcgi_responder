@@ -52,7 +52,7 @@ void MsgBeginRequest::fromStream(std::istream &input, std::size_t)
             >> flags;
     decoder.skip(5); //reservedBytes
     role_ = roleFromInt(role);
-    resultConnectionState_ = static_cast<ResultConnectionState>(flags & cKeepConnectionMask);
+    resultConnectionState_ = static_cast<ResultConnectionState>(flags & hardcoded::keepConnectionMask);
 }
 
 bool MsgBeginRequest::operator==(const MsgBeginRequest& other) const

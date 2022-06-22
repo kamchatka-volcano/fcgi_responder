@@ -130,7 +130,7 @@ TEST_F(TestResponder, UnknownType)
 
     auto output = std::ostringstream{};
     auto encoder = Encoder(output);
-    encoder  << cProtocolVersion
+    encoder  << hardcoded::protocolVersion
              << static_cast<uint8_t>(99)
              << static_cast<uint16_t>(1)
              << static_cast<uint16_t>(0)
@@ -240,7 +240,7 @@ TEST_P(TestResponder, Request)
 
 TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
 {
-    auto streamRecordData = std::string(cMaxDataMessageSize, '0');
+    auto streamRecordData = std::string(hardcoded::maxDataMessageSize, '0');
     auto streamData = std::string{};
     auto expectedRequestData = std::string{};
     auto requestId = static_cast<uint16_t>(1);
@@ -338,7 +338,7 @@ TEST_P(TestResponder, RecordReadError)
     auto output = std::ostringstream{};
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"wrongName", "0"};
-    encoder  << cProtocolVersion
+    encoder  << hardcoded::protocolVersion
              << static_cast<uint8_t>(RecordType::GetValues)
              << static_cast<uint16_t>(1)
              << static_cast<uint16_t>(nameValue.size())
@@ -360,7 +360,7 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     auto output = std::ostringstream{};
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"FCGI_MAX_CONNS", ""};
-    encoder  << cProtocolVersion
+    encoder  << hardcoded::protocolVersion
              << static_cast<uint8_t>(RecordType::GetValues)
              << static_cast<uint16_t>(1)
              << static_cast<uint16_t>(nameValue.size() - 1) //wrong size

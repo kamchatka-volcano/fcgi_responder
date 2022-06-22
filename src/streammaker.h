@@ -8,7 +8,10 @@
 namespace fcgi{
 
 template <typename TMsg>
-std::vector<Record> makeStream(uint16_t requestId, std::string_view data, std::size_t maxDataMessageSize = cMaxDataMessageSize)
+std::vector<Record> makeStream(
+        uint16_t requestId,
+        std::string_view data,
+        std::size_t maxDataMessageSize = hardcoded::maxDataMessageSize)
 {
     auto result = std::vector<Record>{};
     auto processMessage = [&](std::string_view msgData) {

@@ -28,8 +28,8 @@ ResponderImpl::ResponderImpl(
     , disconnect_(std::move(disconnect))
     , processRequest_(std::move(processRequest))
 {
-    recordBuffer_.resize(cMaxRecordSize);
-    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], cMaxRecordSize);
+    recordBuffer_.resize(hardcoded::maxRecordSize);
+    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], hardcoded::maxRecordSize);
 }
 
 template <typename TMsg>

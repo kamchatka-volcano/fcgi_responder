@@ -34,7 +34,7 @@ uint16_t Record::requestId() const
 
 std::size_t Record::size() const
 {
-    return cHeaderSize + messageSize() + calcPaddingLength();
+    return hardcoded::headerSize + messageSize() + calcPaddingLength();
 }
 
 void Record::toStream(std::ostream& output) const
@@ -54,7 +54,7 @@ void Record::write(std::ostream &output) const
     auto reservedByte = uint8_t{};
 
     auto encoder = Encoder(output);
-    encoder << cProtocolVersion
+    encoder << hardcoded::protocolVersion
             << static_cast<uint8_t>(type_)
             << requestId_
             << contentLength
@@ -67,13 +67,13 @@ void Record::write(std::ostream &output) const
 std::size_t Record::read(std::istream &input, std::size_t inputSize)
 {
     input.exceptions( std::istream::failbit | std::istream::badbit);
-    if (inputSize < cHeaderSize)
+    if (inputSize < hardcoded::headerSize)
         return 0;
 
     auto decoder = Decoder(input);
     auto protocolVersion = uint8_t{};
     decoder >> protocolVersion;
-    if (protocolVersion != cProtocolVersion)
+    if (protocolVersion != hardcoded::protocolVersion)
         throw UnsupportedVersion(protocolVersion);
 
     auto type = uint8_t{};
@@ -86,7 +86,7 @@ std::size_t Record::read(std::istream &input, std::size_t inputSize)
             >> paddingLength
             >> reservedByte;
 
-    auto recordSize = static_cast<std::size_t>(cHeaderSize + contentLength + paddingLength);
+    auto recordSize = static_cast<std::size_t>(hardcoded::headerSize + contentLength + paddingLength);
     try{
         type_ = recordTypeFromInt(type);
     }

@@ -25,8 +25,8 @@ RequesterImpl::RequesterImpl(
     , sendData_{std::move(sendData)}
     , disconnect_{std::move(disconnect)}
 {
-    recordBuffer_.resize(cMaxRecordSize);
-    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], cMaxRecordSize);
+    recordBuffer_.resize(hardcoded::maxRecordSize);
+    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], hardcoded::maxRecordSize);
 }
 
 std::optional<RequestHandle> RequesterImpl::sendRequest(
