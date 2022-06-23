@@ -24,9 +24,9 @@ ResponderImpl::ResponderImpl(
     : recordReader_{
             [this](const Record& record){ onRecordRead(record);},
             [this](uint8_t recordType){ sendMessage(0, MsgUnknownType{recordType});}}
-    , sendData_(std::move(sendData))
-    , disconnect_(std::move(disconnect))
-    , processRequest_(std::move(processRequest))
+    , sendData_{std::move(sendData)}
+    , disconnect_{std::move(disconnect)}
+    , processRequest_{std::move(processRequest)}
 {
     recordBuffer_.resize(hardcoded::maxRecordSize);
     recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], hardcoded::maxRecordSize);

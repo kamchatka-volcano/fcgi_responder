@@ -10,7 +10,7 @@ public:
     static const RecordType recordType = RecordType::EndRequest;
 
 public:
-    MsgEndRequest();
+    MsgEndRequest() = default;
     MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus);
     uint32_t appStatus() const;
     ProtocolStatus protocolStatus() const;
@@ -23,8 +23,8 @@ private:
     friend bool operator==(const MsgEndRequest& lhs, const MsgEndRequest& rhs);
 
 private:
-    uint32_t appStatus_;
-    ProtocolStatus protocolStatus_;
+    uint32_t appStatus_ = 0;
+    ProtocolStatus protocolStatus_ = ProtocolStatus::UnknownRole;
 
 };
 

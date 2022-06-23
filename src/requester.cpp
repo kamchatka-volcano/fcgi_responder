@@ -4,7 +4,7 @@
 namespace fcgi{
 
 RequestHandle::RequestHandle(const std::shared_ptr<std::function<void()>>& cancelRequestHandler)
-    : cancelRequestHandler_(cancelRequestHandler)
+    : cancelRequestHandler_{cancelRequestHandler}
 {
 }
 

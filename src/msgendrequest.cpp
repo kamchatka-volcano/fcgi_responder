@@ -5,15 +5,9 @@
 
 namespace fcgi{
 
-MsgEndRequest::MsgEndRequest()
-    : appStatus_(0)
-    , protocolStatus_(ProtocolStatus::UnknownRole)
-{
-}
-
 MsgEndRequest::MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus)
-    : appStatus_(appStatus)
-    , protocolStatus_(protocolStatus)
+    : appStatus_{appStatus}
+    , protocolStatus_{protocolStatus}
 {
 }
 

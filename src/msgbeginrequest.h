@@ -10,7 +10,7 @@ public:
     static const RecordType recordType = RecordType::BeginRequest;
 
 public:
-    MsgBeginRequest();
+    MsgBeginRequest() = default;
     MsgBeginRequest(Role role, ResultConnectionState connectionState);
     Role role() const;
     ResultConnectionState resultConnectionState() const;
@@ -23,8 +23,8 @@ private:
     friend bool operator==(const MsgBeginRequest& lhs, const MsgBeginRequest& rhs);
 
 private:
-    Role role_;
-    ResultConnectionState resultConnectionState_;
+    Role role_ = Role::Responder;
+    ResultConnectionState resultConnectionState_ = ResultConnectionState::Close;
 };
 
 bool operator==(const MsgBeginRequest& lhs, const MsgBeginRequest& rhs);

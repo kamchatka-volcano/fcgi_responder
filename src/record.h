@@ -53,8 +53,8 @@ private:
     uint8_t calcPaddingLength() const;
 
 private:
-    RecordType type_;
-    uint16_t requestId_;
+    RecordType type_ = RecordType::UnknownType;
+    uint16_t requestId_ = 0;
     std::variant<MsgAbortRequest,
                  MsgBeginRequest,
                  MsgEndRequest,

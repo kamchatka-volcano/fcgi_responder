@@ -7,9 +7,9 @@ namespace fcgi{
 RecordReader::RecordReader(
         std::function<void(Record&)> recordReadHandler,
         std::function<void(uint8_t)> invalidRecordTypeHandler)
-    : recordReadHandler_(std::move(recordReadHandler))
-    , invalidRecordTypeHandler_(std::move(invalidRecordTypeHandler))
-    , stream_(&buffer_)
+    : recordReadHandler_{std::move(recordReadHandler)}
+    , invalidRecordTypeHandler_{std::move(invalidRecordTypeHandler)}
+    , stream_{&buffer_}
 {
     stream_.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
 }

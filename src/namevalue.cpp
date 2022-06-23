@@ -6,7 +6,7 @@
 namespace fcgi{
 
 NameValue::NameValue(std::size_t maxSize)
-    : maxSize_(maxSize)
+    : maxSize_{maxSize}
 {
 }
 

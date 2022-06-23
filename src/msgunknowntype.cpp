@@ -6,7 +6,7 @@
 namespace fcgi{
 
 MsgUnknownType::MsgUnknownType(uint8_t unknownTypeValue)
-    : unknownTypeValue_(unknownTypeValue)
+    : unknownTypeValue_{unknownTypeValue}
 {
 }
 

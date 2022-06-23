@@ -3,13 +3,13 @@
 namespace fcgi{
 
 ProtocolError::ProtocolError(const std::string& msg)
-    : std::runtime_error(msg)
+    : std::runtime_error{msg}
 {
 }
 
 UnsupportedVersion::UnsupportedVersion(uint8_t protocolVersion)
-    : ProtocolError("Protocol version \"" + std::to_string(protocolVersion) + "\" isn't supported.")
-    , protocolVersion_(protocolVersion)
+    : ProtocolError{"Protocol version \"" + std::to_string(protocolVersion) + "\" isn't supported."}
+    , protocolVersion_{protocolVersion}
 {
 }
 
@@ -35,18 +35,18 @@ std::string invalidValueTypeToString(InvalidValueType type)
 }
 
 InvalidValue::InvalidValue(InvalidValueType type, uint32_t value)
-    : ProtocolError("")
-    , type_(type)
-    , value_(value)
-    , msg_(invalidValueTypeToString(type_) + " value \"" + asString() + "\" is invalid.")
+    : ProtocolError{""}
+    , type_{type}
+    , value_{value}
+    , msg_{invalidValueTypeToString(type_) + " value \"" + asString() + "\" is invalid."}
 {
 }
 
 InvalidValue::InvalidValue(InvalidValueType type, const std::string& value)
-    : ProtocolError("")
-    , type_(type)
-    , value_(value)
-    , msg_(invalidValueTypeToString(type_) + " value \"" + asString() + "\" is invalid.")
+    : ProtocolError{""}
+    , type_{type}
+    , value_{value}
+    , msg_{invalidValueTypeToString(type_) + " value \"" + asString() + "\" is invalid."}
 {
 }
 
@@ -74,8 +74,8 @@ const char* InvalidValue::what() const noexcept
 }
 
 RecordMessageReadError::RecordMessageReadError(const std::string& msg, std::size_t recordSize)
-    : ProtocolError("Record message read error: " + msg)
-    , recordSize_(recordSize)
+    : ProtocolError{"Record message read error: " + msg}
+    , recordSize_{recordSize}
 {}
 
 std::size_t RecordMessageReadError::recordSize() const
@@ -84,8 +84,8 @@ std::size_t RecordMessageReadError::recordSize() const
 }
 
 InvalidRecordType::InvalidRecordType(uint8_t typeValue)
-    : ProtocolError("Record type \"" + std::to_string(typeValue) + "\" is invalid.")
-    , typeValue_(typeValue)
+    : ProtocolError{"Record type \"" + std::to_string(typeValue) + "\" is invalid."}
+    , typeValue_{typeValue}
 {}
 
 uint8_t InvalidRecordType::recordType() const

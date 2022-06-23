@@ -8,15 +8,13 @@
 namespace fcgi{
 
 Record::Record()
-    : type_(RecordType::UnknownType)
-    , requestId_(0)
 {
     initMessage();
 }
 
 Record::Record(RecordType type, uint16_t requestId)
-    : type_(type)
-    , requestId_(requestId)
+    : type_{type}
+    , requestId_{requestId}
 {
     initMessage();
 }

@@ -3,7 +3,7 @@
 namespace fcgi{
 
 Response::Response(ResponseSender sender)
-    : sender_(std::move(sender))
+    : sender_{std::move(sender)}
 {
 }
 

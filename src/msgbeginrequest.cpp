@@ -6,15 +6,9 @@
 
 namespace fcgi{
 
-MsgBeginRequest::MsgBeginRequest()
-    : role_(Role::Responder)
-    , resultConnectionState_(ResultConnectionState::Close)
-{
-}
-
 MsgBeginRequest::MsgBeginRequest(Role role, ResultConnectionState connectionState)
-    : role_(role)
-    , resultConnectionState_(connectionState)
+    : role_{role}
+    , resultConnectionState_{connectionState}
 {
 }
 
