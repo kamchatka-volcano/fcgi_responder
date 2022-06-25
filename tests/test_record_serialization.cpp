@@ -176,9 +176,10 @@ TEST(RecordSerializationError, MsgBeginRequestInvalidRole)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgBeginRequest{};
     assert_exception<fcgi::InvalidValue>(
-        [&](){msg.read(input, 8);},
+        [&](){msg.fromStream(input, 8);},
         [](const fcgi::InvalidValue& e){
             EXPECT_EQ(e.type(), fcgi::InvalidValueType::Role);
             EXPECT_EQ(e.asInt(), 99);
@@ -195,9 +196,10 @@ TEST(RecordSerializationError, MsgBeginRequestCutoffInput)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgBeginRequest{};
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, 8);},
+        [&](){msg.fromStream(input, 8);},
         [](const std::runtime_error& e){
             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });
@@ -213,9 +215,10 @@ TEST(RecordSerializationError, MsgEndRequestCutoffInput)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgEndRequest{};
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, 8);},
+        [&](){msg.fromStream(input, 8);},
         [](const std::runtime_error& e){
             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });
@@ -229,9 +232,10 @@ TEST(RecordSerializationError, MsgGetValueInvalidName)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValues{};
     assert_exception<fcgi::InvalidValue>(
-        [&](){msg.read(input, msgData.size());},
+        [&](){msg.fromStream(input, msgData.size());},
         [](const fcgi::InvalidValue& e){
             EXPECT_EQ(e.type(), fcgi::InvalidValueType::ValueRequest);
             EXPECT_EQ(e.asString(), "wrongName");
@@ -246,10 +250,11 @@ TEST(RecordSerializationError, MsgGetValueMisalignedNameValue)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValues{};
     auto wrongSize = msgData.size() - 1;
     assert_exception<fcgi::ProtocolError>(
-        [&](){msg.read(input, wrongSize);},
+        [&](){msg.fromStream(input, wrongSize);},
         [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
@@ -264,9 +269,10 @@ TEST(RecordSerializationError, MsgGetValueCutoffInput)
     auto msgData = output.str();
     msgData.resize(msgData.size() - 1);
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValues{};
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, msgData.size());},
+        [&](){msg.fromStream(input, msgData.size());},
         [](const std::runtime_error& e){
              EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });
@@ -282,7 +288,7 @@ TEST(RecordSerializationError, MsgGetValueResultInvalidName)
     auto input = std::istringstream{msgData};
     auto msg =  fcgi::MsgGetValuesResult{};
     assert_exception<fcgi::InvalidValue>(
-        [&](){msg.read(input, msgData.size());},
+        [&](){msg.fromStream(input, msgData.size());},
         [](const fcgi::InvalidValue& e){
             EXPECT_EQ(e.type(), fcgi::InvalidValueType::ValueRequest);
             EXPECT_EQ(e.asString(), "wrongName");
@@ -297,10 +303,11 @@ TEST(RecordSerializationError, MsgGetValueResultMisalignedNameValue)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValuesResult{};
     auto wrongSize = msgData.size() - 1;
     assert_exception<fcgi::ProtocolError>(
-        [&](){msg.read(input, wrongSize);},
+        [&](){msg.fromStream(input, wrongSize);},
         [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
@@ -315,9 +322,10 @@ TEST(RecordSerializationError, MsgGetValueResultCutoffInput)
     auto msgData = output.str();
     msgData.resize(msgData.size() - 1);
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValuesResult{};
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, msgData.size());},
+        [&](){msg.fromStream(input, msgData.size());},
         [](const std::runtime_error& e){
              EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });
@@ -331,10 +339,11 @@ TEST(RecordSerializationError, MsgParamsMisalignedNameValue)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgParams{};
     auto wrongSize = msgData.size() - 1;
     assert_exception<fcgi::ProtocolError>(
-        [&](){msg.read(input, wrongSize);},
+        [&](){msg.fromStream(input, wrongSize);},
         [](const fcgi::ProtocolError& e){
             EXPECT_EQ(std::string{e.what()}, "Misaligned name-value");
         });
@@ -349,9 +358,10 @@ TEST(RecordSerializationError, MsgParamsCutoffInput)
     auto msgData = output.str();
     msgData.resize(msgData.size() - 1);
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgParams{};
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, msgData.size());},
+        [&](){msg.fromStream(input, msgData.size());},
         [](const std::runtime_error& e){
              EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });
@@ -366,9 +376,10 @@ TEST(RecordSerializationError, MsgUnkownTypeCutoffInput)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgUnknownType{};
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, 8);},
+        [&](){msg.fromStream(input, 8);},
         [](const std::runtime_error& e){
             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });
@@ -383,10 +394,11 @@ TEST(RecordSerializationError, MsgStreamDataCutoffInput)
 
     auto msgData = output.str();
     auto input = std::istringstream{msgData};
+    input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgStdIn{};
     auto wrongSize = msgData.size() + 1;
     assert_exception<std::runtime_error>(
-        [&](){msg.read(input, wrongSize);},
+        [&](){msg.fromStream(input, wrongSize);},
         [](const std::runtime_error& e){
             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
         });

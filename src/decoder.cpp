@@ -4,7 +4,7 @@
 namespace fcgi{
 
 Decoder::Decoder(std::istream& input)
-    : input_(input)
+    : input_{input}
 {
 }
 

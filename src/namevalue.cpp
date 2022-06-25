@@ -6,7 +6,7 @@
 namespace fcgi{
 
 NameValue::NameValue(std::size_t maxSize)
-    : maxSize_(maxSize)
+    : maxSize_{maxSize}
 {
 }
 
@@ -108,10 +108,9 @@ void NameValue::fromStream(std::istream& input)
             >> value_;
 }
 
-bool NameValue::operator==(const NameValue& other) const
+bool operator==(const NameValue& lhs, const NameValue& rhs)
 {
-    return name_ == other.name_ &&
-           value_ == other.value_;
+    return lhs.name_ == rhs.name_ && lhs.value_ == rhs.value_;
 }
 
 }

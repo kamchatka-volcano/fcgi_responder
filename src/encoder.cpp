@@ -4,7 +4,7 @@
 namespace fcgi{
 
 Encoder::Encoder(std::ostream& stream)
-    : output_(stream)
+    : output_{stream}
 {
 }
 

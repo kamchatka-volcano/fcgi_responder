@@ -25,12 +25,15 @@ public:
     void toStream(std::ostream& output) const;
     void fromStream(std::istream& input);
 
-    bool operator==(const NameValue& other) const;
+private:
+    friend bool operator==(const NameValue& lhs, const NameValue& rhs);
 
 private:
     std::string name_;
     std::string value_;
     std::size_t maxSize_ = 0;
 };
+
+bool operator==(const NameValue& lhs, const NameValue& rhs);
 
 }

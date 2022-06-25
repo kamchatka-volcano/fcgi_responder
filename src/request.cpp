@@ -38,8 +38,8 @@ void sortPairList(std::vector<std::pair<std::string, std::string>>& params)
 namespace fcgi{
 
 Request::Request(std::vector<std::pair<std::string, std::string>> params, std::string stdIn)
-    : params_(std::move(params))
-    , stdIn_(std::move(stdIn))
+    : params_{std::move(params)}
+    , stdIn_{std::move(stdIn)}
 {
     sortPairList(params_);
 }

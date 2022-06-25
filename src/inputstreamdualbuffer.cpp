@@ -5,10 +5,10 @@ using namespace fcgi;
 InputStreamDualBuffer::InputStreamDualBuffer(
         const char* firstBuf, std::size_t firstBufSize,
         const char* secondBuf, std::size_t secondBufSize)
-    : firstBuf_(const_cast<char*>(firstBuf))
-    , secondBuf_(const_cast<char*>(secondBuf))
-    , firstBufSize_(firstBufSize)
-    , secondBufSize_(secondBufSize)
+    : firstBuf_{const_cast<char*>(firstBuf)}
+    , secondBuf_{const_cast<char*>(secondBuf)}
+    , firstBufSize_{firstBufSize}
+    , secondBufSize_{secondBufSize}
 {
     if (!firstBufSize_)
         firstBufIsUsed_ = true;

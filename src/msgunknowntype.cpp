@@ -5,21 +5,14 @@
 
 namespace fcgi{
 
-MsgUnknownType::MsgUnknownType()
-    : Message(RecordType::UnknownType)
-    , unknownTypeValue_(0)
+MsgUnknownType::MsgUnknownType(uint8_t unknownTypeValue)
+    : unknownTypeValue_{unknownTypeValue}
 {
 }
 
-std::size_t MsgUnknownType::size() const
+std::size_t MsgUnknownType::size()
 {
     return 8;
-}
-
-MsgUnknownType::MsgUnknownType(uint8_t unknownTypeValue)
-    : Message(RecordType::UnknownType)
-    , unknownTypeValue_(unknownTypeValue)
-{
 }
 
 uint8_t MsgUnknownType::unknownTypeValue() const
@@ -41,9 +34,9 @@ void MsgUnknownType::fromStream(std::istream &input, std::size_t)
     decoder.skip(7); //reserved bytes
 }
 
-bool MsgUnknownType::operator==(const MsgUnknownType& other) const
+bool operator==(const MsgUnknownType &lhs, const MsgUnknownType &rhs)
 {
-    return unknownTypeValue_ == other.unknownTypeValue_;
+    return lhs.unknownTypeValue_ == rhs.unknownTypeValue_;
 }
 
 }

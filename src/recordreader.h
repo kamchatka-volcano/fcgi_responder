@@ -17,8 +17,9 @@ class RecordReader{
     };
 
 public:
-    RecordReader(std::function<void(Record&)> recordReadHandler,
-                 std::function<void(uint8_t)> invalidRecordTypeHandler = {});
+    explicit RecordReader(
+            std::function<void(Record&)> recordReadHandler,
+            std::function<void(uint8_t)> invalidRecordTypeHandler = {});
     void read(const char* data, std::size_t size);
     void setErrorInfoHandler(const std::function<void(const std::string&)>& errorInfoHandler);
 

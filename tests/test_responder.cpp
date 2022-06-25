@@ -1,6 +1,5 @@
 #include <responder.h>
 #include <record.h>
-#include <requestregistry.h>
 #include <msgbeginrequest.h>
 #include <msgendrequest.h>
 #include <msggetvalues.h>
@@ -8,7 +7,6 @@
 #include <msgunknowntype.h>
 #include <msgparams.h>
 #include <msgabortrequest.h>
-#include <requestregistry.h>
 #include <streamdatamessage.h>
 #include <encoder.h>
 #include <constants.h>
@@ -23,7 +21,7 @@ Request makeRequest(const MsgParams& params, const MsgStdIn& data){
     for (const auto& paramName : params.paramList())
         requestParams.emplace_back(paramName, params.paramValue(paramName));
 
-    return Request{std::move(requestParams), data.data()};
+    return Request{std::move(requestParams), std::string{data.data()}};
 }
 }
 
@@ -130,7 +128,7 @@ TEST_F(TestResponder, UnknownType)
 
     auto output = std::ostringstream{};
     auto encoder = Encoder(output);
-    encoder  << cProtocolVersion
+    encoder  << hardcoded::protocolVersion
              << static_cast<uint8_t>(99)
              << static_cast<uint16_t>(1)
              << static_cast<uint16_t>(0)
@@ -221,8 +219,7 @@ TEST_P(TestResponder, Request)
     params.setParam("test", "hello world");
     params.setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = MsgStdIn{"HELLO WORLD"};
 
     auto expectedRequest = makeRequest(params, inStream);
     ::testing::InSequence seq;
@@ -241,13 +238,12 @@ TEST_P(TestResponder, Request)
 
 TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
 {
-    auto streamRecordData = std::string(cMaxDataMessageSize, '0');
+    auto streamRecordData = std::string(hardcoded::maxDataMessageSize, '0');
     auto streamData = std::string{};
     auto expectedRequestData = std::string{};
     auto requestId = static_cast<uint16_t>(1);
     for (auto i = 0; i < 3; ++i){
-        auto inStream = MsgStdIn{};
-        inStream.setData(streamRecordData);
+        auto inStream = MsgStdIn{streamRecordData};
         expectedRequestData += inStream.data();
         streamData += messageData(std::move(inStream), requestId);
     }
@@ -273,8 +269,7 @@ TEST_F(TestResponder, Multiplexing)
     params.setParam("test", "hello world");
     params.setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = MsgStdIn{"HELLO WORLD"};
 
     auto params2 = MsgParams{};
     params2.setParam("msg", "param");
@@ -310,8 +305,7 @@ TEST_P(TestResponderWithTestProcessor, Request)
     params.setParam("test", "hello world");
     params.setParam("foo", "bar");
 
-    auto inStream = MsgStdIn{};
-    inStream.setData("HELLO WORLD");
+    auto inStream = MsgStdIn{"HELLO WORLD"};
 
     ::testing::InSequence seq;
     expectMessageToBeSent(MsgStdOut{"DLROW OLLEH"}, 1);
@@ -342,7 +336,7 @@ TEST_P(TestResponder, RecordReadError)
     auto output = std::ostringstream{};
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"wrongName", "0"};
-    encoder  << cProtocolVersion
+    encoder  << hardcoded::protocolVersion
              << static_cast<uint8_t>(RecordType::GetValues)
              << static_cast<uint16_t>(1)
              << static_cast<uint16_t>(nameValue.size())
@@ -364,7 +358,7 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     auto output = std::ostringstream{};
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"FCGI_MAX_CONNS", ""};
-    encoder  << cProtocolVersion
+    encoder  << hardcoded::protocolVersion
              << static_cast<uint8_t>(RecordType::GetValues)
              << static_cast<uint16_t>(1)
              << static_cast<uint16_t>(nameValue.size() - 1) //wrong size

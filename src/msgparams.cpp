@@ -4,11 +4,6 @@
 
 namespace fcgi{
 
-MsgParams::MsgParams()
-    : Message(RecordType::Params)
-{
-}
-
 std::size_t MsgParams::size() const
 {
     auto result = 0u;
@@ -72,9 +67,9 @@ void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
         throw ProtocolError{"Misaligned name-value"};
 }
 
-bool MsgParams::operator==(const MsgParams& other) const
+bool operator==(const MsgParams& lhs, const MsgParams& rhs)
 {
-    return paramList_ == other.paramList_;
+    return lhs.paramList_ == rhs.paramList_;
 }
 
 }

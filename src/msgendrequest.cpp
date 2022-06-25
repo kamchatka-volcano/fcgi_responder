@@ -5,21 +5,13 @@
 
 namespace fcgi{
 
-MsgEndRequest::MsgEndRequest()
-    : Message(RecordType::EndRequest)
-    , appStatus_(0)
-    , protocolStatus_(ProtocolStatus::UnknownRole)
-{
-}
-
 MsgEndRequest::MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus)
-    : Message (RecordType::EndRequest)
-    , appStatus_(appStatus)
-    , protocolStatus_(protocolStatus)
+    : appStatus_{appStatus}
+    , protocolStatus_{protocolStatus}
 {
 }
 
-std::size_t MsgEndRequest::size() const
+std::size_t MsgEndRequest::size()
 {
     return 8;
 }
@@ -53,10 +45,10 @@ void MsgEndRequest::fromStream(std::istream& input, std::size_t)
     protocolStatus_ = protocolStatusFromInt(protocolStatus);
 }
 
-bool MsgEndRequest::operator==(const MsgEndRequest& other) const
+bool operator==(const MsgEndRequest& lhs, const MsgEndRequest& rhs)
 {
-    return appStatus_ == other.appStatus_ &&
-           protocolStatus_ == other.protocolStatus_;
+    return lhs.appStatus_ == rhs.appStatus_ &&
+           lhs.protocolStatus_ == rhs.protocolStatus_;
 }
 
 }
