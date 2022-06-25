@@ -14,11 +14,17 @@ public:
     void process()
     {
         while(isOpened_){
-            auto receivedDataSize = socket_.read_some(asio::buffer(buffer_));
-            ///
-            /// Passing read socket data with fcgi::Responder::receiveData method
-            ///
-            receiveData(buffer_.data(), receivedDataSize);
+            try {
+                auto receivedDataSize = socket_.read_some(asio::buffer(buffer_));
+                ///
+                /// Passing read socket data with fcgi::Responder::receiveData method
+                ///
+                receiveData(buffer_.data(), receivedDataSize);
+            }
+            catch(...){
+                isOpened_ = false;
+                return;
+            }
         }
     }
 
@@ -32,7 +38,7 @@ private:
     }
 
     ///
-    /// Overriding fcgi::Responder::disonnect to close connection with the web server
+    /// Overriding fcgi::Responder::disconnect to close connection with the web server
     ///
     void disconnect() override
     {
