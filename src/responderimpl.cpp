@@ -10,7 +10,6 @@
 #include "msgparams.h"
 #include "streamdatamessage.h"
 #include "types.h"
-#include "errors.h"
 #include "streammaker.h"
 #include "constants.h"
 #include <algorithm>
@@ -42,7 +41,6 @@ template void ResponderImpl::sendMessage<MsgUnknownType>(uint16_t requestId, Msg
 template void ResponderImpl::sendMessage<MsgEndRequest>(uint16_t requestId, MsgEndRequest&& msg);
 template void ResponderImpl::sendMessage<MsgGetValuesResult>(uint16_t requestId, MsgGetValuesResult&& msg);
 
-
 void ResponderImpl::receiveData(const char* data, std::size_t size)
 {
     recordReader_.read(data, size);
@@ -63,7 +61,7 @@ void ResponderImpl::onRecordRead(const Record& record)
         onBeginRequest(record.requestId(), record.getMessage<MsgBeginRequest>());
         break;
     case RecordType::AbortRequest:
-        endRequest(record.requestId(), ProtocolStatus::RequestComplete);
+        endRequest(record.requestId());
         break;
     case RecordType::GetValues:
         onGetValues(record.getMessage<MsgGetValues>());
@@ -86,13 +84,13 @@ void ResponderImpl::onBeginRequest(uint16_t requestId, const MsgBeginRequest& ms
             disconnect_();
         return;
     }
-    if (!cfg_.multiplexingEnabled && !requestRegistry_.isEmpty() && !requestRegistry_.hasRequest(requestId)){
+    if (!cfg_.multiplexingEnabled && !requestRegistry_.empty() && !requestRegistry_.count(requestId)){
         sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect_();
         return;
     }
-    if (requestRegistry_.requestCount() == cfg_.maxRequestsNumber && !requestRegistry_.hasRequest(requestId)){
+    if (static_cast<int>(requestRegistry_.size()) == cfg_.maxRequestsNumber && !requestRegistry_.count(requestId)){
         sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::Overloaded});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect_();
@@ -102,10 +100,10 @@ void ResponderImpl::onBeginRequest(uint16_t requestId, const MsgBeginRequest& ms
     createRequest(requestId, msg.resultConnectionState() == ResultConnectionState::KeepOpen);
 }
 
-void ResponderImpl::endRequest(uint16_t requestId, ProtocolStatus protocolStatus)
+void ResponderImpl::endRequest(uint16_t requestId)
 {
-    sendMessage(requestId, MsgEndRequest{0, protocolStatus});
-    if (!requestSettingsMap_[requestId].keepConnection)
+    sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::RequestComplete});
+    if (!requestRegistry_.at(requestId).keepConnection())
         disconnect_();
 
     deleteRequest(requestId);
@@ -113,14 +111,12 @@ void ResponderImpl::endRequest(uint16_t requestId, ProtocolStatus protocolStatus
 
 void ResponderImpl::createRequest(uint16_t requestId, bool keepConnection)
 {
-    requestRegistry_.registerRequest(requestId);
-    requestSettingsMap_[requestId].keepConnection = keepConnection;
+    requestRegistry_.emplace(requestId, RequestData{keepConnection});
 }
 
 void ResponderImpl::deleteRequest(uint16_t requestId)
 {
-    requestRegistry_.unregisterRequest(requestId);
-    requestSettingsMap_.erase(requestId);
+    requestRegistry_.erase(requestId);
 }
 
 void ResponderImpl::onGetValues(const MsgGetValues &msg)
@@ -144,12 +140,12 @@ void ResponderImpl::onGetValues(const MsgGetValues &msg)
 
 void ResponderImpl::onParams(uint16_t requestId, const MsgParams& msg)
 {
-    requestRegistry_.fillRequestData(requestId, msg);
+    requestRegistry_.at(requestId).addMessage(msg);
 }
 
 void ResponderImpl::onStdIn(uint16_t requestId, const MsgStdIn& msg)
 {
-    requestRegistry_.fillRequestData(requestId, msg);
+    requestRegistry_.at(requestId).addMessage(msg);
     if (msg.data().empty())
         onRequestReceived(requestId);
 }
@@ -170,7 +166,7 @@ void ResponderImpl::sendRecord(const Record &record)
 
 bool ResponderImpl::isRecordExpected(const Record& record)
 {
-    const auto requestRegistered = requestRegistry_.hasRequest(record.requestId());
+    const auto requestRegistered = requestRegistry_.count(record.requestId()) != 0;
     if (record.type() == RecordType::GetValues)
         return true;
     if (record.type() == RecordType::BeginRequest && !requestRegistered)
@@ -182,7 +178,11 @@ bool ResponderImpl::isRecordExpected(const Record& record)
 
 void ResponderImpl::onRequestReceived(uint16_t requestId)
 {
-    processRequest_(requestRegistry_.makeRequest(requestId),
+    auto request = requestRegistry_.at(requestId).makeRequest();
+    if (!request)
+        return;
+
+    processRequest_(std::move(*request),
                     Response{[requestId, this](std::string&& data, std::string&& errorMsg) {
                         sendResponse(requestId, std::move(data), std::move(errorMsg));
                     }});
@@ -194,7 +194,7 @@ void ResponderImpl::sendResponse(uint16_t id, std::string&& data, std::string&& 
     auto errorStream = makeStream<MsgStdErr>(id, errorMsg);
     std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
     std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
-    endRequest(id, ProtocolStatus::RequestComplete);
+    endRequest(id);
 }
 
 void ResponderImpl::setMaximumConnectionsNumber(int value)

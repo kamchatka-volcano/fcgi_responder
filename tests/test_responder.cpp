@@ -1,6 +1,5 @@
 #include <responder.h>
 #include <record.h>
-#include <requestregistry.h>
 #include <msgbeginrequest.h>
 #include <msgendrequest.h>
 #include <msggetvalues.h>
@@ -8,7 +7,6 @@
 #include <msgunknowntype.h>
 #include <msgparams.h>
 #include <msgabortrequest.h>
-#include <requestregistry.h>
 #include <streamdatamessage.h>
 #include <encoder.h>
 #include <constants.h>

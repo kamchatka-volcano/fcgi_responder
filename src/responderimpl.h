@@ -1,8 +1,8 @@
 #pragma once
 #include "recordreader.h"
-#include "requestregistry.h"
 #include "streamdatamessage.h"
 #include "types.h"
+#include "requestdata.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
@@ -41,7 +41,7 @@ private:
     void sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg);
 
     bool isRecordExpected(const Record& record);
-    void endRequest(uint16_t requestId, ProtocolStatus protocolStatus);
+    void endRequest(uint16_t requestId);
 
     void notifyAboutError(const std::string& errorMsg);
     void createRequest(uint16_t requestId, bool keepConnection);
@@ -54,14 +54,8 @@ private:
         bool multiplexingEnabled = true;
     } cfg_;
 
-    struct RequestSettings
-    {
-        bool keepConnection = true;
-    };
-
     RecordReader recordReader_;
-    RequestRegistry requestRegistry_;
-    std::unordered_map<uint16_t, RequestSettings> requestSettingsMap_;
+    std::unordered_map<uint16_t, RequestData> requestRegistry_;
     std::function<void(const std::string&)> errorInfoHandler_;
     std::ostringstream recordStream_;
     std::string recordBuffer_;

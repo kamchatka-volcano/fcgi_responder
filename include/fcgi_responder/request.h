@@ -59,5 +59,5 @@ private:
 
 };
 
-} //namespace fcgi
+}
 

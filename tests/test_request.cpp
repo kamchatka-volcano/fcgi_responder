@@ -1,7 +1,4 @@
 #include <gtest/gtest.h>
-#include <streamdatamessage.h>
-#include <msgparams.h>
-#include <requestregistry.h>
 #include <request.h>
 
 

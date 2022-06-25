@@ -26,20 +26,19 @@ set(SRC
     src/record.cpp
     src/recordreader.cpp
     src/request.cpp
+    src/requestdata.cpp
     src/responder.cpp
     src/responderimpl.cpp
     src/requester.cpp
     src/requesterimpl.cpp
     src/response.cpp
-    src/inputstreamdualbuffer.cpp
-    src/requestregistry.cpp)
+    src/inputstreamdualbuffer.cpp)
 
 set(PUBLIC_HEADERS
     "include/fcgi_responder/request.h"
     "include/fcgi_responder/response.h"
     "include/fcgi_responder/responder.h"
     "include/fcgi_responder/requester.h"
-    "include/fcgi_responder/requesthandle.h"
 )
 
 add_library(fcgi_responder STATIC ${SRC})
