@@ -24,18 +24,55 @@ struct ResponseData
     std::string errorMsg;
 };
 
+///
+/// \brief Abstract class which implements the client logic for making requests to FastCGI applications
+///
 class Requester{
 
 public:
+    ///
+    /// \brief sendRequest
+    /// Send request to the FastCGI application
+    /// \param params request parameters
+    /// \param data request data
+    /// \param responseHandler response handler
+    /// \param keepConnection true if FastCGI application should keep the connection alive after response is sent
+    /// \return RequestHandle - object which can be used to cancel request
+    ///
     std::optional<RequestHandle> sendRequest(
             const std::map<std::string, std::string>& params, const std::string& data,
             const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
             bool keepConnection = false);
+    ///
+    /// \brief setErrorInfoHandler
+    /// Protocol and stream errors are handled internally and silently,
+    /// this method can be used to get the text information about these errors,
+    /// by registering a handler function.
+    /// \param errorInfoHandler
+    ///
     void setErrorInfoHandler(const std::function<void (const std::string &)>& handler);
 
+    ///
+    /// \brief availableRequestsNumber
+    /// \return number of available requests
     int availableRequestsNumber() const;
+
+     ///
+    /// \brief maximumConnectionsNumber
+    /// \return Maximum connections number
+    ///
     int maximumConnectionsNumber() const;
+
+    ///
+    /// \brief maximumRequestsNumber
+    /// \return Maximum requests number
+    ///
     int maximumRequestsNumber() const;
+
+    ///
+    /// \brief isMultiplexingEnabled
+    /// \return Multiplexing state
+    ///
     bool isMultiplexingEnabled() const;
 
     Requester(const Requester&) = delete;

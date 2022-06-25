@@ -22,7 +22,7 @@ public:
     Record();
     explicit Record(RecordType type, uint16_t requestId = 0);
     template <typename TMessage>
-    explicit Record(TMessage&& msg, uint16_t requestId)
+    Record(TMessage&& msg, uint16_t requestId)
         : type_(std::remove_reference_t<TMessage>::recordType)
         , requestId_(requestId)
         , message_(std::forward<TMessage>(msg))
