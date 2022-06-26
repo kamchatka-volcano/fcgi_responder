@@ -1,6 +1,7 @@
 #include "requesterimpl.h"
 #include "recordreader.h"
 #include "record.h"
+#include "streammaker.h"
 #include <cstdint>
 
 namespace fcgi{
@@ -30,13 +31,13 @@ RequesterImpl::RequesterImpl(
 }
 
 std::optional<RequestHandle> RequesterImpl::sendRequest(
-        const std::map<std::string, std::string>& params,
-        const std::string& data,
-        const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+        std::map<std::string, std::string> params,
+        std::string data,
+        std::function<void(const std::optional<ResponseData>&)> responseHandler,
         bool keepConnection)
 {
     if (connectionState_ == ConnectionState::NotConnected) {
-        initConnection(params, data, responseHandler, keepConnection);
+        initConnection(std::move(params), std::move(data), responseHandler, keepConnection);
         connectionOpeningRequestCancelHandler_ = std::make_shared<std::function<void()>>(
            [=]{
                errorInfoHandler_("Connection initialization cancelled");
@@ -65,9 +66,9 @@ int RequesterImpl::availableRequestsNumber() const
 }
 
 void RequesterImpl::initConnection(
-        const std::map<std::string, std::string>& params,
-        const std::string& data,
-        const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+        std::map<std::string, std::string> params,
+        std::string data,
+        std::function<void(const std::optional<ResponseData>&)> responseHandler,
         bool keepConnection)
 {
     connectionState_ = ConnectionState::ConnectionInProgress;
@@ -75,7 +76,11 @@ void RequesterImpl::initConnection(
         connectionState_ = ConnectionState::NotConnected;
         responseHandler(std::nullopt);
     };
-    onConnectionSuccess_ = [=]() {
+    onConnectionSuccess_ = [this,
+                            params = std::move(params),
+                            data = std::move(data),
+                            responseHandler = std::move(responseHandler),
+                            keepConnection]() mutable {
         connectionState_ = ConnectionState::Connected;
         requestIdPool_ = cfg_.multiplexingEnabled ? generateRequestIds(cfg_.maxRequestsNumber) : std::set<uint16_t>{1};
         doSendRequest(params, data, responseHandler, keepConnection);
@@ -115,12 +120,12 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
     auto paramsMsg = MsgParams{};
     for (const auto& [paramName, paramValue] : params)
         paramsMsg.setParam(paramName, paramValue);
-    sendMessage(requestId, paramsMsg);
+    sendMessage(requestId, std::move(paramsMsg));
     if (!params.empty())
         sendMessage(requestId, MsgParams{});
-    sendMessage(requestId, MsgStdIn{data});
-    if (!data.empty())
-        sendMessage(requestId, MsgStdIn{""});
+
+    auto dataStream = makeStream<MsgStdIn>(requestId, data);
+    std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
 
     return responseMap_.at(requestId).cancelRequestHandler;
 }
@@ -230,7 +235,7 @@ void RequesterImpl::onGetValuesResult(const MsgGetValuesResult &msg)
             break;
         case ValueRequest::MpxsConns:
             try {
-                cfg_.multiplexingEnabled = std::stoi(msg.requestValue(request)) ? true : false;
+                cfg_.multiplexingEnabled = std::stoi(msg.requestValue(request)) != 0;
             }
             catch (std::exception& e){
                 notifyAboutError("Invalid value for MpxsConns: " + msg.requestValue(request));

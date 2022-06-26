@@ -127,8 +127,17 @@ protected:
         expectMessageToBeSent(paramsMsg, requestId);
         if (!fcgiParams.empty())
             expectMessageToBeSent(MsgParams{}, requestId);
-        expectMessageToBeSent(MsgStdIn{fcgiData}, requestId);
-        if (!fcgiData.empty())
+
+        const auto packetsNum = fcgiData.size() / hardcoded::maxDataMessageSize;
+        const auto lastPacketSize = fcgiData.size() % hardcoded::maxDataMessageSize;
+        for (auto i = 0u; i < packetsNum; ++i) {
+            auto packetOffset = &fcgiData[i * hardcoded::maxDataMessageSize];
+            expectMessageToBeSent(MsgStdIn{std::string_view{packetOffset, hardcoded::maxDataMessageSize}}, requestId);
+        }
+        auto packetOffset = &fcgiData[packetsNum * hardcoded::maxDataMessageSize];
+        expectMessageToBeSent(MsgStdIn{std::string_view{packetOffset, lastPacketSize}}, requestId);
+
+        if (!fcgiData.empty() && lastPacketSize)
             expectMessageToBeSent(MsgStdIn{""}, requestId);
 
         auto requestHandle = requester_.send(fcgiParams, fcgiData);
@@ -229,6 +238,25 @@ TEST_P(TestRequester, ResponseData)
     receiveMessage(MsgStdErr{}, requestId);
     receiveMessage(MsgEndRequest{0, ProtocolStatus::RequestComplete}, requestId);
 }
+
+TEST_P(TestRequester, LargeRequest)
+{
+    const auto seq = InSequence{};
+    const auto requestId = 1;
+    auto requestData = std::string{};
+    for (auto i = 0; i < 3; ++i)
+        requestData += std::string(hardcoded::maxDataMessageSize, '0');
+    requestData += std::string(hardcoded::maxDataMessageSize / 2, '0');
+
+    makeRequest({}, requestData, requestId);
+    expectReceiveResponse(ResponseData{"Hello world", "error#1"});
+    receiveMessage(MsgStdOut{"Hello world"}, requestId);
+    receiveMessage(MsgStdOut{}, requestId);
+    receiveMessage(MsgStdErr{"error#1"}, requestId);
+    receiveMessage(MsgStdErr{}, requestId);
+    receiveMessage(MsgEndRequest{0, ProtocolStatus::RequestComplete}, requestId);
+}
+
 
 TEST_P(TestRequester, ResponseDataMultiRequests)
 {

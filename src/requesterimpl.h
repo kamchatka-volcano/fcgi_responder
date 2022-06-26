@@ -34,12 +34,11 @@ class RequesterImpl{
     };
 
 public:
-    RequesterImpl(std::function<void(const std::string&)> sendData,
-                  std::function<void()> disconnect);
+    RequesterImpl(std::function<void(const std::string&)> sendData, std::function<void()> disconnect);
     void receiveData(const char* data, std::size_t size);
     std::optional<RequestHandle> sendRequest(
-            const std::map<std::string, std::string>& params, const std::string& data,
-            const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+            std::map<std::string, std::string> params, std::string data,
+            std::function<void(const std::optional<ResponseData>&)> responseHandler,
             bool keepConnection = false);
     void setErrorInfoHandler(const std::function<void (const std::string &)>& handler);
 
@@ -51,9 +50,9 @@ public:
 
 private:
     void initConnection(
-            const std::map<std::string, std::string>& params,
-            const std::string& data,
-            const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+            std::map<std::string, std::string> params,
+            std::string data,
+            std::function<void(const std::optional<ResponseData>&)> responseHandler,
             bool keepConnection);
     std::optional<RequestHandle> doSendRequest(
             const std::map<std::string, std::string>& params,

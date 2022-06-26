@@ -38,12 +38,12 @@ const RequesterImpl& Requester::impl() const
 }
 
 std::optional<RequestHandle> Requester::sendRequest(
-        const std::map<std::string, std::string>& params,
-        const std::string& data,
-        const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+        std::map<std::string, std::string> params,
+        std::string data,
+        std::function<void(const std::optional<ResponseData>&)> responseHandler,
         bool keepConnection)
 {
-    return impl().sendRequest(params, data, responseHandler, keepConnection);
+    return impl().sendRequest(std::move(params), std::move(data), std::move(responseHandler), keepConnection);
 }
 
 int Requester::availableRequestsNumber() const

@@ -40,8 +40,8 @@ public:
     /// \return RequestHandle - object which can be used to cancel request
     ///
     std::optional<RequestHandle> sendRequest(
-            const std::map<std::string, std::string>& params, const std::string& data,
-            const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+            std::map<std::string, std::string> params, std::string data,
+            std::function<void(const std::optional<ResponseData>&)> responseHandler,
             bool keepConnection = false);
     ///
     /// \brief setErrorInfoHandler
