@@ -3,17 +3,24 @@
 #include "record.h"
 #include "streammaker.h"
 #include <cstdint>
+#include <exception>
 
 namespace fcgi{
 
 namespace {
-    std::set<uint16_t> generateRequestIds(int maxRequestsNumber)
-    {
-        auto result = std::set<uint16_t>{};
-        for (auto i = 1; i <= maxRequestsNumber; ++i)
-            result.insert(static_cast<uint16_t>(i));
-        return result;
-    }
+std::set<uint16_t> generateRequestIds(int maxRequestsNumber)
+{
+    auto result = std::set<uint16_t>{};
+    for (auto i = 1; i <= maxRequestsNumber; ++i)
+        result.insert(static_cast<uint16_t>(i));
+    return result;
+}
+
+[[noreturn]]
+inline void ensureNotReachable() noexcept
+{
+    std::terminate();
+}
 }
 
 RequesterImpl::RequesterImpl(
@@ -63,6 +70,7 @@ int RequesterImpl::availableRequestsNumber() const
     case ConnectionState::Connected:
         return static_cast<int>(requestIdPool_.size());
     }
+    ensureNotReachable();
 }
 
 void RequesterImpl::initConnection(

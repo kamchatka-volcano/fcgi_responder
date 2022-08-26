@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(fcgi_responder VERSION 1.3.0 DESCRIPTION "FastCGI protocol responder role implementation library")
+project(fcgi_responder VERSION 1.3.1 DESCRIPTION "FastCGI protocol responder role implementation library")
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(FCGI_RESPONDER_SUBPROJECT OFF)
@@ -60,7 +60,6 @@ target_include_directories(
 
 option(ENABLE_TESTS "Enable tests" OFF)
 if (ENABLE_TESTS AND NOT FCGI_RESPONDER_SUBPROJECT)
-    enable_testing()
     add_subdirectory(tests)
 endif()
 
