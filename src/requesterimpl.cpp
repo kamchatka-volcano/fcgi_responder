@@ -40,7 +40,7 @@ RequesterImpl::RequesterImpl(
 std::optional<RequestHandle> RequesterImpl::sendRequest(
         std::map<std::string, std::string> params,
         std::string data,
-        std::function<void(const std::optional<ResponseData>&)> responseHandler,
+        const std::function<void(std::optional<ResponseData>)>& responseHandler,
         bool keepConnection)
 {
     if (connectionState_ == ConnectionState::NotConnected) {
@@ -76,7 +76,7 @@ int RequesterImpl::availableRequestsNumber() const
 void RequesterImpl::initConnection(
         std::map<std::string, std::string> params,
         std::string data,
-        std::function<void(const std::optional<ResponseData>&)> responseHandler,
+        std::function<void(std::optional<ResponseData>)> responseHandler,
         bool keepConnection)
 {
     connectionState_ = ConnectionState::ConnectionInProgress;
@@ -104,7 +104,7 @@ void RequesterImpl::initConnection(
 std::optional<RequestHandle> RequesterImpl::doSendRequest(
         const std::map<std::string, std::string>& params,
         const std::string& data,
-        const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+        std::function<void(std::optional<ResponseData>)> responseHandler,
         bool keepConnection)
 {
     if (requestIdPool_.empty()){
@@ -116,7 +116,7 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
     auto requestId = *requestIdPool_.begin();
     requestIdPool_.erase(requestId);
     responseMap_.emplace(requestId,
-                         ResponseContext{responseHandler, ResponseData{}, keepConnection,
+                         ResponseContext{std::move(responseHandler), ResponseData{}, keepConnection,
                                          std::make_shared<std::function<void()>>([=] {
                                              doEndRequest(requestId, ResponseStatus::Cancelled);
                                          })
@@ -140,9 +140,9 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
 
 void RequesterImpl::doEndRequest(uint16_t requestId, ResponseStatus responseStatus)
 {
-    const auto& responseContext = responseMap_.at(requestId);
+    auto& responseContext = responseMap_.at(requestId);
     if (responseStatus == ResponseStatus::Successful)
-        responseContext.responseHandler(responseContext.responseData);
+        responseContext.responseHandler(std::move(responseContext.responseData));
     else
         responseContext.responseHandler(std::nullopt);
 

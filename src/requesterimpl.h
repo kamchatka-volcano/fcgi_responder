@@ -38,7 +38,7 @@ public:
     void receiveData(const char* data, std::size_t size);
     std::optional<RequestHandle> sendRequest(
             std::map<std::string, std::string> params, std::string data,
-            std::function<void(const std::optional<ResponseData>&)> responseHandler,
+            const std::function<void(std::optional<ResponseData>)>& responseHandler,
             bool keepConnection = false);
     void setErrorInfoHandler(const std::function<void (const std::string &)>& handler);
 
@@ -52,12 +52,12 @@ private:
     void initConnection(
             std::map<std::string, std::string> params,
             std::string data,
-            std::function<void(const std::optional<ResponseData>&)> responseHandler,
+            std::function<void(std::optional<ResponseData>)> responseHandler,
             bool keepConnection);
     std::optional<RequestHandle> doSendRequest(
             const std::map<std::string, std::string>& params,
             const std::string& data,
-            const std::function<void(const std::optional<ResponseData>&)>& responseHandler,
+            std::function<void(std::optional<ResponseData>)> responseHandler,
             bool keepConnection);
     void doEndRequest(uint16_t requestId, ResponseStatus responseStatus);
     void onRecordRead(const Record& record);
@@ -80,7 +80,7 @@ private:
     } cfg_;
 
     struct ResponseContext{
-        std::function<void(const std::optional<ResponseData>&)> responseHandler;
+        std::function<void(std::optional<ResponseData>)> responseHandler;
         ResponseData responseData;
         bool keepConnection = false;
         std::shared_ptr<std::function<void()>> cancelRequestHandler;

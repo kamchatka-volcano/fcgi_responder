@@ -41,7 +41,7 @@ public:
     ///
     std::optional<RequestHandle> sendRequest(
             std::map<std::string, std::string> params, std::string data,
-            std::function<void(const std::optional<ResponseData>&)> responseHandler,
+            const std::function<void(std::optional<ResponseData>)>& responseHandler,
             bool keepConnection = false);
     ///
     /// \brief setErrorInfoHandler
