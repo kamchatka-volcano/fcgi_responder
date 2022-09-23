@@ -316,8 +316,8 @@ Build and run asio example:
 cd fcgi_responder
 cmake -S . -B build -DENABLE_ASIO_EXAMPLE=ON -DENABLE_ASIO_REQUESTER_EXAMPLE=ON
 cmake --build build 
-./build/examples/using-asio/asio_example
-./build/examples/using-asio/asio_requester_example
+./build/examples/asio_example
+./build/examples/asio_requester_example
 ```
 
 Or build and run Qt example:
@@ -326,8 +326,8 @@ Or build and run Qt example:
 cd fcgi_responder
 cmake -S . -B build -DENABLE_QT_EXAMPLE=ON -DENABLE_QT_REQUESTER_EXAMPLE=ON
 cmake --build build 
-./build/examples/using-qt/qt_example
-./build/examples/using-qt/qt_requester_example
+./build/examples/qt_example
+./build/examples/qt_requester_example
 ```
 
 Check that it's working here: http://localhost:8088 
@@ -338,7 +338,7 @@ Utilities `libfcgi_benchmark` and `fcgi_responder_benchmark` were used to measur
 
 ```
 cd fcgi_responder
-cmake -S . -B build -DENABLE_BENCHMARKS=ON
+cmake -S . -B build -DENABLE_LIBFCGI_BENCHMARK=ON -DENABLE_FCGI_RESPONDER_BENCHMARK=ON
 cmake --build build
 ./build/utils/fcgi_responder_benchmark/fcgi_responder_benchmark --response-size 27
 ./build/utils/libfcgi_benchmark/libfcgi_benchmark --response-size 27

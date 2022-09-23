@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <request.h>
+#include <fcgi_responder/request.h>
 
 
 TEST(Request, Data)
