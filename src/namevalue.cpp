@@ -12,7 +12,7 @@ NameValue::NameValue(std::size_t maxSize)
 
 std::size_t NameValue::size() const
 {
-    auto result = 0u;
+    auto result = std::size_t{};
     if (name_.size() <= 127)
         result += 1;
     else

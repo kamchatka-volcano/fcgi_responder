@@ -7,10 +7,9 @@ namespace fcgi{
 
 std::size_t MsgGetValues::size() const
 {
-    auto result = 0u;
-    for(auto request : valueRequestList_){
+    auto result = std::size_t{};
+    for(auto request : valueRequestList_)
         result += NameValue(valueRequestToString(request), "").size();
-    }
     return result;
 }
 
@@ -37,7 +36,7 @@ void MsgGetValues::toStream(std::ostream &output) const
 
 void MsgGetValues::fromStream(std::istream &input, std::size_t inputSize)
 {
-    auto readBytes = 0u;
+    auto readBytes = std::size_t{};
     while(readBytes < inputSize){
         auto nameValue = NameValue{inputSize};
         nameValue.fromStream(input);
