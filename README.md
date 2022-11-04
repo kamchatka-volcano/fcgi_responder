@@ -1,8 +1,9 @@
-## Overview
-`fcgi_responder` is a C++17 library implementing the [Responder role](https://fast-cgi.github.io/spec#62-responder) of FastCGI protocol.  
-It processes the raw data, received from the web server, and returns serialized output, required to be sent back to the server by the client code.
+[![build & test (clang, gcc, MSVC)](https://github.com/kamchatka-volcano/fcgi_responder/actions/workflows/build_and_test.yml/badge.svg?branch=master)](https://github.com/kamchatka-volcano/fcgi_responder/actions/workflows/build_and_test.yml)
+
+`fcgi_responder` is a C++17 library implementing [Responder role](https://fast-cgi.github.io/spec#62-responder) of FastCGI protocol.  
+It processes raw data, received from the web server, and returns serialized output, required to be sent back to the server by the client code.
 Thus, the implementation of connection to the web server lays outside the library's responsibilities, and clients can use whatever socket programming methods they prefer. This makes `fcgi_responder` being portable and having no external dependencies.  
-`fcgi_responder` aims to be a modern and readable implementation of the FastCGI protocol and our benchmark using `asio` library shows more than 100% increase in performance in comparison to the popular FastCGI implementation `libfcgi` written in C.
+`fcgi_responder` aims to be a modern and readable implementation of FastCGI protocol and our benchmark using `asio` library shows more than 100% increase in performance in comparison to the popular FastCGI implementation `libfcgi` written in C.
 <p align="center">
   <img height="372" src="doc/fcgi_responder_vs_libfcgi.png"/>  
 </p>
@@ -15,7 +16,7 @@ Inherit from `fcgi::Responder` class and implement its pure virtual methods to p
     * `virtual void processRequest(fcgi::Request&& request, fcgi::Response&& response) = 0`   
     * `virtual void disconnect() = 0`
 
-Then, listen for connections from the web server and process the incoming data by passing it to the `fcgi::Responder::receiveData` method.
+Then, listen for connections from the web server and process incoming data by passing it to `fcgi::Responder::receiveData` method.
 
 This is a minimal example, using the standalone asio library for networking:
 ```C++
@@ -109,16 +110,16 @@ int main ()
     return 0;
 }
 ```
-Check the `examples` directory for this and other example using the Qt framework.
+Check the `examples` directory for this and other example using Qt framework.
 
 ### Sending requests to FastCGI applications
-The `fcgi_responder` library also provides a `fcgi::Requester` class, which can be used to send requests to the FastCGI applications.
+`fcgi_responder` library also provides `fcgi::Requester` class, which can be used to send requests to FastCGI applications.
 
 Inherit from `fcgi::Requester` class and implement its pure virtual methods to provide necessary functionality:  
     * `virtual void sendData(const std::string& data) = 0`  
     * `virtual void disconnect() = 0`
 
-Then, connect the socket to the listening FastCGI application and make a request by calling the `fcgi::Requester::sendRequest` method. Don't forget to process the incoming data by passing it to the `fcgi::Requester::receiveData` method.
+Then, connect a socket to the listening FastCGI application and make a request by calling the `fcgi::Requester::sendRequest` method. Don't forget to process incoming data by passing it to `fcgi::Requester::receiveData` method.
 
 This is a minimal example, using the standalone asio library for networking:
 ```C++
@@ -254,7 +255,7 @@ cd build/tests && ctest
 ```
 
 ## Running fuzzing tests
-`fcgi_responder` is tested with the `AFL++` fuzzing testing tool. This repository contains fuzzing input data in `fuzz_test/input`, a fuzzing harness `fcgi_responder_fuzzer` and a fuzzing input data generator `fuzz_input_generator`.  
+`fcgi_responder` is tested with `AFL++` fuzzing testing tool. This repository contains fuzzing input data in `fuzz_test/input`, a fuzzing harness `fcgi_responder_fuzzer` and a fuzzing input data generator `fuzz_input_generator`.  
 To build `fcgi_responder_fuzzer` for debugging input data run the following commands:
 ```
 cd fcgi_responder
@@ -268,7 +269,7 @@ cd fcgi_responder
 LLVM_CONFIG="llvm-config-11" CXX=afl-clang-fast++ cmake -S . -B afl_build -DENABLE_FUZZ_TESTS=ON
 cmake --build afl_build
 ```
-Adjust the `LLVM_CONFIG` variable to point to the version of LLVM you want to use.
+Adjust `LLVM_CONFIG` variable to point to the version of LLVM you want to use.
 
 To run fuzzing tests with `afl-fuzz` utility run the following command:
 ```
