@@ -6,7 +6,7 @@ namespace fcgi{
 
 std::size_t MsgParams::size() const
 {
-    auto result = 0u;
+    auto result = std::size_t{};
     for(const auto& param : paramList_)
         result += param.size();
     return result;
@@ -56,7 +56,7 @@ void MsgParams::toStream(std::ostream &output) const
 
 void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
 {
-    auto readBytes = 0u;
+    auto readBytes = std::size_t{};
     while(readBytes < inputSize){
         auto param = NameValue{inputSize};
         param.fromStream(input);

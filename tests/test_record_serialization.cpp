@@ -65,18 +65,21 @@ TEST(RecordSerialization, MsgGetValues)
 
     auto readMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
     ASSERT_EQ(msg.requestList(), readMsg.requestList());
+}
 
-    msg = fcgi::MsgGetValues{};
+TEST(RecordSerialization, MsgGetValues2)
+{
+    auto msg = fcgi::MsgGetValues{};
     msg.requestValue(fcgi::ValueRequest::MaxReqs);
     msg.requestValue(fcgi::ValueRequest::MpxsConns);
-    {
-        auto record = fcgi::Record{msg, 1};
-        auto resultRecord = fcgi::Record{};
-        convertRecordTest(record, resultRecord);
 
-        readMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
-        ASSERT_EQ(msg.requestList(), readMsg.requestList());
-    }
+    auto record = fcgi::Record{msg, 1};
+    auto resultRecord = fcgi::Record{};
+    convertRecordTest(record, resultRecord);
+
+    auto readMsg = resultRecord.getMessage<fcgi::MsgGetValues>();
+    ASSERT_EQ(msg.requestList(), readMsg.requestList());
+
 }
 
 TEST(RecordSerialization, MsgGetValuesResult)
@@ -88,20 +91,23 @@ TEST(RecordSerialization, MsgGetValuesResult)
 
     auto readMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
     ASSERT_EQ(msg.requestList(), readMsg.requestList());
+}
 
-    msg = fcgi::MsgGetValuesResult{};
+TEST(RecordSerialization, MsgGetValuesResult2)
+{
+    auto msg = fcgi::MsgGetValuesResult{};
     msg.setRequestValue(fcgi::ValueRequest::MaxReqs, "10");
     msg.setRequestValue(fcgi::ValueRequest::MpxsConns, "2");
-    {
-        auto record = fcgi::Record{msg, 1};
-        auto resultRecord = fcgi::Record{};
-        convertRecordTest(record, resultRecord);
 
-        readMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
-        ASSERT_EQ(msg.requestList(), readMsg.requestList());
-        for(auto request : msg.requestList())
-            ASSERT_EQ(msg.requestValue(request), readMsg.requestValue(request));
-    }
+    auto record = fcgi::Record{msg, 1};
+    auto resultRecord = fcgi::Record{};
+    convertRecordTest(record, resultRecord);
+
+    auto readMsg = resultRecord.getMessage<fcgi::MsgGetValuesResult>();
+    ASSERT_EQ(msg.requestList(), readMsg.requestList());
+    for(auto request : msg.requestList())
+        ASSERT_EQ(msg.requestValue(request), readMsg.requestValue(request));
+
 }
 
 TEST(RecordSerialization, MsgParams)
@@ -114,19 +120,21 @@ TEST(RecordSerialization, MsgParams)
 
     auto readMsg = resultRecord.getMessage<fcgi::MsgParams>();
     ASSERT_EQ(msg.paramList(), readMsg.paramList());
+}
 
-    msg = fcgi::MsgParams{};
+TEST(RecordSerialization, MsgParams2)
+{
+    auto msg = fcgi::MsgParams{};
     msg.setParam("Hello", "World");
-    {
-        auto record = fcgi::Record{msg, 1};
-        auto resultRecord = fcgi::Record{};
-        convertRecordTest(record, resultRecord);
 
-        readMsg = resultRecord.getMessage<fcgi::MsgParams>();
-        ASSERT_EQ(msg.paramList(), readMsg.paramList());
-        for(const auto& param : msg.paramList())
-            ASSERT_EQ(msg.paramValue(param), readMsg.paramValue(param));
-    }
+    auto record = fcgi::Record{msg, 1};
+    auto resultRecord = fcgi::Record{};
+    convertRecordTest(record, resultRecord);
+
+    auto readMsg = resultRecord.getMessage<fcgi::MsgParams>();
+    ASSERT_EQ(msg.paramList(), readMsg.paramList());
+    for(const auto& param : msg.paramList())
+        ASSERT_EQ(msg.paramValue(param), readMsg.paramValue(param));
 }
 
 TEST(RecordSerialization, MsgUnkownType)
@@ -152,14 +160,15 @@ TEST(RecordSerialization, MsgStdIn)
 }
 
 template<typename ExceptionType>
-void assert_exception(std::function<void()> throwingCode, std::function<void(const ExceptionType&)> exceptionContentChecker)
+void assert_exception(std::function<void()> throwingCode, std::function<void(const ExceptionType&)> exceptionContentChecker = {})
 {
     try{
         throwingCode();
         FAIL() << "exception wasn't thrown!";
     }
     catch(const ExceptionType& e){
-        exceptionContentChecker(e);
+        if (exceptionContentChecker)
+            exceptionContentChecker(e);
     }
     catch(...){
         FAIL() << "Unexpected exception was thrown";
@@ -198,11 +207,8 @@ TEST(RecordSerializationError, MsgBeginRequestCutoffInput)
     auto input = std::istringstream{msgData};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgBeginRequest{};
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, 8);},
-        [](const std::runtime_error& e){
-            EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, 8);});
 }
 
 TEST(RecordSerializationError, MsgEndRequestCutoffInput)
@@ -217,11 +223,8 @@ TEST(RecordSerializationError, MsgEndRequestCutoffInput)
     auto input = std::istringstream{msgData};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgEndRequest{};
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, 8);},
-        [](const std::runtime_error& e){
-            EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, 8);});
 }
 
 TEST(RecordSerializationError, MsgGetValueInvalidName)
@@ -271,11 +274,8 @@ TEST(RecordSerializationError, MsgGetValueCutoffInput)
     auto input = std::istringstream{msgData};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValues{};
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, msgData.size());},
-        [](const std::runtime_error& e){
-             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, msgData.size());});
 }
 
 TEST(RecordSerializationError, MsgGetValueResultInvalidName)
@@ -324,11 +324,8 @@ TEST(RecordSerializationError, MsgGetValueResultCutoffInput)
     auto input = std::istringstream{msgData};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgGetValuesResult{};
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, msgData.size());},
-        [](const std::runtime_error& e){
-             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, msgData.size());});
 }
 
 TEST(RecordSerializationError, MsgParamsMisalignedNameValue)
@@ -360,11 +357,8 @@ TEST(RecordSerializationError, MsgParamsCutoffInput)
     auto input = std::istringstream{msgData};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgParams{};
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, msgData.size());},
-        [](const std::runtime_error& e){
-             EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, msgData.size());});
 }
 
 TEST(RecordSerializationError, MsgUnkownTypeCutoffInput)
@@ -378,11 +372,8 @@ TEST(RecordSerializationError, MsgUnkownTypeCutoffInput)
     auto input = std::istringstream{msgData};
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgUnknownType{};
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, 8);},
-        [](const std::runtime_error& e){
-            EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, 8);});
 }
 
 
@@ -397,11 +388,8 @@ TEST(RecordSerializationError, MsgStreamDataCutoffInput)
     input.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
     auto msg =  fcgi::MsgStdIn{};
     auto wrongSize = msgData.size() + 1;
-    assert_exception<std::runtime_error>(
-        [&](){msg.fromStream(input, wrongSize);},
-        [](const std::runtime_error& e){
-            EXPECT_EQ(std::string(e.what()), "basic_ios::clear: iostream error");
-        });
+    assert_exception<std::ios_base::failure>(
+        [&](){msg.fromStream(input, wrongSize);});
 }
 
 TEST(RecordSerializationError, RecordUsupportedProtocolVersion)

@@ -1,6 +1,6 @@
-#include <requester.h>
+#include <fcgi_responder/requester.h>
+#include <fcgi_responder/request.h>
 #include <record.h>
-#include <request.h>
 #include <msgbeginrequest.h>
 #include <msgendrequest.h>
 #include <msggetvalues.h>

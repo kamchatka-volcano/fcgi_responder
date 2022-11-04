@@ -3,6 +3,7 @@
 #include "streamdatamessage.h"
 #include "types.h"
 #include "requestdata.h"
+#include "datawriterstream.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
@@ -57,8 +58,7 @@ private:
     RecordReader recordReader_;
     std::unordered_map<uint16_t, RequestData> requestRegistry_;
     std::function<void(const std::string&)> errorInfoHandler_;
-    std::ostringstream recordStream_;
-    std::string recordBuffer_;
+    DataWriterStream recordStream_;
     std::function<void(const std::string&)> sendData_;
     std::function<void()> disconnect_;
     std::function<void(Request&& request, Response&& response)> processRequest_;

@@ -1,5 +1,6 @@
 #include <fcgi_responder/request.h>
 #include <algorithm>
+#include <iterator>
 
 namespace {
 const std::string& emptyParamValue()

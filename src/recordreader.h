@@ -1,5 +1,5 @@
 #pragma once
-#include "inputstreamdualbuffer.h"
+#include "datareaderstream.h"
 #include "constants.h"
 #include <string>
 #include <functional>
@@ -34,8 +34,7 @@ private:
     std::function<void(Record&)> recordReadHandler_;
     std::function<void(uint8_t)> invalidRecordTypeHandler_;
     std::function<void(const std::string&)> errorInfoHandler_;
-    InputStreamDualBuffer buffer_;
-    std::istream stream_;
+    DataReaderStream dataStream_;
     std::string leftover_;
     std::size_t readRecordsSize_ = 0;
 };

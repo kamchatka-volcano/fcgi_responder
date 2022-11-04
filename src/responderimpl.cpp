@@ -23,12 +23,11 @@ ResponderImpl::ResponderImpl(
     : recordReader_{
             [this](const Record& record){ onRecordRead(record);},
             [this](uint8_t recordType){ sendMessage(0, MsgUnknownType{recordType});}}
+    , recordStream_(hardcoded::maxRecordSize)
     , sendData_{std::move(sendData)}
     , disconnect_{std::move(disconnect)}
     , processRequest_{std::move(processRequest)}
 {
-    recordBuffer_.resize(hardcoded::maxRecordSize);
-    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], hardcoded::maxRecordSize);
 }
 
 template <typename TMsg>
@@ -152,8 +151,7 @@ void ResponderImpl::onStdIn(uint16_t requestId, const MsgStdIn& msg)
 
 void ResponderImpl::sendRecord(const Record &record)
 {
-    recordStream_.seekp(0);
-    recordBuffer_.resize(record.size());
+    recordStream_.resetBuffer(record.size());
     try{
         record.toStream(recordStream_);
     }
@@ -161,7 +159,7 @@ void ResponderImpl::sendRecord(const Record &record)
         notifyAboutError(e.what());
         return;
     }
-    sendData_(recordBuffer_);
+    sendData_(recordStream_.buffer());
 }
 
 bool ResponderImpl::isRecordExpected(const Record& record)

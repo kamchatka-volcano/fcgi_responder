@@ -2,6 +2,7 @@
 #include <fcgi_responder/requester.h>
 #include "recordreader.h"
 #include "streamdatamessage.h"
+#include "datawriterstream.h"
 #include <string>
 #include <sstream>
 #include <memory>
@@ -87,8 +88,7 @@ private:
     };
 
     RecordReader recordReader_;
-    std::ostringstream recordStream_;
-    std::string recordBuffer_;
+    DataWriterStream recordStream_;
     std::function<void(const std::string&)> errorInfoHandler_;
     std::function<void()> onConnectionFail_;
     std::function<void()> onConnectionSuccess_;
