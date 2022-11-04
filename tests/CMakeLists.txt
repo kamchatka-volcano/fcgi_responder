@@ -8,6 +8,7 @@ SealLake_GoogleTest(
         test_utils.cpp
         test_responder.cpp
         test_requester.cpp
+        test_datareaderstream.cpp
     INCLUDES
         ../src
     LIBRARIES

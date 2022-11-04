@@ -9,9 +9,8 @@ RecordReader::RecordReader(
         std::function<void(uint8_t)> invalidRecordTypeHandler)
     : recordReadHandler_{std::move(recordReadHandler)}
     , invalidRecordTypeHandler_{std::move(invalidRecordTypeHandler)}
-    , stream_{&buffer_}
 {
-    stream_.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
+    dataStream_.exceptions(std::istream::failbit | std::istream::badbit | std::istream::eofbit);
 }
 
 void RecordReader::read(const char *data, std::size_t size)
@@ -29,12 +28,12 @@ void RecordReader::findRecords(const char *data, std::size_t size)
 {
     auto record = Record{};
     const auto dataSize = leftover_.size() + size;
-    auto recordSize = record.fromStream(stream_, dataSize - readRecordsSize_);
+    auto recordSize = record.fromStream(dataStream_, dataSize - readRecordsSize_);
     while (recordSize){
         leftover_.clear();
         readRecordsSize_ += recordSize;
         recordReadHandler_(record);
-        recordSize = record.fromStream(stream_, dataSize - readRecordsSize_);
+        recordSize = record.fromStream(dataStream_, dataSize - readRecordsSize_);
     }
     if (readRecordsSize_ < dataSize){
         if (leftover_.empty()){
@@ -54,8 +53,7 @@ void RecordReader::skipBrokenRecord(std::size_t recordSize)
 
 RecordReader::ReadResultAction RecordReader::doRead(const char* data, std::size_t size)
 {
-    buffer_ = InputStreamDualBuffer{leftover_.c_str(), leftover_.size(), data + readRecordsSize_, size};
-    stream_.rdbuf(&buffer_);
+    dataStream_ = DataReaderStream{leftover_, std::string_view{data + readRecordsSize_, size}};
     try {
         findRecords(data, size);
     }

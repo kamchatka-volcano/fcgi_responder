@@ -5,6 +5,8 @@ include(GNUInstallDirs)
 include(external/seal_lake)
 
 set(SRC
+    src/datareaderstream.cpp
+    src/datawriterstream.cpp
     src/decoder.cpp
     src/encoder.cpp
     src/errors.cpp
@@ -25,7 +27,7 @@ set(SRC
     src/requester.cpp
     src/requesterimpl.cpp
     src/response.cpp
-    src/inputstreamdualbuffer.cpp)
+)
 
 set(PUBLIC_HEADERS
     "include/fcgi_responder/request.h"

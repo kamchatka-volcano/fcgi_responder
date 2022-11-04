@@ -30,11 +30,10 @@ RequesterImpl::RequesterImpl(
       {
           onRecordRead(record);
       }}
+    , recordStream_{hardcoded::maxRecordSize}
     , sendData_{std::move(sendData)}
     , disconnect_{std::move(disconnect)}
 {
-    recordBuffer_.resize(hardcoded::maxRecordSize);
-    recordStream_.rdbuf()->pubsetbuf(&recordBuffer_[0], hardcoded::maxRecordSize);
 }
 
 std::optional<RequestHandle> RequesterImpl::sendRequest(
@@ -167,8 +166,7 @@ template void RequesterImpl::sendMessage<MsgStdIn>(uint16_t requestId, MsgStdIn&
 
 void RequesterImpl::sendRecord(const Record &record)
 {
-    recordStream_.seekp(0);
-    recordBuffer_.resize(record.size());
+    recordStream_.resetBuffer(record.size());
     try{
         record.toStream(recordStream_);
     }
@@ -176,7 +174,7 @@ void RequesterImpl::sendRecord(const Record &record)
         notifyAboutError(e.what());
         return;
     }
-    sendData_(recordBuffer_);
+    sendData_(recordStream_.buffer());
 }
 
 void RequesterImpl::receiveData(const char* data, std::size_t size)
