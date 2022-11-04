@@ -2,8 +2,10 @@
 #include "recordreader.h"
 #include "record.h"
 #include "streammaker.h"
+#include <algorithm>
 #include <cstdint>
 #include <exception>
+
 
 namespace fcgi{
 
@@ -233,7 +235,7 @@ void RequesterImpl::onGetValuesResult(const MsgGetValuesResult &msg)
             try {
                 cfg_.maxRequestsNumber = std::stoi(msg.requestValue(request));
             }
-            catch (std::exception& e){
+            catch (std::exception&){
                 notifyAboutError("Invalid value for MaxReqs: " + msg.requestValue(request));
                 onConnectionFail_();
                 return;
@@ -243,7 +245,7 @@ void RequesterImpl::onGetValuesResult(const MsgGetValuesResult &msg)
             try {
                 cfg_.multiplexingEnabled = std::stoi(msg.requestValue(request)) != 0;
             }
-            catch (std::exception& e){
+            catch (std::exception&){
                 notifyAboutError("Invalid value for MpxsConns: " + msg.requestValue(request));
                 onConnectionFail_();
                 return;

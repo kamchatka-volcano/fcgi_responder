@@ -1,4 +1,5 @@
 #include "errors.h"
+#include <string>
 
 namespace fcgi{
 
