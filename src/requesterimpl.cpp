@@ -48,7 +48,7 @@ std::optional<RequestHandle> RequesterImpl::sendRequest(
         initConnection(std::move(params), std::move(data), responseHandler, keepConnection);
         connectionOpeningRequestCancelHandler_ = std::make_shared<std::function<void()>>(
            [=]{
-               errorInfoHandler_("Connection initialization cancelled");
+               notifyAboutError("Connection initialization cancelled");
                connectionState_ = ConnectionState::NotConnected;
                responseHandler(std::nullopt);
            });
@@ -109,7 +109,7 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
         bool keepConnection)
 {
     if (requestIdPool_.empty()){
-        errorInfoHandler_("Maximum requests number reached");
+        notifyAboutError("Maximum requests number reached");
         responseHandler(std::nullopt);
         return std::nullopt;
     }
