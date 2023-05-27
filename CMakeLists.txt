@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(fcgi_responder VERSION 1.5.0)
+project(fcgi_responder VERSION 1.5.1)
 
 include(GNUInstallDirs)
 include(external/seal_lake)
