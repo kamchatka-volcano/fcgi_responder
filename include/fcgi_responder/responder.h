@@ -109,7 +109,7 @@ private:
     const ResponderImpl& impl() const;
 
 private:
-    std::unique_ptr<ResponderImpl> impl_;
+    std::shared_ptr<ResponderImpl> impl_;
 };
 
 }

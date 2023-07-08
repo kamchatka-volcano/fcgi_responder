@@ -181,8 +181,9 @@ void ResponderImpl::onRequestReceived(uint16_t requestId)
         return;
 
     processRequest_(std::move(*request),
-                    Response{[requestId, this](std::string&& data, std::string&& errorMsg) {
-                        sendResponse(requestId, std::move(data), std::move(errorMsg));
+                    Response{[requestId, selfObserver = std::weak_ptr{shared_from_this()}](std::string&& data, std::string&& errorMsg) {
+                        if (auto self = selfObserver.lock())
+                          self->sendResponse(requestId, std::move(data), std::move(errorMsg));
                     }});
 }
 

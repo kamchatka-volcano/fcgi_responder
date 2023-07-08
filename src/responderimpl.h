@@ -17,7 +17,7 @@ class MsgGetValues;
 class MsgParams;
 class Record;
 
-class ResponderImpl{
+class ResponderImpl : public std::enable_shared_from_this<ResponderImpl>{
 public:
     ResponderImpl(std::function<void(const std::string&)> sendData,
                   std::function<void()> disconnect,

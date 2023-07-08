@@ -5,7 +5,7 @@
 namespace fcgi{
 
 Responder::Responder()
-        : impl_{std::make_unique<ResponderImpl>([this](const std::string& data) { sendData(data); },
+        : impl_{std::make_shared<ResponderImpl>([this](const std::string& data) { sendData(data); },
                                                 [this]() { disconnect(); },
                                                 [this](Request&& request, Response&& response) {
                                                     processRequest(std::move(request), std::move(response));
