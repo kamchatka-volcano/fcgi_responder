@@ -30,9 +30,10 @@ public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
     MOCK_METHOD1(doProcessRequest, void(const Request& request));
-    void processRequest(Request&& request, Response&&) override
+    void processRequest(Request&& request, Response&& response) override
     {
         doProcessRequest(request);
+        response.send();
     }
 
     void receive(const std::string& data)
@@ -50,6 +51,7 @@ public:
         auto testMsg = request.stdIn();
         std::reverse(testMsg.begin(), testMsg.end());
         response.setData(testMsg);
+        response.send();
     }
     void receive(const std::string& data)
     {

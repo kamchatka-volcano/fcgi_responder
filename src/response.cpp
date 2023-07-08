@@ -7,14 +7,6 @@ Response::Response(ResponseSender sender)
 {
 }
 
-Response::~Response()
-{
-    send();
-}
-
-Response::Response(Response&&) noexcept = default;
-Response& Response::operator=(Response&&) noexcept = default;
-
 void Response::send()
 {
     if (!sender_)

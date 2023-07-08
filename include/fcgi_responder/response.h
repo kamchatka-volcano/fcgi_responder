@@ -17,14 +17,6 @@ public:
     explicit Response(ResponseSender sender);
 
     ///
-    /// \brief Destructor
-    /// calls the send() method
-    ///
-    ~Response();
-    Response(Response&&) noexcept;
-    Response& operator=(Response&&) noexcept;
-
-    ///
     /// \brief setData
     /// Sets HTTP response data
     /// \param data
