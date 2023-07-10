@@ -1,36 +1,47 @@
 #include "responderimpl.h"
-#include <fcgi_responder/request.h>
-#include <fcgi_responder/response.h>
-#include "record.h"
+#include "constants.h"
 #include "msgbeginrequest.h"
 #include "msgendrequest.h"
 #include "msggetvalues.h"
 #include "msggetvaluesresult.h"
-#include "msgunknowntype.h"
 #include "msgparams.h"
+#include "msgunknowntype.h"
+#include "record.h"
 #include "streamdatamessage.h"
-#include "types.h"
 #include "streammaker.h"
-#include "constants.h"
+#include "types.h"
+#include <fcgi_responder/request.h>
+#include <fcgi_responder/response.h>
 #include <algorithm>
 
-namespace fcgi{
+namespace fcgi {
 
 ResponderImpl::ResponderImpl(
         std::function<void(const std::string&)> sendData,
         std::function<void()> disconnect,
         std::function<void(Request&& request, Response&& response)> processRequest)
     : recordReader_{
-            [this](const Record& record){ onRecordRead(record);},
-            [this](uint8_t recordType){ sendMessage(0, MsgUnknownType{recordType});}}
+              [this](const Record& record)
+              {
+                  onRecordRead(record);
+              },
+              [this](uint8_t recordType)
+              {
+                  sendMessage(0, MsgUnknownType{recordType});
+              }}
     , recordStream_(hardcoded::maxRecordSize)
     , sendData_{std::move(sendData)}
     , disconnect_{std::move(disconnect)}
     , processRequest_{std::move(processRequest)}
+    , responseSender_{std::make_shared<ResponseSender>(
+              [this](uint16_t id, std::string&& data, std::string&& errorMsg)
+              {
+                  sendResponse(id, std::move(data), std::move(errorMsg));
+              })}
 {
 }
 
-template <typename TMsg>
+template<typename TMsg>
 void ResponderImpl::sendMessage(uint16_t requestId, TMsg&& msg)
 {
     auto record = Record{std::forward<TMsg>(msg), requestId};
@@ -47,15 +58,14 @@ void ResponderImpl::receiveData(const char* data, std::size_t size)
 
 void ResponderImpl::onRecordRead(const Record& record)
 {
-    if (!isRecordExpected(record)){
-        notifyAboutError("Received unexpected record, RecordType = "
-                         + std::to_string(static_cast<int>(record.type()))
-                         + ", requestId = "
-                         + std::to_string(record.requestId()));
+    if (!isRecordExpected(record)) {
+        notifyAboutError(
+                "Received unexpected record, RecordType = " + std::to_string(static_cast<int>(record.type())) +
+                ", requestId = " + std::to_string(record.requestId()));
         return;
     }
 
-    switch (record.type()){
+    switch (record.type()) {
     case RecordType::BeginRequest:
         onBeginRequest(record.requestId(), record.getMessage<MsgBeginRequest>());
         break;
@@ -77,19 +87,19 @@ void ResponderImpl::onRecordRead(const Record& record)
 
 void ResponderImpl::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
 {
-    if (msg.role() != Role::Responder){
+    if (msg.role() != Role::Responder) {
         sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::UnknownRole});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect_();
         return;
     }
-    if (!cfg_.multiplexingEnabled && !requestRegistry_.empty() && !requestRegistry_.count(requestId)){
+    if (!cfg_.multiplexingEnabled && !requestRegistry_.empty() && !requestRegistry_.count(requestId)) {
         sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::CantMpxConn});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect_();
         return;
     }
-    if (static_cast<int>(requestRegistry_.size()) == cfg_.maxRequestsNumber && !requestRegistry_.count(requestId)){
+    if (static_cast<int>(requestRegistry_.size()) == cfg_.maxRequestsNumber && !requestRegistry_.count(requestId)) {
         sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::Overloaded});
         if (msg.resultConnectionState() == ResultConnectionState::Close)
             disconnect_();
@@ -118,11 +128,11 @@ void ResponderImpl::deleteRequest(uint16_t requestId)
     requestRegistry_.erase(requestId);
 }
 
-void ResponderImpl::onGetValues(const MsgGetValues &msg)
+void ResponderImpl::onGetValues(const MsgGetValues& msg)
 {
     auto result = MsgGetValuesResult{};
-    for (auto request : msg.requestList()){
-        switch (request){
+    for (auto request : msg.requestList()) {
+        switch (request) {
         case ValueRequest::MaxConns:
             result.setRequestValue(request, std::to_string(cfg_.maxConnectionsNumber));
             break;
@@ -149,13 +159,13 @@ void ResponderImpl::onStdIn(uint16_t requestId, const MsgStdIn& msg)
         onRequestReceived(requestId);
 }
 
-void ResponderImpl::sendRecord(const Record &record)
+void ResponderImpl::sendRecord(const Record& record)
 {
     recordStream_.resetBuffer(record.size());
-    try{
+    try {
         record.toStream(recordStream_);
     }
-    catch (std::exception& e){
+    catch (std::exception& e) {
         notifyAboutError(e.what());
         return;
     }
@@ -180,19 +190,35 @@ void ResponderImpl::onRequestReceived(uint16_t requestId)
     if (!request)
         return;
 
-    processRequest_(std::move(*request),
-                    Response{[requestId, selfObserver = std::weak_ptr{shared_from_this()}](std::string&& data, std::string&& errorMsg) {
-                        if (auto self = selfObserver.lock())
-                          self->sendResponse(requestId, std::move(data), std::move(errorMsg));
-                    }});
+    processRequest_(
+            std::move(*request),
+            Response{[requestId, responseSenderObserver = std::weak_ptr{responseSender_}](
+                             std::string&& data,
+                             std::string&& errorMsg)
+                     {
+                         if (auto responseSender = responseSenderObserver.lock())
+                             (*responseSender)(requestId, std::move(data), std::move(errorMsg));
+                     }});
 }
 
 void ResponderImpl::sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg)
 {
     auto dataStream = makeStream<MsgStdOut>(id, data);
     auto errorStream = makeStream<MsgStdErr>(id, errorMsg);
-    std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
-    std::for_each(errorStream.begin(), errorStream.end(), [this](const Record& record){sendRecord(record);});
+    std::for_each(
+            dataStream.begin(),
+            dataStream.end(),
+            [this](const Record& record)
+            {
+                sendRecord(record);
+            });
+    std::for_each(
+            errorStream.begin(),
+            errorStream.end(),
+            [this](const Record& record)
+            {
+                sendRecord(record);
+            });
     endRequest(id);
 }
 
@@ -211,7 +237,7 @@ void ResponderImpl::setMultiplexingEnabled(bool state)
     cfg_.multiplexingEnabled = state;
 }
 
-void ResponderImpl::setErrorInfoHandler(std::function<void (const std::string &)> handler)
+void ResponderImpl::setErrorInfoHandler(std::function<void(const std::string&)> handler)
 {
     errorInfoHandler_ = std::move(handler);
     recordReader_.setErrorInfoHandler(errorInfoHandler_);
@@ -232,10 +258,10 @@ bool ResponderImpl::isMultiplexingEnabled() const
     return cfg_.multiplexingEnabled;
 }
 
-void ResponderImpl::notifyAboutError(const std::string &errorMsg)
+void ResponderImpl::notifyAboutError(const std::string& errorMsg)
 {
     if (errorInfoHandler_)
         errorInfoHandler_(errorMsg);
 }
 
-}
+} //namespace fcgi
