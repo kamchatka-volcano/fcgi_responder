@@ -1,11 +1,11 @@
 #pragma once
-#include <string>
 #include <istream>
 #include <ostream>
+#include <string>
 
-namespace fcgi{
+namespace fcgi {
 
-class NameValue{
+class NameValue {
 public:
     explicit NameValue(std::size_t maxSize);
 
@@ -13,7 +13,8 @@ public:
     NameValue(TStrName&& name, TStrValue&& value)
         : name_(std::forward<TStrName>(name))
         , value_(std::forward<TStrValue>(value))
-    {}
+    {
+    }
 
     std::size_t size() const;
     const std::string& name() const;
@@ -36,4 +37,4 @@ private:
 
 bool operator==(const NameValue& lhs, const NameValue& rhs);
 
-}
+} //namespace fcgi

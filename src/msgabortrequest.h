@@ -1,11 +1,11 @@
 #pragma once
 #include "types.h"
-#include <ostream>
 #include <istream>
+#include <ostream>
 
-namespace fcgi{
+namespace fcgi {
 
-class MsgAbortRequest{
+class MsgAbortRequest {
 public:
     static const RecordType recordType = RecordType::AbortRequest;
 
@@ -18,4 +18,4 @@ public:
 
 bool operator==(const MsgAbortRequest& lhs, const MsgAbortRequest& rhs);
 
-}
+} //namespace fcgi

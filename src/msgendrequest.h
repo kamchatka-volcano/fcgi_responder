@@ -3,9 +3,9 @@
 #include <istream>
 #include <ostream>
 
-namespace fcgi{
+namespace fcgi {
 
-class MsgEndRequest{
+class MsgEndRequest {
 public:
     static const RecordType recordType = RecordType::EndRequest;
 
@@ -25,9 +25,8 @@ private:
 private:
     uint32_t appStatus_ = 0;
     ProtocolStatus protocolStatus_ = ProtocolStatus::UnknownRole;
-
 };
 
 bool operator==(const MsgEndRequest& lhs, const MsgEndRequest& rhs);
 
-}
+} //namespace fcgi

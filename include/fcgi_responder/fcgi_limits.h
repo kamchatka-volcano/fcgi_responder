@@ -1,5 +1,5 @@
 #pragma once
 
-namespace fcgi{
-    constexpr auto maxRecordSize = 65798;
+namespace fcgi {
+constexpr auto maxRecordSize = 65798;
 }

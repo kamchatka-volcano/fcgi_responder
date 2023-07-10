@@ -1,15 +1,23 @@
-#include <fcgi_responder/responder.h>
 #include "responderimpl.h"
+#include <fcgi_responder/responder.h>
 #include <algorithm>
 
-namespace fcgi{
+namespace fcgi {
 
 Responder::Responder()
-        : impl_{std::make_unique<ResponderImpl>([this](const std::string& data) { sendData(data); },
-                                                [this]() { disconnect(); },
-                                                [this](Request&& request, Response&& response) {
-                                                    processRequest(std::move(request), std::move(response));
-                                                })}
+    : impl_{std::make_unique<ResponderImpl>(
+              [this](const std::string& data)
+              {
+                  sendData(data);
+              },
+              [this]()
+              {
+                  disconnect();
+              },
+              [this](Request&& request, Response&& response)
+              {
+                  processRequest(std::move(request), std::move(response));
+              })}
 {
 }
 
@@ -45,7 +53,7 @@ void Responder::setMultiplexingEnabled(bool state)
     impl().setMultiplexingEnabled(state);
 }
 
-void Responder::setErrorInfoHandler(std::function<void (const std::string &)> handler)
+void Responder::setErrorInfoHandler(std::function<void(const std::string&)> handler)
 {
     impl().setErrorInfoHandler(std::move(handler));
 }
@@ -65,4 +73,4 @@ bool Responder::isMultiplexingEnabled() const
     return impl().isMultiplexingEnabled();
 }
 
-}
+} //namespace fcgi

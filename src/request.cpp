@@ -9,7 +9,7 @@ const std::string& emptyParamValue()
     return value;
 }
 
-struct ParamLookupComparator{
+struct ParamLookupComparator {
     bool operator()(const std::string& key, const std::pair<std::string, std::string>& val) const
     {
         return key < val.first;
@@ -22,21 +22,27 @@ struct ParamLookupComparator{
 
 void sortPairList(std::vector<std::pair<std::string, std::string>>& params)
 {
-    auto paramsEnd = std::unique(params.begin(), params.end(),
-                                 [](const auto& lhsPair, const auto& rhsPair){
-                                     return lhsPair.first == rhsPair.first;
-                                 });
+    auto paramsEnd = std::unique(
+            params.begin(),
+            params.end(),
+            [](const auto& lhsPair, const auto& rhsPair)
+            {
+                return lhsPair.first == rhsPair.first;
+            });
     const auto paramsSize = static_cast<std::size_t>(std::distance(params.begin(), paramsEnd));
     params.resize(paramsSize);
-    std::sort(params.begin(), params.end(),
-              [](const auto& lhsPair, const auto& rhsPair){
-                  return lhsPair.first < rhsPair.first;
-              });
+    std::sort(
+            params.begin(),
+            params.end(),
+            [](const auto& lhsPair, const auto& rhsPair)
+            {
+                return lhsPair.first < rhsPair.first;
+            });
 }
 
-}
+} //namespace
 
-namespace fcgi{
+namespace fcgi {
 
 Request::Request(std::vector<std::pair<std::string, std::string>> params, std::string stdIn)
     : params_{std::move(params)}
@@ -66,15 +72,20 @@ const std::vector<std::pair<std::string, std::string>>& Request::params() const
 std::vector<std::string> Request::paramList() const
 {
     auto result = std::vector<std::string>{};
-    std::transform(params_.begin(), params_.end(),
-                   std::back_inserter(result),
-                   [](const auto& paramPair){return paramPair.first;});
+    std::transform(
+            params_.begin(),
+            params_.end(),
+            std::back_inserter(result),
+            [](const auto& paramPair)
+            {
+                return paramPair.first;
+            });
     return result;
 }
 
-bool Request::hasParam(const std::string &name) const
+bool Request::hasParam(const std::string& name) const
 {
     return std::binary_search(params_.begin(), params_.end(), name, ParamLookupComparator{});
 }
 
-}
+} //namespace fcgi

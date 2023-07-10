@@ -3,9 +3,9 @@
 #include <istream>
 #include <ostream>
 
-namespace fcgi{
+namespace fcgi {
 
-class MsgUnknownType{
+class MsgUnknownType {
 public:
     static const RecordType recordType = RecordType::UnknownType;
 
@@ -27,4 +27,4 @@ private:
 
 bool operator==(const MsgUnknownType& lhs, const MsgUnknownType& rhs);
 
-}
+} //namespace fcgi

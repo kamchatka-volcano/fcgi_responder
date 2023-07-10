@@ -1,14 +1,14 @@
 #pragma once
 #include "streamdatamessage.h"
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
 
-namespace fcgi{
+namespace fcgi {
 class MsgParams;
 class Request;
 
-class RequestData{
+class RequestData {
 public:
     explicit RequestData(bool keepConnection);
     void addMessage(const MsgParams& msg);
@@ -24,4 +24,4 @@ private:
     bool usedInRequest_ = false;
 };
 
-}
+} //namespace fcgi

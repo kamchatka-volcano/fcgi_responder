@@ -1,13 +1,12 @@
 #include "requesterimpl.h"
-#include "recordreader.h"
 #include "record.h"
+#include "recordreader.h"
 #include "streammaker.h"
 #include <algorithm>
 #include <cstdint>
 #include <exception>
 
-
-namespace fcgi{
+namespace fcgi {
 
 namespace {
 std::set<uint16_t> generateRequestIds(int maxRequestsNumber)
@@ -18,20 +17,17 @@ std::set<uint16_t> generateRequestIds(int maxRequestsNumber)
     return result;
 }
 
-[[noreturn]]
-inline void ensureNotReachable() noexcept
+[[noreturn]] inline void ensureNotReachable() noexcept
 {
     std::terminate();
 }
-}
+} //namespace
 
-RequesterImpl::RequesterImpl(
-        std::function<void(const std::string&)> sendData,
-        std::function<void()> disconnect)
+RequesterImpl::RequesterImpl(std::function<void(const std::string&)> sendData, std::function<void()> disconnect)
     : recordReader_{[this](const Record& record)
-      {
-          onRecordRead(record);
-      }}
+                    {
+                        onRecordRead(record);
+                    }}
     , recordStream_{hardcoded::maxRecordSize}
     , sendData_{std::move(sendData)}
     , disconnect_{std::move(disconnect)}
@@ -47,11 +43,12 @@ std::optional<RequestHandle> RequesterImpl::sendRequest(
     if (connectionState_ == ConnectionState::NotConnected) {
         initConnection(std::move(params), std::move(data), responseHandler, keepConnection);
         connectionOpeningRequestCancelHandler_ = std::make_shared<std::function<void()>>(
-           [=]{
-               notifyAboutError("Connection initialization cancelled");
-               connectionState_ = ConnectionState::NotConnected;
-               responseHandler(std::nullopt);
-           });
+                [=]
+                {
+                    notifyAboutError("Connection initialization cancelled");
+                    connectionState_ = ConnectionState::NotConnected;
+                    responseHandler(std::nullopt);
+                });
         return connectionOpeningRequestCancelHandler_;
     }
     else if (connectionState_ == ConnectionState::Connected)
@@ -62,8 +59,7 @@ std::optional<RequestHandle> RequesterImpl::sendRequest(
 
 int RequesterImpl::availableRequestsNumber() const
 {
-    switch (connectionState_)
-    {
+    switch (connectionState_) {
     case ConnectionState::NotConnected:
         return 1;
     case ConnectionState::ConnectionInProgress:
@@ -81,7 +77,8 @@ void RequesterImpl::initConnection(
         bool keepConnection)
 {
     connectionState_ = ConnectionState::ConnectionInProgress;
-    onConnectionFail_ = [=]() {
+    onConnectionFail_ = [=]()
+    {
         connectionState_ = ConnectionState::NotConnected;
         responseHandler(std::nullopt);
     };
@@ -89,7 +86,8 @@ void RequesterImpl::initConnection(
                             params = std::move(params),
                             data = std::move(data),
                             responseHandler = std::move(responseHandler),
-                            keepConnection]() mutable {
+                            keepConnection]() mutable
+    {
         connectionState_ = ConnectionState::Connected;
         requestIdPool_ = cfg_.multiplexingEnabled ? generateRequestIds(cfg_.maxRequestsNumber) : std::set<uint16_t>{1};
         doSendRequest(params, data, responseHandler, keepConnection);
@@ -101,14 +99,13 @@ void RequesterImpl::initConnection(
     sendMessage(0, getValuesMsg);
 }
 
-
 std::optional<RequestHandle> RequesterImpl::doSendRequest(
         const std::map<std::string, std::string>& params,
         const std::string& data,
         std::function<void(std::optional<ResponseData>)> responseHandler,
         bool keepConnection)
 {
-    if (requestIdPool_.empty()){
+    if (requestIdPool_.empty()) {
         notifyAboutError("Maximum requests number reached");
         responseHandler(std::nullopt);
         return std::nullopt;
@@ -116,16 +113,23 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
 
     auto requestId = *requestIdPool_.begin();
     requestIdPool_.erase(requestId);
-    responseMap_.emplace(requestId,
-                         ResponseContext{std::move(responseHandler), ResponseData{}, keepConnection,
-                                         std::make_shared<std::function<void()>>([=] {
-                                             doEndRequest(requestId, ResponseStatus::Cancelled);
-                                         })
-                         });
+    responseMap_.emplace(
+            requestId,
+            ResponseContext{
+                    std::move(responseHandler),
+                    ResponseData{},
+                    keepConnection,
+                    std::make_shared<std::function<void()>>(
+                            [=]
+                            {
+                                doEndRequest(requestId, ResponseStatus::Cancelled);
+                            })});
 
-    sendMessage(requestId, MsgBeginRequest{Role::Responder,
-                                           keepConnection ? ResultConnectionState::KeepOpen :
-                                                            ResultConnectionState::Close});
+    sendMessage(
+            requestId,
+            MsgBeginRequest{
+                    Role::Responder,
+                    keepConnection ? ResultConnectionState::KeepOpen : ResultConnectionState::Close});
     auto paramsMsg = MsgParams{};
     for (const auto& [paramName, paramValue] : params)
         paramsMsg.setParam(paramName, paramValue);
@@ -134,7 +138,13 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
         sendMessage(requestId, MsgParams{});
 
     auto dataStream = makeStream<MsgStdIn>(requestId, data);
-    std::for_each(dataStream.begin(), dataStream.end(), [this](const Record& record){sendRecord(record);});
+    std::for_each(
+            dataStream.begin(),
+            dataStream.end(),
+            [this](const Record& record)
+            {
+                sendRecord(record);
+            });
 
     return responseMap_.at(requestId).cancelRequestHandler;
 }
@@ -154,7 +164,7 @@ void RequesterImpl::doEndRequest(uint16_t requestId, ResponseStatus responseStat
     requestIdPool_.insert(requestId);
 }
 
-template <typename TMsg>
+template<typename TMsg>
 void RequesterImpl::sendMessage(uint16_t requestId, TMsg&& msg)
 {
     auto record = Record{std::forward<TMsg>(msg), requestId};
@@ -166,13 +176,13 @@ template void RequesterImpl::sendMessage<MsgAbortRequest>(uint16_t requestId, Ms
 template void RequesterImpl::sendMessage<MsgParams>(uint16_t requestId, MsgParams&& msg);
 template void RequesterImpl::sendMessage<MsgStdIn>(uint16_t requestId, MsgStdIn&& msg);
 
-void RequesterImpl::sendRecord(const Record &record)
+void RequesterImpl::sendRecord(const Record& record)
 {
     recordStream_.resetBuffer(record.size());
-    try{
+    try {
         record.toStream(recordStream_);
     }
-    catch (std::exception& e){
+    catch (std::exception& e) {
         notifyAboutError(e.what());
         return;
     }
@@ -188,10 +198,8 @@ bool RequesterImpl::isRecordExpected(const Record& record)
 {
     if (record.type() == RecordType::GetValuesResult)
         return true;
-    if (record.type() == RecordType::UnknownType ||
-        record.type() == RecordType::StdOut ||
-        record.type() == RecordType::StdErr ||
-        record.type() == RecordType::EndRequest)
+    if (record.type() == RecordType::UnknownType || record.type() == RecordType::StdOut ||
+        record.type() == RecordType::StdErr || record.type() == RecordType::EndRequest)
         return responseMap_.count(record.requestId());
 
     return false;
@@ -200,14 +208,13 @@ bool RequesterImpl::isRecordExpected(const Record& record)
 void RequesterImpl::onRecordRead(const Record& record)
 {
     if (!isRecordExpected(record)) {
-        notifyAboutError("Received unexpected record, RecordType = "
-                         + std::to_string(static_cast<int>(record.type()))
-                         + ", requestId = "
-                         + std::to_string(record.requestId()));
+        notifyAboutError(
+                "Received unexpected record, RecordType = " + std::to_string(static_cast<int>(record.type())) +
+                ", requestId = " + std::to_string(record.requestId()));
         return;
     }
 
-    switch (record.type()){
+    switch (record.type()) {
     case RecordType::GetValuesResult:
         onGetValuesResult(record.getMessage<MsgGetValuesResult>());
         break;
@@ -227,15 +234,15 @@ void RequesterImpl::onRecordRead(const Record& record)
     }
 }
 
-void RequesterImpl::onGetValuesResult(const MsgGetValuesResult &msg)
+void RequesterImpl::onGetValuesResult(const MsgGetValuesResult& msg)
 {
-    for (auto request : msg.requestList()){
-        switch (request){
+    for (auto request : msg.requestList()) {
+        switch (request) {
         case ValueRequest::MaxReqs:
             try {
                 cfg_.maxRequestsNumber = std::stoi(msg.requestValue(request));
             }
-            catch (std::exception&){
+            catch (std::exception&) {
                 notifyAboutError("Invalid value for MaxReqs: " + msg.requestValue(request));
                 onConnectionFail_();
                 return;
@@ -245,7 +252,7 @@ void RequesterImpl::onGetValuesResult(const MsgGetValuesResult &msg)
             try {
                 cfg_.multiplexingEnabled = std::stoi(msg.requestValue(request)) != 0;
             }
-            catch (std::exception&){
+            catch (std::exception&) {
                 notifyAboutError("Invalid value for MpxsConns: " + msg.requestValue(request));
                 onConnectionFail_();
                 return;
@@ -265,8 +272,10 @@ void RequesterImpl::onUnknownType(uint16_t requestId, const MsgUnknownType& msg)
 
 void RequesterImpl::onEndRequest(uint16_t requestId, const MsgEndRequest& msg)
 {
-    doEndRequest(requestId, msg.protocolStatus() == ProtocolStatus::RequestComplete ? ResponseStatus::Successful
-                                                                                    : ResponseStatus::Failed);
+    doEndRequest(
+            requestId,
+            msg.protocolStatus() == ProtocolStatus::RequestComplete ? ResponseStatus::Successful
+                                                                    : ResponseStatus::Failed);
 }
 
 void RequesterImpl::onStdOut(uint16_t requestId, const MsgStdOut& msg)
@@ -279,13 +288,13 @@ void RequesterImpl::onStdErr(uint16_t requestId, const MsgStdErr& msg)
     responseMap_.at(requestId).responseData.errorMsg += msg.data();
 }
 
-void RequesterImpl::setErrorInfoHandler(const std::function<void (const std::string &)>& handler)
+void RequesterImpl::setErrorInfoHandler(const std::function<void(const std::string&)>& handler)
 {
     errorInfoHandler_ = handler;
     recordReader_.setErrorInfoHandler(errorInfoHandler_);
 }
 
-void RequesterImpl::notifyAboutError(const std::string &errorMsg)
+void RequesterImpl::notifyAboutError(const std::string& errorMsg)
 {
     if (errorInfoHandler_)
         errorInfoHandler_(errorMsg);
@@ -306,4 +315,4 @@ bool RequesterImpl::isMultiplexingEnabled() const
     return cfg_.multiplexingEnabled;
 }
 
-}
+} //namespace fcgi

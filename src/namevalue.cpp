@@ -3,7 +3,7 @@
 #include "encoder.h"
 #include "errors.h"
 
-namespace fcgi{
+namespace fcgi {
 
 NameValue::NameValue(std::size_t maxSize)
     : maxSize_{maxSize}
@@ -57,7 +57,7 @@ uint32_t readLengthFromStream(std::istream& input)
     auto length = 0;
     if ((ch >> 7) == 0)
         length = ch;
-    else{
+    else {
         auto lengthB3 = static_cast<unsigned char>(ch);
         input.get(ch);
         auto lengthB2 = static_cast<unsigned char>(ch);
@@ -74,24 +74,23 @@ uint32_t readLengthFromStream(std::istream& input)
 void writeLengthToStream(uint32_t length, std::ostream& output)
 {
     auto encoder = Encoder(output);
-    if (length <= 127){
+    if (length <= 127) {
         encoder << static_cast<uint8_t>(length);
     }
-    else{
+    else {
         length |= 0x80000000;
         encoder << length;
     }
 }
 
-}
+} //namespace
 
-void NameValue::toStream(std::ostream &output) const
+void NameValue::toStream(std::ostream& output) const
 {
     writeLengthToStream(static_cast<uint32_t>(name_.size()), output);
     writeLengthToStream(static_cast<uint32_t>(value_.size()), output);
     auto encoder = Encoder(output);
-    encoder << name_
-            << value_;
+    encoder << name_ << value_;
 }
 
 void NameValue::fromStream(std::istream& input)
@@ -104,8 +103,7 @@ void NameValue::fromStream(std::istream& input)
     name_.resize(nameLength);
     value_.resize(valueLength);
     auto decoder = Decoder(input);
-    decoder >> name_
-            >> value_;
+    decoder >> name_ >> value_;
 }
 
 bool operator==(const NameValue& lhs, const NameValue& rhs)
@@ -113,4 +111,4 @@ bool operator==(const NameValue& lhs, const NameValue& rhs)
     return lhs.name_ == rhs.name_ && lhs.value_ == rhs.value_;
 }
 
-}
+} //namespace fcgi

@@ -1,18 +1,17 @@
 #pragma once
-#include <fcgi_responder/requester.h>
+#include "datawriterstream.h"
 #include "recordreader.h"
 #include "streamdatamessage.h"
-#include "datawriterstream.h"
-#include <string>
-#include <sstream>
-#include <memory>
+#include <fcgi_responder/requester.h>
 #include <functional>
-#include <set>
 #include <map>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <set>
+#include <sstream>
+#include <string>
 
-namespace fcgi{
+namespace fcgi {
 class RecordReader;
 class Record;
 class Request;
@@ -21,14 +20,14 @@ class MsgGetValuesResult;
 class MsgUnknownType;
 class MsgEndRequest;
 
-class RequesterImpl{
-    enum class ConnectionState{
+class RequesterImpl {
+    enum class ConnectionState {
         NotConnected,
         ConnectionInProgress,
         Connected
     };
 
-    enum class ResponseStatus{
+    enum class ResponseStatus {
         Successful,
         Failed,
         Cancelled
@@ -38,16 +37,16 @@ public:
     RequesterImpl(std::function<void(const std::string&)> sendData, std::function<void()> disconnect);
     void receiveData(const char* data, std::size_t size);
     std::optional<RequestHandle> sendRequest(
-            std::map<std::string, std::string> params, std::string data,
+            std::map<std::string, std::string> params,
+            std::string data,
             const std::function<void(std::optional<ResponseData>)>& responseHandler,
             bool keepConnection = false);
-    void setErrorInfoHandler(const std::function<void (const std::string &)>& handler);
+    void setErrorInfoHandler(const std::function<void(const std::string&)>& handler);
 
     int availableRequestsNumber() const;
     int maximumConnectionsNumber() const;
     int maximumRequestsNumber() const;
     bool isMultiplexingEnabled() const;
-
 
 private:
     void initConnection(
@@ -62,10 +61,10 @@ private:
             bool keepConnection);
     void doEndRequest(uint16_t requestId, ResponseStatus responseStatus);
     void onRecordRead(const Record& record);
-    template <typename TMsg>
+    template<typename TMsg>
     void sendMessage(uint16_t requestId, TMsg&& msg);
-    void notifyAboutError(const std::string &errorMsg);
-    void sendRecord(const Record &record);
+    void notifyAboutError(const std::string& errorMsg);
+    void sendRecord(const Record& record);
     bool isRecordExpected(const Record& record);
     void onGetValuesResult(const MsgGetValuesResult& msg);
     void onUnknownType(uint16_t requestId, const MsgUnknownType& msg);
@@ -74,13 +73,13 @@ private:
     void onStdErr(uint16_t requestId, const MsgStdErr& msg);
 
 private:
-    struct Config{
+    struct Config {
         int maxConnectionsNumber = 1;
         int maxRequestsNumber = 10;
         bool multiplexingEnabled = true;
     } cfg_;
 
-    struct ResponseContext{
+    struct ResponseContext {
         std::function<void(std::optional<ResponseData>)> responseHandler;
         ResponseData responseData;
         bool keepConnection = false;
@@ -100,4 +99,4 @@ private:
     std::function<void()> disconnect_;
 };
 
-}
+} //namespace fcgi

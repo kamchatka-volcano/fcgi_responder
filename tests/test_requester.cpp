@@ -1,22 +1,22 @@
-#include <fcgi_responder/requester.h>
-#include <fcgi_responder/request.h>
-#include <record.h>
+#include <constants.h>
+#include <msgabortrequest.h>
 #include <msgbeginrequest.h>
 #include <msgendrequest.h>
 #include <msggetvalues.h>
 #include <msggetvaluesresult.h>
-#include <msgunknowntype.h>
 #include <msgparams.h>
-#include <msgabortrequest.h>
+#include <msgunknowntype.h>
+#include <record.h>
 #include <streamdatamessage.h>
-#include <constants.h>
-#include <gtest/gtest.h>
+#include <fcgi_responder/request.h>
+#include <fcgi_responder/requester.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using namespace fcgi;
 using namespace testing;
 
-class MockRequester : public Requester{
+class MockRequester : public Requester {
 public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD1(onResponseReceived, void(const std::optional<ResponseData>& response));
@@ -29,44 +29,51 @@ public:
             const std::map<std::string, std::string>& fcgiParams,
             const std::string& fcgiData)
     {
-        return Requester::sendRequest(fcgiParams, fcgiData, [this](const std::optional<ResponseData>& response){
-            onResponseReceived(response);
-        });
+        return Requester::sendRequest(
+                fcgiParams,
+                fcgiData,
+                [this](const std::optional<ResponseData>& response)
+                {
+                    onResponseReceived(response);
+                });
     }
 };
 
-namespace{
-    template<typename... Args>
-    std::string messageData(Args&&... args)
-    {
-        auto record = fcgi::Record{std::forward<Args>(args)...};
-        auto recordStream = std::ostringstream{};
-        record.toStream(recordStream);
-        return recordStream.str();
-    }
+namespace {
+template<typename... Args>
+std::string messageData(Args&&... args)
+{
+    auto record = fcgi::Record{std::forward<Args>(args)...};
+    auto recordStream = std::ostringstream{};
+    record.toStream(recordStream);
+    return recordStream.str();
 }
+} //namespace
 
-namespace fcgi{
+namespace fcgi {
 bool operator==(const ResponseData& lhs, const ResponseData& rhs)
 {
     return lhs.data == rhs.data && lhs.errorMsg == rhs.errorMsg;
 }
-}
+} //namespace fcgi
 
-class TestRequester : public TestWithParam<bool>{
+class TestRequester : public TestWithParam<bool> {
 public:
     TestRequester()
     {
-        requester_.setErrorInfoHandler([&errorInfo = errorInfo_](const std::string& errorMsg){
-            errorInfo += errorMsg + "\n";
-        });
+        requester_.setErrorInfoHandler(
+                [&errorInfo = errorInfo_](const std::string& errorMsg)
+                {
+                    errorInfo += errorMsg + "\n";
+                });
     }
+
 protected:
     void receiveData(const std::string& data)
     {
         requester_.receive(data);
     }
-    template <typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
+    template<typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
     void receiveMessage(TMsg&& msg, uint16_t requestId = 0)
     {
         requester_.receive(messageData(std::forward<TMsg>(msg), requestId));
@@ -75,7 +82,7 @@ protected:
     {
         requester_.receive(recordData);
     }
-    template <typename TMsg>
+    template<typename TMsg>
     void expectMessageToBeSent(TMsg&& msg, uint16_t requestId = 0)
     {
         EXPECT_CALL(requester_, sendData(messageData(std::forward<TMsg>(msg), requestId)));
@@ -111,15 +118,17 @@ protected:
             int maxRequestsNumber = 10,
             bool isMultiplexingEnabled = true)
     {
-        if (firstRequest_){
+        if (firstRequest_) {
             auto msgGetValues = MsgGetValues{};
             msgGetValues.requestValue(ValueRequest::MaxReqs);
             msgGetValues.requestValue(ValueRequest::MpxsConns);
             expectMessageToBeSent(msgGetValues);
         }
-        expectMessageToBeSent(MsgBeginRequest{Role::Responder, keepConnection_ ? ResultConnectionState::KeepOpen
-                                                                               : ResultConnectionState::Close},
-                              requestId);
+        expectMessageToBeSent(
+                MsgBeginRequest{
+                        Role::Responder,
+                        keepConnection_ ? ResultConnectionState::KeepOpen : ResultConnectionState::Close},
+                requestId);
 
         auto paramsMsg = MsgParams{};
         for (const auto& [paramName, paramValue] : fcgiParams)
@@ -165,7 +174,8 @@ TEST_P(TestRequester, UnknownType)
     makeRequest({}, "", requestId);
 
     expectMessageToBeSent(MsgAbortRequest{}, requestId);
-    auto msgUnknownType = MsgUnknownType{77};;
+    auto msgUnknownType = MsgUnknownType{77};
+    ;
     receiveMessage(msgUnknownType, requestId);
 }
 
@@ -257,7 +267,6 @@ TEST_P(TestRequester, LargeRequest)
     receiveMessage(MsgEndRequest{0, ProtocolStatus::RequestComplete}, requestId);
 }
 
-
 TEST_P(TestRequester, ResponseDataMultiRequests)
 {
     const auto seq = InSequence{};
@@ -328,7 +337,7 @@ TEST_P(TestRequester, RequestExceedsMaxNumber)
     makeRequest({}, "", requestId, maxRequestsNumber);
     EXPECT_EQ(requester_.availableRequestsNumber(), 0);
     EXPECT_CALL(requester_, onResponseReceived(std::optional<ResponseData>{}));
-    auto requestHandle =  requester_.send({}, "");
+    auto requestHandle = requester_.send({}, "");
     EXPECT_EQ(requestHandle, std::nullopt);
     expectReceiveResponse(ResponseData{"Hello world", "error#1"});
     receiveMessage(MsgStdOut{"Hello world"}, requestId);

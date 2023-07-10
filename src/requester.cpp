@@ -1,7 +1,7 @@
-#include <fcgi_responder/requester.h>
 #include "requesterimpl.h"
+#include <fcgi_responder/requester.h>
 
-namespace fcgi{
+namespace fcgi {
 
 RequestHandle::RequestHandle(const std::shared_ptr<std::function<void()>>& cancelRequestHandler)
     : cancelRequestHandler_{cancelRequestHandler}
@@ -16,12 +16,14 @@ void RequestHandle::cancelRequest()
 
 Requester::Requester()
     : impl_{std::make_unique<RequesterImpl>(
-            [this](const std::string& data){
-                sendData(data);
-            },
-            [this](){
-                disconnect();
-            })}
+              [this](const std::string& data)
+              {
+                  sendData(data);
+              },
+              [this]()
+              {
+                  disconnect();
+              })}
 {
 }
 
@@ -56,7 +58,7 @@ void Requester::receiveData(const char* data, std::size_t size)
     impl().receiveData(data, size);
 }
 
-void Requester::setErrorInfoHandler(const std::function<void (const std::string &)>& handler)
+void Requester::setErrorInfoHandler(const std::function<void(const std::string&)>& handler)
 {
     impl().setErrorInfoHandler(handler);
 }
@@ -76,4 +78,4 @@ bool Requester::isMultiplexingEnabled() const
     return impl().isMultiplexingEnabled();
 }
 
-}
+} //namespace fcgi

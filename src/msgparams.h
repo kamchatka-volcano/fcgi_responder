@@ -1,13 +1,13 @@
 #pragma once
-#include "types.h"
 #include "namevalue.h"
-#include <vector>
+#include "types.h"
 #include <istream>
 #include <ostream>
+#include <vector>
 
-namespace fcgi{
+namespace fcgi {
 
-class MsgParams{
+class MsgParams {
 public:
     static const RecordType recordType = RecordType::Params;
 
@@ -29,4 +29,4 @@ private:
 
 bool operator==(const MsgParams& lhs, const MsgParams& rhs);
 
-}
+} //namespace fcgi

@@ -1,6 +1,6 @@
 #include "datawriterstream.h"
 
-namespace fcgi{
+namespace fcgi {
 
 DataWriterBuffer::DataWriterBuffer(std::size_t bufferMaxSize)
 {
@@ -19,7 +19,6 @@ void DataWriterBuffer::reset(std::size_t size)
     setp(buffer_.data(), buffer_.data() + buffer_.size());
 }
 
-
 DataWriterStream::DataWriterStream(std::size_t bufferMaxSize)
     : DataWriterBuffer{bufferMaxSize}
     , std::ostream{this}
@@ -36,4 +35,4 @@ void DataWriterStream::resetBuffer(std::size_t size)
     DataWriterBuffer::reset(size);
 }
 
-}
+} //namespace fcgi

@@ -1,10 +1,11 @@
 #include "datareaderstream.h"
 
-namespace fcgi{
+namespace fcgi {
 
 MultiPartDataReaderBuffer::MultiPartDataReaderBuffer(std::vector<std::string_view> buffers)
     : buffers_{std::move(buffers)}
-{}
+{
+}
 
 int MultiPartDataReaderBuffer::underflow()
 {
@@ -18,10 +19,7 @@ int MultiPartDataReaderBuffer::underflow()
             }
         }
     }
-    return gptr() == egptr()
-           ? std::char_traits<char>::eof()
-           : std::char_traits<char>::to_int_type(*gptr());
+    return gptr() == egptr() ? std::char_traits<char>::eof() : std::char_traits<char>::to_int_type(*gptr());
 }
 
-
-}
+} //namespace fcgi

@@ -1,31 +1,32 @@
-#include <fcgi_responder/responder.h>
-#include <record.h>
+#include <constants.h>
+#include <encoder.h>
+#include <msgabortrequest.h>
 #include <msgbeginrequest.h>
 #include <msgendrequest.h>
 #include <msggetvalues.h>
 #include <msggetvaluesresult.h>
-#include <msgunknowntype.h>
 #include <msgparams.h>
-#include <msgabortrequest.h>
+#include <msgunknowntype.h>
+#include <record.h>
 #include <streamdatamessage.h>
-#include <encoder.h>
-#include <constants.h>
-#include <gtest/gtest.h>
+#include <fcgi_responder/responder.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using namespace fcgi;
 
 namespace {
-Request makeRequest(const MsgParams& params, const MsgStdIn& data){
+Request makeRequest(const MsgParams& params, const MsgStdIn& data)
+{
     auto requestParams = std::vector<std::pair<std::string, std::string>>{};
     for (const auto& paramName : params.paramList())
         requestParams.emplace_back(paramName, params.paramValue(paramName));
 
     return Request{std::move(requestParams), std::string{data.data()}};
 }
-}
+} //namespace
 
-class MockResponder : public Responder{
+class MockResponder : public Responder {
 public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
@@ -42,7 +43,7 @@ public:
     }
 };
 
-class MockResponderWithTestProcessor : public Responder{
+class MockResponderWithTestProcessor : public Responder {
 public:
     MOCK_METHOD1(sendData, void(const std::string& data));
     MOCK_METHOD0(disconnect, void());
@@ -59,32 +60,35 @@ public:
     }
 };
 
-namespace{
-    template<typename... Args>
-    std::string messageData(Args&&... args)
-    {
-        auto record = fcgi::Record{std::forward<Args>(args)...};
-        auto recordStream = std::ostringstream{};
-        record.toStream(recordStream);
-        return recordStream.str();
-    }
+namespace {
+template<typename... Args>
+std::string messageData(Args&&... args)
+{
+    auto record = fcgi::Record{std::forward<Args>(args)...};
+    auto recordStream = std::ostringstream{};
+    record.toStream(recordStream);
+    return recordStream.str();
 }
+} //namespace
 
-template <typename ResponderType>
-class BaseTestResponder : public ::testing::TestWithParam<bool>{
+template<typename ResponderType>
+class BaseTestResponder : public ::testing::TestWithParam<bool> {
 public:
     BaseTestResponder()
     {
-        responder_.setErrorInfoHandler([&errorInfo = errorInfo_](const std::string& errorMsg){
-            errorInfo += errorMsg + "\n";
-        });
+        responder_.setErrorInfoHandler(
+                [&errorInfo = errorInfo_](const std::string& errorMsg)
+                {
+                    errorInfo += errorMsg + "\n";
+                });
     }
+
 protected:
     void receiveData(const std::string& data)
     {
         responder_.receive(data);
     }
-    template <typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
+    template<typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
     void receiveMessage(TMsg&& msg, uint16_t requestId = 0)
     {
         responder_.receive(messageData(std::forward<TMsg>(msg), requestId));
@@ -93,7 +97,7 @@ protected:
     {
         responder_.receive(recordData);
     }
-    template <typename TMsg>
+    template<typename TMsg>
     void expectMessageToBeSent(TMsg&& msg, uint16_t requestId = 0)
     {
         EXPECT_CALL(responder_, sendData(messageData(std::forward<TMsg>(msg), requestId)));
@@ -113,8 +117,7 @@ protected:
     ResultConnectionState resultConnectionState()
     {
         auto disconnectOnEnd = GetParam();
-        return disconnectOnEnd ? ResultConnectionState::Close
-                               : ResultConnectionState::KeepOpen;
+        return disconnectOnEnd ? ResultConnectionState::Close : ResultConnectionState::KeepOpen;
     }
 
     ResponderType responder_;
@@ -130,11 +133,8 @@ TEST_F(TestResponder, UnknownType)
 
     auto output = std::ostringstream{};
     auto encoder = Encoder(output);
-    encoder  << hardcoded::protocolVersion
-             << static_cast<uint8_t>(99)
-             << static_cast<uint16_t>(1)
-             << static_cast<uint16_t>(0)
-             << static_cast<uint8_t>(0);
+    encoder << hardcoded::protocolVersion << static_cast<uint8_t>(99) << static_cast<uint16_t>(1)
+            << static_cast<uint16_t>(0) << static_cast<uint8_t>(0);
     encoder.addPadding(1);
     receiveMessage(output.str());
     EXPECT_EQ(errorInfo_, "Record type \"99\" is invalid.\n");
@@ -207,13 +207,12 @@ TEST_P(TestResponder, Overloaded)
     receiveMessage(MsgBeginRequest{Role::Responder, resultConnectionState()}, 3);
 }
 
-namespace fcgi{
+namespace fcgi {
 bool operator==(const Request& lhs, const Request& rhs)
 {
-    return lhs.params() == rhs.params() &&
-           lhs.stdIn() == rhs.stdIn();
+    return lhs.params() == rhs.params() && lhs.stdIn() == rhs.stdIn();
 }
-}
+} //namespace fcgi
 
 TEST_P(TestResponder, Request)
 {
@@ -244,7 +243,7 @@ TEST_P(TestResponder, ReceivingMessagesInLargeChunks)
     auto streamData = std::string{};
     auto expectedRequestData = std::string{};
     auto requestId = static_cast<uint16_t>(1);
-    for (auto i = 0; i < 3; ++i){
+    for (auto i = 0; i < 3; ++i) {
         auto inStream = MsgStdIn{streamRecordData};
         expectedRequestData += inStream.data();
         streamData += messageData(std::move(inStream), requestId);
@@ -338,11 +337,8 @@ TEST_P(TestResponder, RecordReadError)
     auto output = std::ostringstream{};
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"wrongName", "0"};
-    encoder  << hardcoded::protocolVersion
-             << static_cast<uint8_t>(RecordType::GetValues)
-             << static_cast<uint16_t>(1)
-             << static_cast<uint16_t>(nameValue.size())
-             << static_cast<uint8_t>(0);
+    encoder << hardcoded::protocolVersion << static_cast<uint8_t>(RecordType::GetValues) << static_cast<uint16_t>(1)
+            << static_cast<uint16_t>(nameValue.size()) << static_cast<uint8_t>(0);
     encoder.addPadding(1);
     nameValue.toStream(output);
 
@@ -360,11 +356,9 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     auto output = std::ostringstream{};
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"FCGI_MAX_CONNS", ""};
-    encoder  << hardcoded::protocolVersion
-             << static_cast<uint8_t>(RecordType::GetValues)
-             << static_cast<uint16_t>(1)
-             << static_cast<uint16_t>(nameValue.size() - 1) //wrong size
-             << static_cast<uint8_t>(0);
+    encoder << hardcoded::protocolVersion << static_cast<uint8_t>(RecordType::GetValues) << static_cast<uint16_t>(1)
+            << static_cast<uint16_t>(nameValue.size() - 1) //wrong size
+            << static_cast<uint8_t>(0);
     encoder.addPadding(1);
     nameValue.toStream(output);
 
@@ -372,9 +366,10 @@ TEST_P(TestResponder, RecordReadErrorMisalignedNameValue)
     receivedData += messageData(MsgBeginRequest{Role::Responder, resultConnectionState()}, static_cast<uint16_t>(1));
     receivedData += messageData(MsgAbortRequest{}, static_cast<uint16_t>(1));
     receiveMessage(receivedData);
-    EXPECT_EQ(errorInfo_, "Record message read error: Misaligned name-value\nProtocol version \"83\" isn't supported.\n");
+    EXPECT_EQ(
+            errorInfo_,
+            "Record message read error: Misaligned name-value\nProtocol version \"83\" isn't supported.\n");
 }
 
 INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponder, ::testing::Values(false, true));
 INSTANTIATE_TEST_SUITE_P(WithConnectionStateCheck, TestResponderWithTestProcessor, ::testing::Values(false, true));
-

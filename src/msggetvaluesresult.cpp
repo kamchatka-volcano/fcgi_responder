@@ -1,14 +1,14 @@
 #include "msggetvaluesresult.h"
-#include "namevalue.h"
 #include "errors.h"
+#include "namevalue.h"
 #include <algorithm>
 
-namespace fcgi{
+namespace fcgi {
 
 std::size_t MsgGetValuesResult::size() const
 {
     auto result = std::size_t{};
-    for(const auto& nameValue : requestValueList_)
+    for (const auto& nameValue : requestValueList_)
         result += nameValue.size();
     return result;
 }
@@ -16,11 +16,13 @@ std::size_t MsgGetValuesResult::size() const
 void MsgGetValuesResult::setRequestValue(ValueRequest request, const std::string& value)
 {
     const auto requestStr = valueRequestToString(request);
-    auto it = std::find_if(requestValueList_.begin(), requestValueList_.end(),
-    [&requestStr](const NameValue& nameValue)
-    {
-        return nameValue.name() == requestStr;
-    });
+    auto it = std::find_if(
+            requestValueList_.begin(),
+            requestValueList_.end(),
+            [&requestStr](const NameValue& nameValue)
+            {
+                return nameValue.name() == requestStr;
+            });
 
     if (it == requestValueList_.end())
         requestValueList_.emplace_back(requestStr, value);
@@ -31,14 +33,16 @@ void MsgGetValuesResult::setRequestValue(ValueRequest request, const std::string
 const std::string& MsgGetValuesResult::requestValue(ValueRequest request) const
 {
     const auto requestStr = valueRequestToString(request);
-    auto it = std::find_if(requestValueList_.begin(), requestValueList_.end(),
-    [&requestStr](const NameValue& nameValue)
-    {
-        return nameValue.name() == requestStr;
-    });
+    auto it = std::find_if(
+            requestValueList_.begin(),
+            requestValueList_.end(),
+            [&requestStr](const NameValue& nameValue)
+            {
+                return nameValue.name() == requestStr;
+            });
 
     if (it == requestValueList_.end())
-        throw std::out_of_range("fcgi::MsgGetValuesResult doesn't contain value for request '" + requestStr +  "'");
+        throw std::out_of_range("fcgi::MsgGetValuesResult doesn't contain value for request '" + requestStr + "'");
     else
         return it->value();
 }
@@ -51,16 +55,16 @@ std::vector<ValueRequest> MsgGetValuesResult::requestList() const
     return result;
 }
 
-void MsgGetValuesResult::toStream(std::ostream &output) const
+void MsgGetValuesResult::toStream(std::ostream& output) const
 {
-    for(const auto& nameValue : requestValueList_)
+    for (const auto& nameValue : requestValueList_)
         nameValue.toStream(output);
 }
 
-void MsgGetValuesResult::fromStream(std::istream &input, std::size_t inputSize)
+void MsgGetValuesResult::fromStream(std::istream& input, std::size_t inputSize)
 {
     auto readBytes = std::size_t{};
-    while(readBytes < inputSize){
+    while (readBytes < inputSize) {
         auto nameValue = NameValue{inputSize};
         nameValue.fromStream(input);
         readBytes += nameValue.size();
@@ -76,4 +80,4 @@ bool operator==(const MsgGetValuesResult& lhs, const MsgGetValuesResult& rhs)
     return lhs.requestValueList_ == rhs.requestValueList_;
 }
 
-}
+} //namespace fcgi

@@ -1,7 +1,7 @@
 #include "decoder.h"
 #include <algorithm>
 
-namespace fcgi{
+namespace fcgi {
 
 Decoder::Decoder(std::istream& input)
     : input_{input}
@@ -47,4 +47,4 @@ void Decoder::skip(std::size_t numOfBytes)
         input_.get(ch);
 }
 
-}
+} //namespace fcgi

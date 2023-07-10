@@ -1,9 +1,9 @@
 #pragma once
 #include <ostream>
 
-namespace fcgi{
+namespace fcgi {
 
-class Encoder{
+class Encoder {
 public:
     explicit Encoder(std::ostream& stream);
     Encoder& operator<<(uint8_t val);
@@ -17,4 +17,4 @@ private:
     std::ostream& output_;
 };
 
-}
+} //namespace fcgi

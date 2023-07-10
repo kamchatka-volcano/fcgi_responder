@@ -3,9 +3,9 @@
 #include <istream>
 #include <ostream>
 
-namespace fcgi{
+namespace fcgi {
 
-class MsgBeginRequest{
+class MsgBeginRequest {
 public:
     static const RecordType recordType = RecordType::BeginRequest;
 
@@ -29,5 +29,4 @@ private:
 
 bool operator==(const MsgBeginRequest& lhs, const MsgBeginRequest& rhs);
 
-}
-
+} //namespace fcgi

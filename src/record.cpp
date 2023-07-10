@@ -1,11 +1,11 @@
 #include "record.h"
 #include "constants.h"
-#include "errors.h"
-#include "encoder.h"
 #include "decoder.h"
+#include "encoder.h"
+#include "errors.h"
 #include <string>
 
-namespace fcgi{
+namespace fcgi {
 
 Record::Record()
 {
@@ -44,24 +44,20 @@ std::size_t Record::fromStream(std::istream& input, std::size_t inputSize)
     return read(input, inputSize);
 }
 
-void Record::write(std::ostream &output) const
+void Record::write(std::ostream& output) const
 {
     auto contentLength = static_cast<uint16_t>(messageSize());
     auto paddingLength = calcPaddingLength();
     auto reservedByte = uint8_t{};
 
     auto encoder = Encoder(output);
-    encoder << hardcoded::protocolVersion
-            << static_cast<uint8_t>(type_)
-            << requestId_
-            << contentLength
-            << paddingLength
+    encoder << hardcoded::protocolVersion << static_cast<uint8_t>(type_) << requestId_ << contentLength << paddingLength
             << reservedByte;
     writeMessage(output);
     encoder.addPadding(paddingLength);
 }
 
-std::size_t Record::read(std::istream &input, std::size_t inputSize)
+std::size_t Record::read(std::istream& input, std::size_t inputSize)
 {
     if (inputSize < hardcoded::headerSize)
         return 0;
@@ -76,29 +72,25 @@ std::size_t Record::read(std::istream &input, std::size_t inputSize)
     auto contentLength = uint16_t{};
     auto paddingLength = uint8_t{};
     auto reservedByte = uint8_t{};
-    decoder >> type
-            >> requestId_
-            >> contentLength
-            >> paddingLength
-            >> reservedByte;
+    decoder >> type >> requestId_ >> contentLength >> paddingLength >> reservedByte;
 
     auto recordSize = static_cast<std::size_t>(hardcoded::headerSize + contentLength + paddingLength);
-    try{
+    try {
         type_ = recordTypeFromInt(type);
     }
-    catch(const InvalidValue& e){
+    catch (const InvalidValue& e) {
         throw InvalidRecordType{static_cast<uint8_t>(e.asInt())};
     }
 
     if (inputSize < recordSize)
         return 0;
 
-    try{
+    try {
         initMessage();
         readMessage(input, contentLength);
         decoder.skip(paddingLength);
     }
-    catch(const std::exception& e){
+    catch (const std::exception& e) {
         throw RecordMessageReadError{e.what(), recordSize};
     }
 
@@ -115,63 +107,109 @@ uint8_t Record::calcPaddingLength() const
 
 void Record::initMessage()
 {
-    switch(type_){
-    case RecordType::BeginRequest: message_.emplace<MsgBeginRequest>(); break;
-    case RecordType::AbortRequest: message_.emplace<MsgAbortRequest>(); break;
-    case RecordType::EndRequest: message_.emplace<MsgEndRequest>(); break;
-    case RecordType::Params: message_.emplace<MsgParams>(); break;
-    case RecordType::StdIn: message_.emplace<MsgStdIn>(); break;
-    case RecordType::StdOut: message_.emplace<MsgStdOut>(); break;
-    case RecordType::StdErr: message_.emplace<MsgStdErr>(); break;
-    case RecordType::Data: message_.emplace<MsgData>(); break;
-    case RecordType::GetValues: message_.emplace<MsgGetValues>(); break;
-    case RecordType::GetValuesResult: message_.emplace<MsgGetValuesResult>(); break;
-    case RecordType::UnknownType: message_.emplace<MsgUnknownType>(); break;
+    switch (type_) {
+    case RecordType::BeginRequest:
+        message_.emplace<MsgBeginRequest>();
+        break;
+    case RecordType::AbortRequest:
+        message_.emplace<MsgAbortRequest>();
+        break;
+    case RecordType::EndRequest:
+        message_.emplace<MsgEndRequest>();
+        break;
+    case RecordType::Params:
+        message_.emplace<MsgParams>();
+        break;
+    case RecordType::StdIn:
+        message_.emplace<MsgStdIn>();
+        break;
+    case RecordType::StdOut:
+        message_.emplace<MsgStdOut>();
+        break;
+    case RecordType::StdErr:
+        message_.emplace<MsgStdErr>();
+        break;
+    case RecordType::Data:
+        message_.emplace<MsgData>();
+        break;
+    case RecordType::GetValues:
+        message_.emplace<MsgGetValues>();
+        break;
+    case RecordType::GetValuesResult:
+        message_.emplace<MsgGetValuesResult>();
+        break;
+    case RecordType::UnknownType:
+        message_.emplace<MsgUnknownType>();
+        break;
     }
 }
 
 std::size_t Record::messageSize() const
 {
-    return std::visit([](auto&& msg){return msg.size();}, message_);
+    return std::visit(
+            [](auto&& msg)
+            {
+                return msg.size();
+            },
+            message_);
 }
 
-void Record::readMessage(std::istream &input, std::size_t inputSize)
+void Record::readMessage(std::istream& input, std::size_t inputSize)
 {
-    std::visit([&](auto&& msg){msg.fromStream(input, inputSize);}, message_);
+    std::visit(
+            [&](auto&& msg)
+            {
+                msg.fromStream(input, inputSize);
+            },
+            message_);
 }
 
-void Record::writeMessage(std::ostream &output) const
+void Record::writeMessage(std::ostream& output) const
 {
-    std::visit([&](auto&& msg){msg.toStream(output);}, message_);
+    std::visit(
+            [&](auto&& msg)
+            {
+                msg.toStream(output);
+            },
+            message_);
 }
 
-namespace  {
+namespace {
 
 bool compareMessages(const fcgi::Record& lhs, const fcgi::Record& rhs)
 {
-    switch(lhs.type()){
-    case fcgi::RecordType::Data: return lhs.getMessage<fcgi::MsgData>() == rhs.getMessage<fcgi::MsgData>();
-    case fcgi::RecordType::StdIn: return lhs.getMessage<fcgi::MsgStdIn>() == rhs.getMessage<fcgi::MsgStdIn>();
-    case fcgi::RecordType::StdOut: return lhs.getMessage<fcgi::MsgStdOut>() == rhs.getMessage<fcgi::MsgStdOut>();
-    case fcgi::RecordType::StdErr: return lhs.getMessage<fcgi::MsgStdErr>() == rhs.getMessage<fcgi::MsgStdErr>();
-    case fcgi::RecordType::Params: return lhs.getMessage<fcgi::MsgParams>() == rhs.getMessage<fcgi::MsgParams>();
-    case fcgi::RecordType::GetValues: return lhs.getMessage<fcgi::MsgGetValues>() == rhs.getMessage<fcgi::MsgGetValues>();
-    case fcgi::RecordType::GetValuesResult: return lhs.getMessage<fcgi::MsgGetValuesResult>() == rhs.getMessage<fcgi::MsgGetValuesResult>();
-    case fcgi::RecordType::BeginRequest: return lhs.getMessage<fcgi::MsgBeginRequest>() == rhs.getMessage<fcgi::MsgBeginRequest>();
-    case fcgi::RecordType::EndRequest: return lhs.getMessage<fcgi::MsgEndRequest>() == rhs.getMessage<fcgi::MsgEndRequest>();
-    case fcgi::RecordType::AbortRequest: return lhs.getMessage<fcgi::MsgAbortRequest>() == rhs.getMessage<fcgi::MsgAbortRequest>();
-    case fcgi::RecordType::UnknownType: return lhs.getMessage<fcgi::MsgUnknownType>() == rhs.getMessage<fcgi::MsgUnknownType>();
+    switch (lhs.type()) {
+    case fcgi::RecordType::Data:
+        return lhs.getMessage<fcgi::MsgData>() == rhs.getMessage<fcgi::MsgData>();
+    case fcgi::RecordType::StdIn:
+        return lhs.getMessage<fcgi::MsgStdIn>() == rhs.getMessage<fcgi::MsgStdIn>();
+    case fcgi::RecordType::StdOut:
+        return lhs.getMessage<fcgi::MsgStdOut>() == rhs.getMessage<fcgi::MsgStdOut>();
+    case fcgi::RecordType::StdErr:
+        return lhs.getMessage<fcgi::MsgStdErr>() == rhs.getMessage<fcgi::MsgStdErr>();
+    case fcgi::RecordType::Params:
+        return lhs.getMessage<fcgi::MsgParams>() == rhs.getMessage<fcgi::MsgParams>();
+    case fcgi::RecordType::GetValues:
+        return lhs.getMessage<fcgi::MsgGetValues>() == rhs.getMessage<fcgi::MsgGetValues>();
+    case fcgi::RecordType::GetValuesResult:
+        return lhs.getMessage<fcgi::MsgGetValuesResult>() == rhs.getMessage<fcgi::MsgGetValuesResult>();
+    case fcgi::RecordType::BeginRequest:
+        return lhs.getMessage<fcgi::MsgBeginRequest>() == rhs.getMessage<fcgi::MsgBeginRequest>();
+    case fcgi::RecordType::EndRequest:
+        return lhs.getMessage<fcgi::MsgEndRequest>() == rhs.getMessage<fcgi::MsgEndRequest>();
+    case fcgi::RecordType::AbortRequest:
+        return lhs.getMessage<fcgi::MsgAbortRequest>() == rhs.getMessage<fcgi::MsgAbortRequest>();
+    case fcgi::RecordType::UnknownType:
+        return lhs.getMessage<fcgi::MsgUnknownType>() == rhs.getMessage<fcgi::MsgUnknownType>();
     }
     return false;
 }
 
-}
+} //namespace
 
 bool operator==(const Record& lhs, const Record& rhs)
 {
-    return lhs.type_ == rhs.type_ &&
-           lhs.requestId_ == rhs.requestId_ &&
-           compareMessages(lhs, rhs);
+    return lhs.type_ == rhs.type_ && lhs.requestId_ == rhs.requestId_ && compareMessages(lhs, rhs);
 }
 
-}
+} //namespace fcgi

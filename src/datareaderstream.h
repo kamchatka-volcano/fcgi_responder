@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-namespace fcgi{
+namespace fcgi {
 
 class MultiPartDataReaderBuffer : public std::streambuf {
 public:
@@ -16,7 +16,8 @@ private:
     std::size_t bufferIndex_ = 0;
 };
 
-class DataReaderStream : private MultiPartDataReaderBuffer, public std::istream {
+class DataReaderStream : private MultiPartDataReaderBuffer,
+                         public std::istream {
 public:
     template<typename... T>
     explicit DataReaderStream(T&&... buffers)
@@ -27,4 +28,4 @@ public:
     }
 };
 
-}
+} //namespace fcgi

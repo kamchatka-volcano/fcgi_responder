@@ -1,9 +1,9 @@
 #include "msgendrequest.h"
-#include "encoder.h"
 #include "decoder.h"
+#include "encoder.h"
 #include <array>
 
-namespace fcgi{
+namespace fcgi {
 
 MsgEndRequest::MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus)
     : appStatus_{appStatus}
@@ -29,8 +29,7 @@ ProtocolStatus MsgEndRequest::protocolStatus() const
 void MsgEndRequest::toStream(std::ostream& output) const
 {
     auto encoder = Encoder(output);
-    encoder << appStatus_
-            << static_cast<uint8_t>(protocolStatus_);
+    encoder << appStatus_ << static_cast<uint8_t>(protocolStatus_);
     encoder.addPadding(3); //reserved bytes
 }
 
@@ -38,8 +37,7 @@ void MsgEndRequest::fromStream(std::istream& input, std::size_t)
 {
     auto protocolStatus = uint8_t{};
     auto decoder = Decoder(input);
-    decoder >> appStatus_
-            >> protocolStatus;
+    decoder >> appStatus_ >> protocolStatus;
     decoder.skip(3); //reserved bytes
 
     protocolStatus_ = protocolStatusFromInt(protocolStatus);
@@ -47,8 +45,7 @@ void MsgEndRequest::fromStream(std::istream& input, std::size_t)
 
 bool operator==(const MsgEndRequest& lhs, const MsgEndRequest& rhs)
 {
-    return lhs.appStatus_ == rhs.appStatus_ &&
-           lhs.protocolStatus_ == rhs.protocolStatus_;
+    return lhs.appStatus_ == rhs.appStatus_ && lhs.protocolStatus_ == rhs.protocolStatus_;
 }
 
-}
+} //namespace fcgi

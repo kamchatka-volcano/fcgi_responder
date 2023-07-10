@@ -1,12 +1,12 @@
 #pragma once
 #include "types.h"
-#include <vector>
 #include <istream>
 #include <ostream>
+#include <vector>
 
-namespace fcgi{
+namespace fcgi {
 
-class MsgGetValues{
+class MsgGetValues {
 public:
     static const RecordType recordType = RecordType::GetValues;
 
@@ -27,4 +27,4 @@ private:
 
 bool operator==(const MsgGetValues& lhs, const MsgGetValues& rhs);
 
-}
+} //namespace fcgi

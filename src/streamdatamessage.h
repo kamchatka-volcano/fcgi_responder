@@ -1,14 +1,14 @@
 #pragma once
 #include "types.h"
-#include <variant>
-#include <string_view>
 #include <istream>
 #include <ostream>
+#include <string_view>
+#include <variant>
 
-namespace fcgi{
+namespace fcgi {
 
-template <RecordType recordTypeValue>
-class StreamDataMessage{
+template<RecordType recordTypeValue>
+class StreamDataMessage {
 public:
     static const RecordType recordType = recordTypeValue;
 
@@ -16,15 +16,26 @@ public:
     StreamDataMessage() = default;
     explicit StreamDataMessage(std::string_view data)
         : data_{data}
-    {}
+    {
+    }
 
     std::size_t size() const
     {
-        return std::visit([](auto& data){return data.size();}, data_);
+        return std::visit(
+                [](auto& data)
+                {
+                    return data.size();
+                },
+                data_);
     }
     std::string_view data() const
     {
-        return std::visit([](auto& data){return std::string_view{data};}, data_);
+        return std::visit(
+                [](auto& data)
+                {
+                    return std::string_view{data};
+                },
+                data_);
     }
 
     void toStream(std::ostream& output) const
@@ -49,9 +60,9 @@ bool operator==(const StreamDataMessage<recordType>& lhs, const StreamDataMessag
     return lhs.data() == rhs.data();
 }
 
-using MsgStdIn  = StreamDataMessage<RecordType::StdIn>;
+using MsgStdIn = StreamDataMessage<RecordType::StdIn>;
 using MsgStdOut = StreamDataMessage<RecordType::StdOut>;
 using MsgStdErr = StreamDataMessage<RecordType::StdErr>;
-using MsgData   = StreamDataMessage<RecordType::Data>;
+using MsgData = StreamDataMessage<RecordType::Data>;
 
-}
+} //namespace fcgi

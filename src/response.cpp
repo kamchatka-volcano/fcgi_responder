@@ -1,6 +1,6 @@
 #include <fcgi_responder/response.h>
 
-namespace fcgi{
+namespace fcgi {
 
 Response::Response(ResponseSender sender)
     : sender_{std::move(sender)}
@@ -38,4 +38,4 @@ void Response::setErrorMsg(std::string errorMsg)
     errorMsg_ = std::move(errorMsg);
 }
 
-}
+} //namespace fcgi

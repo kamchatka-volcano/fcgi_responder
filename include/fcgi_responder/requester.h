@@ -1,15 +1,14 @@
 #pragma once
-#include <string>
-#include <memory>
 #include <functional>
 #include <map>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <string>
 
-namespace fcgi{
+namespace fcgi {
 class RequesterImpl;
 
-class RequestHandle{
+class RequestHandle {
 public:
     RequestHandle(const std::shared_ptr<std::function<void()>>& cancelRequestHandler);
     void cancelRequest();
@@ -18,8 +17,7 @@ private:
     std::weak_ptr<std::function<void()>> cancelRequestHandler_;
 };
 
-struct ResponseData
-{
+struct ResponseData {
     std::string data;
     std::string errorMsg;
 };
@@ -27,7 +25,7 @@ struct ResponseData
 ///
 /// \brief Abstract class which implements the client logic for making requests to FastCGI applications
 ///
-class Requester{
+class Requester {
 
 public:
     ///
@@ -40,7 +38,8 @@ public:
     /// \return RequestHandle - object which can be used to cancel request
     ///
     std::optional<RequestHandle> sendRequest(
-            std::map<std::string, std::string> params, std::string data,
+            std::map<std::string, std::string> params,
+            std::string data,
             const std::function<void(std::optional<ResponseData>)>& responseHandler,
             bool keepConnection = false);
     ///
@@ -50,14 +49,14 @@ public:
     /// by registering a handler function.
     /// \param errorInfoHandler
     ///
-    void setErrorInfoHandler(const std::function<void (const std::string &)>& handler);
+    void setErrorInfoHandler(const std::function<void(const std::string&)>& handler);
 
     ///
     /// \brief availableRequestsNumber
     /// \return number of available requests
     int availableRequestsNumber() const;
 
-     ///
+    ///
     /// \brief maximumConnectionsNumber
     /// \return Maximum connections number
     ///
@@ -96,4 +95,4 @@ private:
     std::unique_ptr<RequesterImpl> impl_;
 };
 
-}
+} //namespace fcgi

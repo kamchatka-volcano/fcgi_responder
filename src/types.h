@@ -1,22 +1,22 @@
 #pragma once
-#include <string>
-#include <cstdint>
 #include "errors.h"
+#include <cstdint>
+#include <string>
 
-namespace fcgi{
+namespace fcgi {
 
-enum class RecordType : uint8_t{
-    BeginRequest    = 1,
-    AbortRequest    = 2,
-    EndRequest      = 3,
-    Params          = 4,
-    StdIn           = 5,
-    StdOut          = 6,
-    StdErr          = 7,
-    Data            = 8,
-    GetValues       = 9,
+enum class RecordType : uint8_t {
+    BeginRequest = 1,
+    AbortRequest = 2,
+    EndRequest = 3,
+    Params = 4,
+    StdIn = 5,
+    StdOut = 6,
+    StdErr = 7,
+    Data = 8,
+    GetValues = 9,
     GetValuesResult = 10,
-    UnknownType     = 11,
+    UnknownType = 11,
 };
 
 inline RecordType recordTypeFromInt(uint8_t val)
@@ -27,10 +27,10 @@ inline RecordType recordTypeFromInt(uint8_t val)
         return static_cast<RecordType>(val);
 }
 
-enum class Role : uint16_t{
-    Responder  = 1,
+enum class Role : uint16_t {
+    Responder = 1,
     Authorizer = 2,
-    Filter     = 3,
+    Filter = 3,
 };
 
 inline Role roleFromInt(uint16_t val)
@@ -41,16 +41,16 @@ inline Role roleFromInt(uint16_t val)
         return static_cast<Role>(val);
 }
 
-enum class ResultConnectionState{
-    Close    = 0,
+enum class ResultConnectionState {
+    Close = 0,
     KeepOpen = 1
 };
 
-enum class ProtocolStatus : uint8_t{
+enum class ProtocolStatus : uint8_t {
     RequestComplete = 0,
-    CantMpxConn     = 1,
-    Overloaded      = 2,
-    UnknownRole     = 3,
+    CantMpxConn = 1,
+    Overloaded = 2,
+    UnknownRole = 3,
 };
 
 inline ProtocolStatus protocolStatusFromInt(uint8_t val)
@@ -61,18 +61,21 @@ inline ProtocolStatus protocolStatusFromInt(uint8_t val)
         return static_cast<ProtocolStatus>(val);
 }
 
-enum class ValueRequest{
-    MaxConns  = 0,
-    MaxReqs   = 1,
+enum class ValueRequest {
+    MaxConns = 0,
+    MaxReqs = 1,
     MpxsConns = 2,
 };
 
 inline std::string valueRequestToString(ValueRequest request)
 {
-    switch(request){
-    case ValueRequest::MaxConns:  return "FCGI_MAX_CONNS";
-    case ValueRequest::MaxReqs:   return "FCGI_MAX_REQS";
-    case ValueRequest::MpxsConns: return "FCGI_MPXS_CONNS";
+    switch (request) {
+    case ValueRequest::MaxConns:
+        return "FCGI_MAX_CONNS";
+    case ValueRequest::MaxReqs:
+        return "FCGI_MAX_REQS";
+    case ValueRequest::MpxsConns:
+        return "FCGI_MPXS_CONNS";
     }
     return {};
 }
@@ -89,5 +92,4 @@ inline ValueRequest valueRequestFromString(const std::string& request)
         throw InvalidValue(InvalidValueType::ValueRequest, request);
 }
 
-}
-
+} //namespace fcgi

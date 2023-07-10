@@ -1,20 +1,21 @@
 #pragma once
+#include "constants.h"
 #include "record.h"
 #include "types.h"
-#include "constants.h"
-#include <vector>
 #include <string_view>
+#include <vector>
 
-namespace fcgi{
+namespace fcgi {
 
-template <typename TMsg>
+template<typename TMsg>
 std::vector<Record> makeStream(
         uint16_t requestId,
         std::string_view data,
         std::size_t maxDataMessageSize = hardcoded::maxDataMessageSize)
 {
     auto result = std::vector<Record>{};
-    auto processMessage = [&](std::string_view msgData) {
+    auto processMessage = [&](std::string_view msgData)
+    {
         auto msg = TMsg{msgData};
         result.emplace_back(msg, requestId);
     };
@@ -39,5 +40,4 @@ std::vector<Record> makeStream(
     return result;
 }
 
-}
-
+} //namespace fcgi

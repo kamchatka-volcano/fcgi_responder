@@ -2,23 +2,25 @@
 #include "errors.h"
 #include <algorithm>
 
-namespace fcgi{
+namespace fcgi {
 
 std::size_t MsgParams::size() const
 {
     auto result = std::size_t{};
-    for(const auto& param : paramList_)
+    for (const auto& param : paramList_)
         result += param.size();
     return result;
 }
 
-void MsgParams::setParam(const std::string &name, const std::string &value)
+void MsgParams::setParam(const std::string& name, const std::string& value)
 {
-    auto it = std::find_if(paramList_.begin(), paramList_.end(),
-    [&name](const NameValue& nameValue)
-    {
-        return nameValue.name() == name;
-    });
+    auto it = std::find_if(
+            paramList_.begin(),
+            paramList_.end(),
+            [&name](const NameValue& nameValue)
+            {
+                return nameValue.name() == name;
+            });
 
     if (it == paramList_.end())
         paramList_.emplace_back(name, value);
@@ -28,14 +30,16 @@ void MsgParams::setParam(const std::string &name, const std::string &value)
 
 const std::string& MsgParams::paramValue(const std::string& name) const
 {
-    auto it = std::find_if(paramList_.begin(), paramList_.end(),
-    [&name](const NameValue& nameValue)
-    {
-        return nameValue.name() == name;
-    });
+    auto it = std::find_if(
+            paramList_.begin(),
+            paramList_.end(),
+            [&name](const NameValue& nameValue)
+            {
+                return nameValue.name() == name;
+            });
 
     if (it == paramList_.end())
-        throw std::out_of_range("fcgi::MsgParams doesn't contain param '" + name +  "'");
+        throw std::out_of_range("fcgi::MsgParams doesn't contain param '" + name + "'");
     else
         return it->value();
 }
@@ -48,16 +52,16 @@ std::vector<std::string> MsgParams::paramList() const
     return result;
 }
 
-void MsgParams::toStream(std::ostream &output) const
+void MsgParams::toStream(std::ostream& output) const
 {
-    for(const auto& param : paramList_)
+    for (const auto& param : paramList_)
         param.toStream(output);
 }
 
-void MsgParams::fromStream(std::istream &input, std::size_t inputSize)
+void MsgParams::fromStream(std::istream& input, std::size_t inputSize)
 {
     auto readBytes = std::size_t{};
-    while(readBytes < inputSize){
+    while (readBytes < inputSize) {
         auto param = NameValue{inputSize};
         param.fromStream(input);
         readBytes += param.size();
@@ -72,4 +76,4 @@ bool operator==(const MsgParams& lhs, const MsgParams& rhs)
     return lhs.paramList_ == rhs.paramList_;
 }
 
-}
+} //namespace fcgi

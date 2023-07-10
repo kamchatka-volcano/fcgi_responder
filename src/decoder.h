@@ -1,9 +1,9 @@
 #pragma once
 #include <istream>
 
-namespace fcgi{
+namespace fcgi {
 
-class Decoder{
+class Decoder {
 public:
     explicit Decoder(std::istream& input);
     Decoder& operator>>(uint8_t& val);
@@ -17,4 +17,4 @@ private:
     std::istream& input_;
 };
 
-}
+} //namespace fcgi

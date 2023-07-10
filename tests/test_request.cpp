@@ -1,19 +1,15 @@
-#include <gtest/gtest.h>
 #include <fcgi_responder/request.h>
-
+#include <gtest/gtest.h>
 
 TEST(Request, Data)
 {
-     auto request = fcgi::Request{{}, "Hello world"};
-     ASSERT_EQ("Hello world", request.stdIn());
+    auto request = fcgi::Request{{}, "Hello world"};
+    ASSERT_EQ("Hello world", request.stdIn());
 }
 
 TEST(Request, Params)
 {
-    auto params = std::vector<std::pair<std::string, std::string>>{
-            {"foo", "123"},
-            {"bar", "Hello world"}
-    };
+    auto params = std::vector<std::pair<std::string, std::string>>{{"foo", "123"}, {"bar", "Hello world"}};
     auto request = fcgi::Request{params, {}};
 
     ASSERT_EQ("Hello world", request.param("bar"));

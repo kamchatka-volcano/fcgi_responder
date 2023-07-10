@@ -1,7 +1,7 @@
 #include "errors.h"
 #include <string>
 
-namespace fcgi{
+namespace fcgi {
 
 ProtocolError::ProtocolError(const std::string& msg)
     : std::runtime_error{msg}
@@ -19,21 +19,24 @@ uint8_t UnsupportedVersion::protocolVersion() const
     return protocolVersion_;
 }
 
-namespace
-{
+namespace {
 
 std::string invalidValueTypeToString(InvalidValueType type)
 {
-    switch (type){
-    case InvalidValueType::RecordType: return "Record type";
-    case InvalidValueType::Role: return "Role";
-    case InvalidValueType::ProtocolStatus: return "Protocol status";
-    case InvalidValueType::ValueRequest: return "Value request";
+    switch (type) {
+    case InvalidValueType::RecordType:
+        return "Record type";
+    case InvalidValueType::Role:
+        return "Role";
+    case InvalidValueType::ProtocolStatus:
+        return "Protocol status";
+    case InvalidValueType::ValueRequest:
+        return "Value request";
     }
     return {};
 }
 
-}
+} //namespace
 
 InvalidValue::InvalidValue(InvalidValueType type, uint32_t value)
     : ProtocolError{""}
@@ -77,7 +80,8 @@ const char* InvalidValue::what() const noexcept
 RecordMessageReadError::RecordMessageReadError(const std::string& msg, std::size_t recordSize)
     : ProtocolError{"Record message read error: " + msg}
     , recordSize_{recordSize}
-{}
+{
+}
 
 std::size_t RecordMessageReadError::recordSize() const
 {
@@ -87,11 +91,12 @@ std::size_t RecordMessageReadError::recordSize() const
 InvalidRecordType::InvalidRecordType(uint8_t typeValue)
     : ProtocolError{"Record type \"" + std::to_string(typeValue) + "\" is invalid."}
     , typeValue_{typeValue}
-{}
+{
+}
 
 uint8_t InvalidRecordType::recordType() const
 {
     return typeValue_;
 }
 
-}
+} //namespace fcgi

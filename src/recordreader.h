@@ -1,17 +1,17 @@
 #pragma once
-#include "datareaderstream.h"
 #include "constants.h"
-#include <string>
+#include "datareaderstream.h"
 #include <functional>
-#include <sstream>
 #include <memory>
+#include <sstream>
+#include <string>
 
-namespace fcgi{
+namespace fcgi {
 
 class Record;
 
-class RecordReader{
-    enum class ReadResultAction{
+class RecordReader {
+    enum class ReadResultAction {
         ContinueReading,
         StopReading
     };
@@ -39,5 +39,4 @@ private:
     std::size_t readRecordsSize_ = 0;
 };
 
-}
-
+} //namespace fcgi
