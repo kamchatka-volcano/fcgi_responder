@@ -82,7 +82,7 @@ private:
     ///
     void processRequest(fcgi::Request&&, fcgi::Response&& response) override
     {
-        response.setData("HTTP/1.1 200 OK\r\n"
+        response.setData("Status: 200 OK\r\n"
                          "Content-Type: text/html\r\n"
                          "\r\n"
                          "HELLO WORLD USING ASIO!");
