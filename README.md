@@ -8,6 +8,8 @@
   <img height="372" src="doc/fcgi_responder_vs_libfcgi.png"/>  
 </p>
 
+## Showcase
+* [asyncgi](https://github.com/kamchatka-volcano/asyncgi/) - a web framework based on `fcgi_responder` and `Asio`
 
 ## Usage
 ### Processing requests from the web server
@@ -80,7 +82,7 @@ private:
     ///
     void processRequest(fcgi::Request&&, fcgi::Response&& response) override
     {
-        response.setData("HTTP/1.1 200 OK\r\n "
+        response.setData("HTTP/1.1 200 OK\r\n"
                          "Content-Type: text/html\r\n"
                          "\r\n"
                          "HELLO WORLD USING ASIO!");
