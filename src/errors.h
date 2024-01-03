@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <stdexcept>
 #include <variant>
 
@@ -11,11 +12,11 @@ public:
 
 class UnsupportedVersion : public ProtocolError {
 public:
-    explicit UnsupportedVersion(uint8_t protocolVersion);
-    uint8_t protocolVersion() const;
+    explicit UnsupportedVersion(std::uint8_t protocolVersion);
+    std::uint8_t protocolVersion() const;
 
 private:
-    uint8_t protocolVersion_;
+    std::uint8_t protocolVersion_;
 };
 
 enum class InvalidValueType {
@@ -27,17 +28,17 @@ enum class InvalidValueType {
 
 class InvalidValue : public ProtocolError {
 public:
-    InvalidValue(InvalidValueType type, uint32_t value);
+    InvalidValue(InvalidValueType type, std::uint32_t value);
     InvalidValue(InvalidValueType type, const std::string& value);
     InvalidValueType type() const;
-    uint32_t asInt() const;
+    std::uint32_t asInt() const;
     std::string asString() const;
 
     const char* what() const noexcept override;
 
 private:
     InvalidValueType type_;
-    std::variant<uint32_t, std::string> value_;
+    std::variant<std::uint32_t, std::string> value_;
     std::string msg_;
 };
 
@@ -52,11 +53,11 @@ private:
 
 class InvalidRecordType : public ProtocolError {
 public:
-    explicit InvalidRecordType(uint8_t recordType);
-    uint8_t recordType() const;
+    explicit InvalidRecordType(std::uint8_t recordType);
+    std::uint8_t recordType() const;
 
 private:
-    uint8_t typeValue_;
+    std::uint8_t typeValue_;
 };
 
 } //namespace fcgi

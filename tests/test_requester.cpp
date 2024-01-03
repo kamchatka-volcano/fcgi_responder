@@ -74,7 +74,7 @@ protected:
         requester_.receive(data);
     }
     template<typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
-    void receiveMessage(TMsg&& msg, uint16_t requestId = 0)
+    void receiveMessage(TMsg&& msg, std::uint16_t requestId = 0)
     {
         requester_.receive(messageData(std::forward<TMsg>(msg), requestId));
     }
@@ -83,7 +83,7 @@ protected:
         requester_.receive(recordData);
     }
     template<typename TMsg>
-    void expectMessageToBeSent(TMsg&& msg, uint16_t requestId = 0)
+    void expectMessageToBeSent(TMsg&& msg, std::uint16_t requestId = 0)
     {
         EXPECT_CALL(requester_, sendData(messageData(std::forward<TMsg>(msg), requestId)));
     }
@@ -114,7 +114,7 @@ protected:
     std::optional<fcgi::RequestHandle> makeRequest(
             const std::map<std::string, std::string>& fcgiParams,
             const std::string& fcgiData,
-            uint16_t requestId = 1,
+            std::uint16_t requestId = 1,
             int maxRequestsNumber = 10,
             bool isMultiplexingEnabled = true)
     {

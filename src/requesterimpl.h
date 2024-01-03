@@ -59,18 +59,18 @@ private:
             const std::string& data,
             std::function<void(std::optional<ResponseData>)> responseHandler,
             bool keepConnection);
-    void doEndRequest(uint16_t requestId, ResponseStatus responseStatus);
+    void doEndRequest(std::uint16_t requestId, ResponseStatus responseStatus);
     void onRecordRead(const Record& record);
     template<typename TMsg>
-    void sendMessage(uint16_t requestId, TMsg&& msg);
+    void sendMessage(std::uint16_t requestId, TMsg&& msg);
     void notifyAboutError(const std::string& errorMsg);
     void sendRecord(const Record& record);
     bool isRecordExpected(const Record& record);
     void onGetValuesResult(const MsgGetValuesResult& msg);
-    void onUnknownType(uint16_t requestId, const MsgUnknownType& msg);
-    void onEndRequest(uint16_t requestId, const MsgEndRequest& msg);
-    void onStdOut(uint16_t requestId, const MsgStdOut& msg);
-    void onStdErr(uint16_t requestId, const MsgStdErr& msg);
+    void onUnknownType(std::uint16_t requestId, const MsgUnknownType& msg);
+    void onEndRequest(std::uint16_t requestId, const MsgEndRequest& msg);
+    void onStdOut(std::uint16_t requestId, const MsgStdOut& msg);
+    void onStdErr(std::uint16_t requestId, const MsgStdErr& msg);
 
 private:
     struct Config {
@@ -93,8 +93,8 @@ private:
     std::function<void()> onConnectionSuccess_;
     std::shared_ptr<std::function<void()>> connectionOpeningRequestCancelHandler_;
     ConnectionState connectionState_ = ConnectionState::NotConnected;
-    std::set<uint16_t> requestIdPool_;
-    std::map<uint16_t, ResponseContext> responseMap_;
+    std::set<std::uint16_t> requestIdPool_;
+    std::map<std::uint16_t, ResponseContext> responseMap_;
     std::function<void(const std::string&)> sendData_;
     std::function<void()> disconnect_;
 };

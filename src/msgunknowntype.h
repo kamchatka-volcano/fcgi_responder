@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <cstdint>
 #include <istream>
 #include <ostream>
 
@@ -11,8 +12,8 @@ public:
 
 public:
     MsgUnknownType() = default;
-    explicit MsgUnknownType(uint8_t unknownTypeValue);
-    uint8_t unknownTypeValue() const;
+    explicit MsgUnknownType(std::uint8_t unknownTypeValue);
+    std::uint8_t unknownTypeValue() const;
     static std::size_t size();
 
     void toStream(std::ostream& output) const;
@@ -22,7 +23,7 @@ private:
     friend bool operator==(const MsgUnknownType& lhs, const MsgUnknownType& rhs);
 
 private:
-    uint8_t unknownTypeValue_ = 0;
+    std::uint8_t unknownTypeValue_ = 0;
 };
 
 bool operator==(const MsgUnknownType& lhs, const MsgUnknownType& rhs);

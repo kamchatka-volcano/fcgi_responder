@@ -9,11 +9,11 @@
 namespace fcgi {
 
 namespace {
-std::set<uint16_t> generateRequestIds(int maxRequestsNumber)
+std::set<std::uint16_t> generateRequestIds(int maxRequestsNumber)
 {
-    auto result = std::set<uint16_t>{};
+    auto result = std::set<std::uint16_t>{};
     for (auto i = 1; i <= maxRequestsNumber; ++i)
-        result.insert(static_cast<uint16_t>(i));
+        result.insert(static_cast<std::uint16_t>(i));
     return result;
 }
 
@@ -89,7 +89,7 @@ void RequesterImpl::initConnection(
                             keepConnection]() mutable
     {
         connectionState_ = ConnectionState::Connected;
-        requestIdPool_ = cfg_.multiplexingEnabled ? generateRequestIds(cfg_.maxRequestsNumber) : std::set<uint16_t>{1};
+        requestIdPool_ = cfg_.multiplexingEnabled ? generateRequestIds(cfg_.maxRequestsNumber) : std::set<std::uint16_t>{1};
         doSendRequest(params, data, responseHandler, keepConnection);
         *connectionOpeningRequestCancelHandler_ = *responseMap_.begin()->second.cancelRequestHandler;
     };
@@ -149,7 +149,7 @@ std::optional<RequestHandle> RequesterImpl::doSendRequest(
     return responseMap_.at(requestId).cancelRequestHandler;
 }
 
-void RequesterImpl::doEndRequest(uint16_t requestId, ResponseStatus responseStatus)
+void RequesterImpl::doEndRequest(std::uint16_t requestId, ResponseStatus responseStatus)
 {
     auto& responseContext = responseMap_.at(requestId);
     if (responseStatus == ResponseStatus::Successful)
@@ -165,16 +165,16 @@ void RequesterImpl::doEndRequest(uint16_t requestId, ResponseStatus responseStat
 }
 
 template<typename TMsg>
-void RequesterImpl::sendMessage(uint16_t requestId, TMsg&& msg)
+void RequesterImpl::sendMessage(std::uint16_t requestId, TMsg&& msg)
 {
     auto record = Record{std::forward<TMsg>(msg), requestId};
     sendRecord(record);
 }
-template void RequesterImpl::sendMessage<MsgGetValues>(uint16_t requestId, MsgGetValues&& msg);
-template void RequesterImpl::sendMessage<MsgBeginRequest>(uint16_t requestId, MsgBeginRequest&& msg);
-template void RequesterImpl::sendMessage<MsgAbortRequest>(uint16_t requestId, MsgAbortRequest&& msg);
-template void RequesterImpl::sendMessage<MsgParams>(uint16_t requestId, MsgParams&& msg);
-template void RequesterImpl::sendMessage<MsgStdIn>(uint16_t requestId, MsgStdIn&& msg);
+template void RequesterImpl::sendMessage<MsgGetValues>(std::uint16_t requestId, MsgGetValues&& msg);
+template void RequesterImpl::sendMessage<MsgBeginRequest>(std::uint16_t requestId, MsgBeginRequest&& msg);
+template void RequesterImpl::sendMessage<MsgAbortRequest>(std::uint16_t requestId, MsgAbortRequest&& msg);
+template void RequesterImpl::sendMessage<MsgParams>(std::uint16_t requestId, MsgParams&& msg);
+template void RequesterImpl::sendMessage<MsgStdIn>(std::uint16_t requestId, MsgStdIn&& msg);
 
 void RequesterImpl::sendRecord(const Record& record)
 {
@@ -264,13 +264,13 @@ void RequesterImpl::onGetValuesResult(const MsgGetValuesResult& msg)
     onConnectionSuccess_();
 }
 
-void RequesterImpl::onUnknownType(uint16_t requestId, const MsgUnknownType& msg)
+void RequesterImpl::onUnknownType(std::uint16_t requestId, const MsgUnknownType& msg)
 {
     notifyAboutError("Received unknown record type: " + std::to_string(msg.unknownTypeValue()));
     sendMessage(requestId, MsgAbortRequest{});
 }
 
-void RequesterImpl::onEndRequest(uint16_t requestId, const MsgEndRequest& msg)
+void RequesterImpl::onEndRequest(std::uint16_t requestId, const MsgEndRequest& msg)
 {
     doEndRequest(
             requestId,
@@ -278,12 +278,12 @@ void RequesterImpl::onEndRequest(uint16_t requestId, const MsgEndRequest& msg)
                                                                     : ResponseStatus::Failed);
 }
 
-void RequesterImpl::onStdOut(uint16_t requestId, const MsgStdOut& msg)
+void RequesterImpl::onStdOut(std::uint16_t requestId, const MsgStdOut& msg)
 {
     responseMap_.at(requestId).responseData.data += msg.data();
 }
 
-void RequesterImpl::onStdErr(uint16_t requestId, const MsgStdErr& msg)
+void RequesterImpl::onStdErr(std::uint16_t requestId, const MsgStdErr& msg)
 {
     responseMap_.at(requestId).responseData.errorMsg += msg.data();
 }

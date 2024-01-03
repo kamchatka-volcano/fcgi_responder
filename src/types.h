@@ -5,7 +5,7 @@
 
 namespace fcgi {
 
-enum class RecordType : uint8_t {
+enum class RecordType : std::uint8_t {
     BeginRequest = 1,
     AbortRequest = 2,
     EndRequest = 3,
@@ -19,23 +19,23 @@ enum class RecordType : uint8_t {
     UnknownType = 11,
 };
 
-inline RecordType recordTypeFromInt(uint8_t val)
+inline RecordType recordTypeFromInt(std::uint8_t val)
 {
-    if (val < static_cast<uint8_t>(RecordType::BeginRequest) || val > static_cast<uint8_t>(RecordType::UnknownType))
+    if (val < static_cast<std::uint8_t>(RecordType::BeginRequest) || val > static_cast<std::uint8_t>(RecordType::UnknownType))
         throw InvalidValue(InvalidValueType::RecordType, val);
     else
         return static_cast<RecordType>(val);
 }
 
-enum class Role : uint16_t {
+enum class Role : std::uint16_t {
     Responder = 1,
     Authorizer = 2,
     Filter = 3,
 };
 
-inline Role roleFromInt(uint16_t val)
+inline Role roleFromInt(std::uint16_t val)
 {
-    if (val < static_cast<uint16_t>(Role::Responder) || val > static_cast<uint16_t>(Role::Filter))
+    if (val < static_cast<std::uint16_t>(Role::Responder) || val > static_cast<std::uint16_t>(Role::Filter))
         throw InvalidValue(InvalidValueType::Role, val);
     else
         return static_cast<Role>(val);
@@ -46,16 +46,16 @@ enum class ResultConnectionState {
     KeepOpen = 1
 };
 
-enum class ProtocolStatus : uint8_t {
+enum class ProtocolStatus : std::uint8_t {
     RequestComplete = 0,
     CantMpxConn = 1,
     Overloaded = 2,
     UnknownRole = 3,
 };
 
-inline ProtocolStatus protocolStatusFromInt(uint8_t val)
+inline ProtocolStatus protocolStatusFromInt(std::uint8_t val)
 {
-    if (val > static_cast<uint8_t>(ProtocolStatus::UnknownRole))
+    if (val > static_cast<std::uint8_t>(ProtocolStatus::UnknownRole))
         throw InvalidValue(InvalidValueType::ProtocolStatus, val);
     else
         return static_cast<ProtocolStatus>(val);

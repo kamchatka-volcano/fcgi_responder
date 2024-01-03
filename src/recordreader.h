@@ -19,7 +19,7 @@ class RecordReader {
 public:
     explicit RecordReader(
             std::function<void(Record&)> recordReadHandler,
-            std::function<void(uint8_t)> invalidRecordTypeHandler = {});
+            std::function<void(std::uint8_t)> invalidRecordTypeHandler = {});
     void read(const char* data, std::size_t size);
     void setErrorInfoHandler(const std::function<void(const std::string&)>& errorInfoHandler);
 
@@ -32,7 +32,7 @@ private:
 
 private:
     std::function<void(Record&)> recordReadHandler_;
-    std::function<void(uint8_t)> invalidRecordTypeHandler_;
+    std::function<void(std::uint8_t)> invalidRecordTypeHandler_;
     std::function<void(const std::string&)> errorInfoHandler_;
     DataReaderStream dataStream_;
     std::string leftover_;

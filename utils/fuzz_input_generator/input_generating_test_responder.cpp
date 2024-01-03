@@ -12,6 +12,7 @@
 #include <constants.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <cstdint>
 #include <fstream>
 #include <filesystem>
 
@@ -97,7 +98,7 @@ protected:
         responder_.receive(data);
     }
     template <typename TMsg, std::enable_if_t<!std::is_convertible_v<TMsg, std::string>>* = nullptr>
-    void receiveMessage(TMsg&& msg, uint16_t requestId = 0)
+    void receiveMessage(TMsg&& msg, std::uint16_t requestId = 0)
     {
         auto message = messageData(std::forward<TMsg>(msg), requestId);
         createUnitTestInputDataFile(message);
@@ -109,7 +110,7 @@ protected:
         responder_.receive(recordData);
     }
     template <typename TMsg>
-    void expectMessageToBeSent(TMsg&& msg, uint16_t requestId = 0)
+    void expectMessageToBeSent(TMsg&& msg, std::uint16_t requestId = 0)
     {
         EXPECT_CALL(responder_, sendData(messageData(std::forward<TMsg>(msg), requestId)));
     }
@@ -146,10 +147,10 @@ TEST_F(TestResponder, UnknownType)
     auto output = std::ostringstream{};
     auto encoder = Encoder(output);
     encoder  << hardcoded::protocolVersion
-             << static_cast<uint8_t>(99)
-             << static_cast<uint16_t>(1)
-             << static_cast<uint16_t>(0)
-             << static_cast<uint8_t>(0);
+             << static_cast<std::uint8_t>(99)
+             << static_cast<std::uint16_t>(1)
+             << static_cast<std::uint16_t>(0)
+             << static_cast<std::uint8_t>(0);
     encoder.addPadding(1);
     receiveMessage(output.str());
     EXPECT_EQ(errorInfo_, "Record type \"99\" is invalid.\n");
@@ -258,7 +259,7 @@ TEST_F(TestResponder, ReceivingMessagesInLargeChunks)
     auto streamRecordData = std::string(hardcoded::maxDataMessageSize, '0');
     auto streamData = std::string{};
     auto expectedRequestData = std::string{};
-    auto requestId = static_cast<uint16_t>(1);
+    auto requestId = static_cast<std::uint16_t>(1);
     for (auto i = 0; i < 3; ++i){
         auto inStream = MsgStdIn{streamRecordData};
         expectedRequestData += inStream.data();
@@ -354,16 +355,16 @@ TEST_F(TestResponder, RecordMessageReadError)
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"wrongName", "0"};
     encoder  << hardcoded::protocolVersion
-             << static_cast<uint8_t>(RecordType::GetValues)
-             << static_cast<uint16_t>(1)
-             << static_cast<uint16_t>(nameValue.size())
-             << static_cast<uint8_t>(0);
+             << static_cast<std::uint8_t>(RecordType::GetValues)
+             << static_cast<std::uint16_t>(1)
+             << static_cast<std::uint16_t>(nameValue.size())
+             << static_cast<std::uint8_t>(0);
     encoder.addPadding(1);
     nameValue.toStream(output);
 
     auto receivedData = output.str();
-    receivedData += messageData(MsgBeginRequest{Role::Responder, resultConnectionState()}, static_cast<uint16_t>(1));
-    receivedData += messageData(MsgAbortRequest{}, static_cast<uint16_t>(1));
+    receivedData += messageData(MsgBeginRequest{Role::Responder, resultConnectionState()}, static_cast<std::uint16_t>(1));
+    receivedData += messageData(MsgAbortRequest{}, static_cast<std::uint16_t>(1));
     receiveMessage(receivedData);
 
     EXPECT_EQ(errorInfo_, "Record message read error: Value request value \"wrongName\" is invalid.\n");
@@ -376,16 +377,16 @@ TEST_F(TestResponder, RecordReadErrorMisalignedNameValue)
     auto encoder = Encoder{output};
     auto nameValue = fcgi::NameValue{"FCGI_MAX_CONNS", ""};
     encoder  << hardcoded::protocolVersion
-             << static_cast<uint8_t>(RecordType::GetValues)
-             << static_cast<uint16_t>(1)
-             << static_cast<uint16_t>(nameValue.size() - 1) //wrong size
-             << static_cast<uint8_t>(0);
+             << static_cast<std::uint8_t>(RecordType::GetValues)
+             << static_cast<std::uint16_t>(1)
+             << static_cast<std::uint16_t>(nameValue.size() - 1) //wrong size
+             << static_cast<std::uint8_t>(0);
     encoder.addPadding(1);
     nameValue.toStream(output);
 
     auto receivedData = output.str();
-    receivedData += messageData(MsgBeginRequest{Role::Responder, resultConnectionState()}, static_cast<uint16_t>(1));
-    receivedData += messageData(MsgAbortRequest{}, static_cast<uint16_t>(1));
+    receivedData += messageData(MsgBeginRequest{Role::Responder, resultConnectionState()}, static_cast<std::uint16_t>(1));
+    receivedData += messageData(MsgAbortRequest{}, static_cast<std::uint16_t>(1));
     receiveMessage(receivedData);
     EXPECT_EQ(errorInfo_, "Record message read error: Misaligned name-value\nProtocol version \"83\" isn't supported.\n");
 }

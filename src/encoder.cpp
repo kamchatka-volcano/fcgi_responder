@@ -8,13 +8,13 @@ Encoder::Encoder(std::ostream& stream)
 {
 }
 
-Encoder& Encoder::operator<<(uint8_t val)
+Encoder& Encoder::operator<<(std::uint8_t val)
 {
     output_.write(reinterpret_cast<const char*>(&val), 1);
     return *this;
 }
 
-Encoder& Encoder::operator<<(uint16_t val)
+Encoder& Encoder::operator<<(std::uint16_t val)
 {
     auto valIt = reinterpret_cast<char*>(&val);
 #ifndef BIG_ENDIAN_HOST
@@ -24,7 +24,7 @@ Encoder& Encoder::operator<<(uint16_t val)
     return *this;
 }
 
-Encoder& Encoder::operator<<(uint32_t val)
+Encoder& Encoder::operator<<(std::uint32_t val)
 {
     auto valIt = reinterpret_cast<char*>(&val);
 #ifndef BIG_ENDIAN_HOST

@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <cstdint>
 #include <istream>
 #include <ostream>
 
@@ -11,8 +12,8 @@ public:
 
 public:
     MsgEndRequest() = default;
-    MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus);
-    uint32_t appStatus() const;
+    MsgEndRequest(std::uint32_t appStatus, ProtocolStatus protocolStatus);
+    std::uint32_t appStatus() const;
     ProtocolStatus protocolStatus() const;
     static std::size_t size();
 
@@ -23,7 +24,7 @@ private:
     friend bool operator==(const MsgEndRequest& lhs, const MsgEndRequest& rhs);
 
 private:
-    uint32_t appStatus_ = 0;
+    std::uint32_t appStatus_ = 0;
     ProtocolStatus protocolStatus_ = ProtocolStatus::UnknownRole;
 };
 

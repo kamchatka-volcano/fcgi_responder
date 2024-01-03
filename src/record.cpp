@@ -12,7 +12,7 @@ Record::Record()
     initMessage();
 }
 
-Record::Record(RecordType type, uint16_t requestId)
+Record::Record(RecordType type, std::uint16_t requestId)
     : type_{type}
     , requestId_{requestId}
 {
@@ -24,7 +24,7 @@ RecordType Record::type() const
     return type_;
 }
 
-uint16_t Record::requestId() const
+std::uint16_t Record::requestId() const
 {
     return requestId_;
 }
@@ -46,12 +46,12 @@ std::size_t Record::fromStream(std::istream& input, std::size_t inputSize)
 
 void Record::write(std::ostream& output) const
 {
-    auto contentLength = static_cast<uint16_t>(messageSize());
+    auto contentLength = static_cast<std::uint16_t>(messageSize());
     auto paddingLength = calcPaddingLength();
-    auto reservedByte = uint8_t{};
+    auto reservedByte = std::uint8_t{};
 
     auto encoder = Encoder(output);
-    encoder << hardcoded::protocolVersion << static_cast<uint8_t>(type_) << requestId_ << contentLength << paddingLength
+    encoder << hardcoded::protocolVersion << static_cast<std::uint8_t>(type_) << requestId_ << contentLength << paddingLength
             << reservedByte;
     writeMessage(output);
     encoder.addPadding(paddingLength);
@@ -63,15 +63,15 @@ std::size_t Record::read(std::istream& input, std::size_t inputSize)
         return 0;
 
     auto decoder = Decoder(input);
-    auto protocolVersion = uint8_t{};
+    auto protocolVersion = std::uint8_t{};
     decoder >> protocolVersion;
     if (protocolVersion != hardcoded::protocolVersion)
         throw UnsupportedVersion(protocolVersion);
 
-    auto type = uint8_t{};
-    auto contentLength = uint16_t{};
-    auto paddingLength = uint8_t{};
-    auto reservedByte = uint8_t{};
+    auto type = std::uint8_t{};
+    auto contentLength = std::uint16_t{};
+    auto paddingLength = std::uint8_t{};
+    auto reservedByte = std::uint8_t{};
     decoder >> type >> requestId_ >> contentLength >> paddingLength >> reservedByte;
 
     auto recordSize = static_cast<std::size_t>(hardcoded::headerSize + contentLength + paddingLength);
@@ -79,7 +79,7 @@ std::size_t Record::read(std::istream& input, std::size_t inputSize)
         type_ = recordTypeFromInt(type);
     }
     catch (const InvalidValue& e) {
-        throw InvalidRecordType{static_cast<uint8_t>(e.asInt())};
+        throw InvalidRecordType{static_cast<std::uint8_t>(e.asInt())};
     }
 
     if (inputSize < recordSize)
@@ -97,9 +97,9 @@ std::size_t Record::read(std::istream& input, std::size_t inputSize)
     return recordSize;
 }
 
-uint8_t Record::calcPaddingLength() const
+std::uint8_t Record::calcPaddingLength() const
 {
-    auto result = static_cast<uint8_t>(8u - static_cast<uint8_t>(messageSize() % 8));
+    auto result = static_cast<std::uint8_t>(8u - static_cast<std::uint8_t>(messageSize() % 8));
     if (result == 8u)
         result = 0;
     return result;

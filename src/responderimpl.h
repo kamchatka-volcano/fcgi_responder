@@ -34,20 +34,20 @@ public:
 
 private:
     void onRecordRead(const Record& record);
-    void onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg);
+    void onBeginRequest(std::uint16_t requestId, const MsgBeginRequest& msg);
     void onGetValues(const MsgGetValues& msg);
-    void onParams(uint16_t requestId, const MsgParams& msg);
-    void onStdIn(uint16_t requestId, const StreamDataMessage<RecordType::StdIn>& msg);
-    void onRequestReceived(uint16_t requestId);
+    void onParams(std::uint16_t requestId, const MsgParams& msg);
+    void onStdIn(std::uint16_t requestId, const StreamDataMessage<RecordType::StdIn>& msg);
+    void onRequestReceived(std::uint16_t requestId);
     void sendRecord(const Record& record);
-    void sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg);
+    void sendResponse(std::uint16_t id, std::string&& data, std::string&& errorMsg);
 
     bool isRecordExpected(const Record& record);
-    void endRequest(uint16_t requestId);
+    void endRequest(std::uint16_t requestId);
 
     void notifyAboutError(const std::string& errorMsg);
-    void createRequest(uint16_t requestId, bool keepConnection);
-    void deleteRequest(uint16_t requestId);
+    void createRequest(std::uint16_t requestId, bool keepConnection);
+    void deleteRequest(std::uint16_t requestId);
 
 private:
     struct Config {
@@ -57,19 +57,19 @@ private:
     } cfg_;
 
     RecordReader recordReader_;
-    std::unordered_map<uint16_t, RequestData> requestRegistry_;
+    std::unordered_map<std::uint16_t, RequestData> requestRegistry_;
     std::function<void(const std::string&)> errorInfoHandler_;
     DataWriterStream recordStream_;
     std::function<void(const std::string&)> sendData_;
     std::function<void()> disconnect_;
     std::function<void(Request&& request, Response&& response)> processRequest_;
 
-    using ResponseSender = std::function<void(uint16_t, std::string&&, std::string&&)>;
+    using ResponseSender = std::function<void(std::uint16_t, std::string&&, std::string&&)>;
     std::shared_ptr<ResponseSender> responseSender_;
 
 private:
     template<typename TMsg>
-    void sendMessage(uint16_t requestId, TMsg&& msg);
+    void sendMessage(std::uint16_t requestId, TMsg&& msg);
 };
 
 } // namespace fcgi

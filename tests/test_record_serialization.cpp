@@ -175,7 +175,7 @@ TEST(RecordSerializationError, MsgBeginRequestInvalidRole)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint16_t>(99) << static_cast<uint8_t>(1);
+    encoder << static_cast<std::uint16_t>(99) << static_cast<std::uint8_t>(1);
     encoder.addPadding(5);
 
     auto msgData = output.str();
@@ -198,7 +198,7 @@ TEST(RecordSerializationError, MsgBeginRequestCutoffInput)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint16_t>(fcgi::Role::Responder) << static_cast<uint8_t>(1);
+    encoder << static_cast<std::uint16_t>(fcgi::Role::Responder) << static_cast<std::uint8_t>(1);
     encoder.addPadding(4); //should be 5
 
     auto msgData = output.str();
@@ -216,7 +216,7 @@ TEST(RecordSerializationError, MsgEndRequestCutoffInput)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint32_t>(0) << static_cast<uint8_t>(0);
+    encoder << static_cast<std::uint32_t>(0) << static_cast<std::uint8_t>(0);
     encoder.addPadding(2); //should be 3
 
     auto msgData = output.str();
@@ -397,7 +397,7 @@ TEST(RecordSerializationError, MsgUnkownTypeCutoffInput)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint8_t>(0);
+    encoder << static_cast<std::uint8_t>(0);
     encoder.addPadding(6); //should be 7
 
     auto msgData = output.str();
@@ -433,9 +433,9 @@ TEST(RecordSerializationError, RecordUsupportedProtocolVersion)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint8_t>(10) // wrong protocol version
-            << static_cast<uint8_t>(fcgi::RecordType::AbortRequest) << static_cast<uint16_t>(1)
-            << static_cast<uint16_t>(0) << static_cast<uint8_t>(0);
+    encoder << static_cast<std::uint8_t>(10) // wrong protocol version
+            << static_cast<std::uint8_t>(fcgi::RecordType::AbortRequest) << static_cast<std::uint16_t>(1)
+            << static_cast<std::uint16_t>(0) << static_cast<std::uint8_t>(0);
     encoder.addPadding(1);
 
     auto recordData = output.str();
@@ -457,8 +457,8 @@ TEST(RecordSerializationError, RecordInvalidType)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint8_t>(1) << static_cast<uint8_t>(99) // wrong record type
-            << static_cast<uint16_t>(1) << static_cast<uint16_t>(0) << static_cast<uint8_t>(0);
+    encoder << static_cast<std::uint8_t>(1) << static_cast<std::uint8_t>(99) // wrong record type
+            << static_cast<std::uint16_t>(1) << static_cast<std::uint16_t>(0) << static_cast<std::uint8_t>(0);
     encoder.addPadding(1);
 
     auto recordData = output.str();
@@ -480,13 +480,13 @@ TEST(RecordSerializationError, RecordInvalidMessageReadError)
 {
     auto output = std::ostringstream{};
     auto encoder = fcgi::Encoder(output);
-    encoder << static_cast<uint8_t>(1) << static_cast<uint8_t>(fcgi::RecordType::BeginRequest)
-            << static_cast<uint16_t>(1) << static_cast<uint16_t>(8) //message size
-            << static_cast<uint8_t>(0);
+    encoder << static_cast<std::uint8_t>(1) << static_cast<std::uint8_t>(fcgi::RecordType::BeginRequest)
+            << static_cast<std::uint16_t>(1) << static_cast<std::uint16_t>(8) //message size
+            << static_cast<std::uint8_t>(0);
     encoder.addPadding(1);
     //MsgBeginRequest
-    encoder << static_cast<uint16_t>(99) // wrong role
-            << static_cast<uint8_t>(1);
+    encoder << static_cast<std::uint16_t>(99) // wrong role
+            << static_cast<std::uint8_t>(1);
     encoder.addPadding(5);
 
     auto recordData = output.str();

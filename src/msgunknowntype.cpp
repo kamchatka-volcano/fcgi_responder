@@ -5,7 +5,7 @@
 
 namespace fcgi {
 
-MsgUnknownType::MsgUnknownType(uint8_t unknownTypeValue)
+MsgUnknownType::MsgUnknownType(std::uint8_t unknownTypeValue)
     : unknownTypeValue_{unknownTypeValue}
 {
 }
@@ -15,7 +15,7 @@ std::size_t MsgUnknownType::size()
     return 8;
 }
 
-uint8_t MsgUnknownType::unknownTypeValue() const
+std::uint8_t MsgUnknownType::unknownTypeValue() const
 {
     return unknownTypeValue_;
 }

@@ -49,7 +49,7 @@ void NameValue::setValue(const std::string& value)
 
 namespace {
 
-uint32_t readLengthFromStream(std::istream& input)
+std::uint32_t readLengthFromStream(std::istream& input)
 {
     auto ch = char{};
     input.get(ch);
@@ -68,14 +68,14 @@ uint32_t readLengthFromStream(std::istream& input)
 
         length = ((lengthB3 & 0x7f) << 24) + (lengthB2 << 16) + (lengthB1 << 8) + lengthB0;
     }
-    return static_cast<uint32_t>(length);
+    return static_cast<std::uint32_t>(length);
 }
 
-void writeLengthToStream(uint32_t length, std::ostream& output)
+void writeLengthToStream(std::uint32_t length, std::ostream& output)
 {
     auto encoder = Encoder(output);
     if (length <= 127) {
-        encoder << static_cast<uint8_t>(length);
+        encoder << static_cast<std::uint8_t>(length);
     }
     else {
         length |= 0x80000000;
@@ -87,8 +87,8 @@ void writeLengthToStream(uint32_t length, std::ostream& output)
 
 void NameValue::toStream(std::ostream& output) const
 {
-    writeLengthToStream(static_cast<uint32_t>(name_.size()), output);
-    writeLengthToStream(static_cast<uint32_t>(value_.size()), output);
+    writeLengthToStream(static_cast<std::uint32_t>(name_.size()), output);
+    writeLengthToStream(static_cast<std::uint32_t>(value_.size()), output);
     auto encoder = Encoder(output);
     encoder << name_ << value_;
 }

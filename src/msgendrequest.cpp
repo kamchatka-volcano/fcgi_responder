@@ -5,7 +5,7 @@
 
 namespace fcgi {
 
-MsgEndRequest::MsgEndRequest(uint32_t appStatus, ProtocolStatus protocolStatus)
+MsgEndRequest::MsgEndRequest(std::uint32_t appStatus, ProtocolStatus protocolStatus)
     : appStatus_{appStatus}
     , protocolStatus_{protocolStatus}
 {
@@ -16,7 +16,7 @@ std::size_t MsgEndRequest::size()
     return 8;
 }
 
-uint32_t MsgEndRequest::appStatus() const
+std::uint32_t MsgEndRequest::appStatus() const
 {
     return appStatus_;
 }
@@ -29,13 +29,13 @@ ProtocolStatus MsgEndRequest::protocolStatus() const
 void MsgEndRequest::toStream(std::ostream& output) const
 {
     auto encoder = Encoder(output);
-    encoder << appStatus_ << static_cast<uint8_t>(protocolStatus_);
+    encoder << appStatus_ << static_cast<std::uint8_t>(protocolStatus_);
     encoder.addPadding(3); //reserved bytes
 }
 
 void MsgEndRequest::fromStream(std::istream& input, std::size_t)
 {
-    auto protocolStatus = uint8_t{};
+    auto protocolStatus = std::uint8_t{};
     auto decoder = Decoder(input);
     decoder >> appStatus_ >> protocolStatus;
     decoder.skip(3); //reserved bytes

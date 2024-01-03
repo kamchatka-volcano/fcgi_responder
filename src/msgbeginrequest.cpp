@@ -30,14 +30,14 @@ ResultConnectionState MsgBeginRequest::resultConnectionState() const
 void MsgBeginRequest::toStream(std::ostream& output) const
 {
     auto encoder = Encoder(output);
-    encoder << static_cast<uint16_t>(role_) << static_cast<uint8_t>(resultConnectionState_);
+    encoder << static_cast<std::uint16_t>(role_) << static_cast<std::uint8_t>(resultConnectionState_);
     encoder.addPadding(5); //reserved bytes
 }
 
 void MsgBeginRequest::fromStream(std::istream& input, std::size_t)
 {
-    auto role = uint16_t{};
-    auto flags = uint8_t{};
+    auto role = std::uint16_t{};
+    auto flags = std::uint8_t{};
     auto decoder = Decoder(input);
     decoder >> role >> flags;
     decoder.skip(5); //reservedBytes

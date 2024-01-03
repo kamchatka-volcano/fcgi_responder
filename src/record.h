@@ -20,9 +20,9 @@ namespace fcgi {
 class Record {
 public:
     Record();
-    explicit Record(RecordType type, uint16_t requestId = 0);
+    explicit Record(RecordType type, std::uint16_t requestId = 0);
     template<typename TMessage>
-    Record(TMessage&& msg, uint16_t requestId)
+    Record(TMessage&& msg, std::uint16_t requestId)
         : type_(std::remove_reference_t<TMessage>::recordType)
         , requestId_(requestId)
         , message_(std::forward<TMessage>(msg))
@@ -30,7 +30,7 @@ public:
     }
 
     RecordType type() const;
-    uint16_t requestId() const;
+    std::uint16_t requestId() const;
     std::size_t size() const;
 
     void toStream(std::ostream& output) const;
@@ -49,11 +49,11 @@ private:
 
     void write(std::ostream& output) const;
     std::size_t read(std::istream& input, std::size_t inputSize);
-    uint8_t calcPaddingLength() const;
+    std::uint8_t calcPaddingLength() const;
 
 private:
     RecordType type_ = RecordType::UnknownType;
-    uint16_t requestId_ = 0;
+    std::uint16_t requestId_ = 0;
     std::variant<
             MsgAbortRequest,
             MsgBeginRequest,

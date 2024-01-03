@@ -8,13 +8,13 @@ Decoder::Decoder(std::istream& input)
 {
 }
 
-Decoder& Decoder::operator>>(uint8_t& val)
+Decoder& Decoder::operator>>(std::uint8_t& val)
 {
     input_.read(reinterpret_cast<char*>(&val), 1);
     return *this;
 }
 
-Decoder& Decoder::operator>>(uint16_t& val)
+Decoder& Decoder::operator>>(std::uint16_t& val)
 {
     auto valIt = reinterpret_cast<char*>(&val);
     input_.read(valIt, 2);
@@ -24,7 +24,7 @@ Decoder& Decoder::operator>>(uint16_t& val)
     return *this;
 }
 
-Decoder& Decoder::operator>>(uint32_t& val)
+Decoder& Decoder::operator>>(std::uint32_t& val)
 {
     auto valIt = reinterpret_cast<char*>(&val);
     input_.read(valIt, 4);

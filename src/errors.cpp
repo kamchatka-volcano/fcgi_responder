@@ -8,13 +8,13 @@ ProtocolError::ProtocolError(const std::string& msg)
 {
 }
 
-UnsupportedVersion::UnsupportedVersion(uint8_t protocolVersion)
+UnsupportedVersion::UnsupportedVersion(std::uint8_t protocolVersion)
     : ProtocolError{"Protocol version \"" + std::to_string(protocolVersion) + "\" isn't supported."}
     , protocolVersion_{protocolVersion}
 {
 }
 
-uint8_t UnsupportedVersion::protocolVersion() const
+std::uint8_t UnsupportedVersion::protocolVersion() const
 {
     return protocolVersion_;
 }
@@ -38,7 +38,7 @@ std::string invalidValueTypeToString(InvalidValueType type)
 
 } //namespace
 
-InvalidValue::InvalidValue(InvalidValueType type, uint32_t value)
+InvalidValue::InvalidValue(InvalidValueType type, std::uint32_t value)
     : ProtocolError{""}
     , type_{type}
     , value_{value}
@@ -59,9 +59,9 @@ InvalidValueType InvalidValue::type() const
     return type_;
 }
 
-uint32_t InvalidValue::asInt() const
+std::uint32_t InvalidValue::asInt() const
 {
-    return std::get<uint32_t>(value_);
+    return std::get<std::uint32_t>(value_);
 }
 
 std::string InvalidValue::asString() const
@@ -69,7 +69,7 @@ std::string InvalidValue::asString() const
     if (std::holds_alternative<std::string>(value_))
         return std::get<std::string>(value_);
     else
-        return std::to_string(std::get<uint32_t>(value_));
+        return std::to_string(std::get<std::uint32_t>(value_));
 }
 
 const char* InvalidValue::what() const noexcept
@@ -88,13 +88,13 @@ std::size_t RecordMessageReadError::recordSize() const
     return recordSize_;
 }
 
-InvalidRecordType::InvalidRecordType(uint8_t typeValue)
+InvalidRecordType::InvalidRecordType(std::uint8_t typeValue)
     : ProtocolError{"Record type \"" + std::to_string(typeValue) + "\" is invalid."}
     , typeValue_{typeValue}
 {
 }
 
-uint8_t InvalidRecordType::recordType() const
+std::uint8_t InvalidRecordType::recordType() const
 {
     return typeValue_;
 }

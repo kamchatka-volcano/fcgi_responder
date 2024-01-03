@@ -25,7 +25,7 @@ ResponderImpl::ResponderImpl(
               {
                   onRecordRead(record);
               },
-              [this](uint8_t recordType)
+              [this](std::uint8_t recordType)
               {
                   sendMessage(0, MsgUnknownType{recordType});
               }}
@@ -34,7 +34,7 @@ ResponderImpl::ResponderImpl(
     , disconnect_{std::move(disconnect)}
     , processRequest_{std::move(processRequest)}
     , responseSender_{std::make_shared<ResponseSender>(
-              [this](uint16_t id, std::string&& data, std::string&& errorMsg)
+              [this](std::uint16_t id, std::string&& data, std::string&& errorMsg)
               {
                   sendResponse(id, std::move(data), std::move(errorMsg));
               })}
@@ -42,14 +42,14 @@ ResponderImpl::ResponderImpl(
 }
 
 template<typename TMsg>
-void ResponderImpl::sendMessage(uint16_t requestId, TMsg&& msg)
+void ResponderImpl::sendMessage(std::uint16_t requestId, TMsg&& msg)
 {
     auto record = Record{std::forward<TMsg>(msg), requestId};
     sendRecord(record);
 }
-template void ResponderImpl::sendMessage<MsgUnknownType>(uint16_t requestId, MsgUnknownType&& msg);
-template void ResponderImpl::sendMessage<MsgEndRequest>(uint16_t requestId, MsgEndRequest&& msg);
-template void ResponderImpl::sendMessage<MsgGetValuesResult>(uint16_t requestId, MsgGetValuesResult&& msg);
+template void ResponderImpl::sendMessage<MsgUnknownType>(std::uint16_t requestId, MsgUnknownType&& msg);
+template void ResponderImpl::sendMessage<MsgEndRequest>(std::uint16_t requestId, MsgEndRequest&& msg);
+template void ResponderImpl::sendMessage<MsgGetValuesResult>(std::uint16_t requestId, MsgGetValuesResult&& msg);
 
 void ResponderImpl::receiveData(const char* data, std::size_t size)
 {
@@ -85,7 +85,7 @@ void ResponderImpl::onRecordRead(const Record& record)
     }
 }
 
-void ResponderImpl::onBeginRequest(uint16_t requestId, const MsgBeginRequest& msg)
+void ResponderImpl::onBeginRequest(std::uint16_t requestId, const MsgBeginRequest& msg)
 {
     if (msg.role() != Role::Responder) {
         sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::UnknownRole});
@@ -109,7 +109,7 @@ void ResponderImpl::onBeginRequest(uint16_t requestId, const MsgBeginRequest& ms
     createRequest(requestId, msg.resultConnectionState() == ResultConnectionState::KeepOpen);
 }
 
-void ResponderImpl::endRequest(uint16_t requestId)
+void ResponderImpl::endRequest(std::uint16_t requestId)
 {
     sendMessage(requestId, MsgEndRequest{0, ProtocolStatus::RequestComplete});
     if (!requestRegistry_.at(requestId).keepConnection())
@@ -118,12 +118,12 @@ void ResponderImpl::endRequest(uint16_t requestId)
     deleteRequest(requestId);
 }
 
-void ResponderImpl::createRequest(uint16_t requestId, bool keepConnection)
+void ResponderImpl::createRequest(std::uint16_t requestId, bool keepConnection)
 {
     requestRegistry_.emplace(requestId, RequestData{keepConnection});
 }
 
-void ResponderImpl::deleteRequest(uint16_t requestId)
+void ResponderImpl::deleteRequest(std::uint16_t requestId)
 {
     requestRegistry_.erase(requestId);
 }
@@ -147,12 +147,12 @@ void ResponderImpl::onGetValues(const MsgGetValues& msg)
     sendMessage(0, std::move(result));
 }
 
-void ResponderImpl::onParams(uint16_t requestId, const MsgParams& msg)
+void ResponderImpl::onParams(std::uint16_t requestId, const MsgParams& msg)
 {
     requestRegistry_.at(requestId).addMessage(msg);
 }
 
-void ResponderImpl::onStdIn(uint16_t requestId, const MsgStdIn& msg)
+void ResponderImpl::onStdIn(std::uint16_t requestId, const MsgStdIn& msg)
 {
     requestRegistry_.at(requestId).addMessage(msg);
     if (msg.data().empty())
@@ -184,7 +184,7 @@ bool ResponderImpl::isRecordExpected(const Record& record)
     return false;
 }
 
-void ResponderImpl::onRequestReceived(uint16_t requestId)
+void ResponderImpl::onRequestReceived(std::uint16_t requestId)
 {
     auto request = requestRegistry_.at(requestId).makeRequest();
     if (!request)
@@ -201,7 +201,7 @@ void ResponderImpl::onRequestReceived(uint16_t requestId)
                      }});
 }
 
-void ResponderImpl::sendResponse(uint16_t id, std::string&& data, std::string&& errorMsg)
+void ResponderImpl::sendResponse(std::uint16_t id, std::string&& data, std::string&& errorMsg)
 {
     auto dataStream = makeStream<MsgStdOut>(id, data);
     auto errorStream = makeStream<MsgStdErr>(id, errorMsg);
