@@ -3,6 +3,7 @@ project(asio_example)
 
 SealLake_DownloadSource(
         NAME asio
+        GIT_TAG asio-1-30-2
         GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
 )
 

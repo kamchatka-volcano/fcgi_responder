@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(fcgi_responder VERSION 1.6.2)
-
-include(GNUInstallDirs)
+project(fcgi_responder VERSION 1.7.0)
 include(external/seal_lake)
 
 set(SRC
@@ -30,10 +28,10 @@ set(SRC
 )
 
 set(PUBLIC_HEADERS
-    "include/fcgi_responder/request.h"
-    "include/fcgi_responder/response.h"
-    "include/fcgi_responder/responder.h"
-    "include/fcgi_responder/requester.h"
+    include/fcgi_responder/request.h
+    include/fcgi_responder/response.h
+    include/fcgi_responder/responder.h
+    include/fcgi_responder/requester.h
 )
 
 SealLake_StaticLibrary(
@@ -46,7 +44,7 @@ SealLake_StaticLibrary(
             POSITION_INDEPENDENT_CODE ON
 )
 
-SealLake_OptionalBuildSteps(
+SealLake_OptionalSubProjects(
         tests
         fuzz_tests
         utils/fuzz_input_generator
