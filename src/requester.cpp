@@ -1,5 +1,6 @@
 #include "requesterimpl.h"
 #include <fcgi_responder/requester.h>
+#include <iterator>
 
 namespace fcgi {
 
@@ -41,6 +42,21 @@ const RequesterImpl& Requester::impl() const
 
 std::optional<RequestHandle> Requester::sendRequest(
         std::map<std::string, std::string> params,
+        std::string data,
+        const std::function<void(std::optional<ResponseData>)>& responseHandler,
+        bool keepConnection)
+{
+    return impl().sendRequest(
+            std::vector<std::pair<std::string, std::string>>{
+                    std::make_move_iterator(params.begin()),
+                    std::make_move_iterator(params.end())},
+            std::move(data),
+            responseHandler,
+            keepConnection);
+}
+
+std::optional<RequestHandle> Requester::sendRequest(
+        std::vector<std::pair<std::string, std::string>> params,
         std::string data,
         const std::function<void(std::optional<ResponseData>)>& responseHandler,
         bool keepConnection)

@@ -4,12 +4,12 @@
 #include "streamdatamessage.h"
 #include <fcgi_responder/requester.h>
 #include <functional>
-#include <map>
 #include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace fcgi {
 class RecordReader;
@@ -37,7 +37,7 @@ public:
     RequesterImpl(std::function<void(const std::string&)> sendData, std::function<void()> disconnect);
     void receiveData(const char* data, std::size_t size);
     std::optional<RequestHandle> sendRequest(
-            std::map<std::string, std::string> params,
+            std::vector<std::pair<std::string, std::string>> params,
             std::string data,
             const std::function<void(std::optional<ResponseData>)>& responseHandler,
             bool keepConnection = false);
@@ -50,12 +50,12 @@ public:
 
 private:
     void initConnection(
-            std::map<std::string, std::string> params,
+            std::vector<std::pair<std::string, std::string>> params,
             std::string data,
             std::function<void(std::optional<ResponseData>)> responseHandler,
             bool keepConnection);
     std::optional<RequestHandle> doSendRequest(
-            const std::map<std::string, std::string>& params,
+            const std::vector<std::pair<std::string, std::string>>& params,
             const std::string& data,
             std::function<void(std::optional<ResponseData>)> responseHandler,
             bool keepConnection);

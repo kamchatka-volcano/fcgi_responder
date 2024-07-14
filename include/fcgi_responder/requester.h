@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace fcgi {
 class RequesterImpl;
@@ -42,6 +43,22 @@ public:
             std::string data,
             const std::function<void(std::optional<ResponseData>)>& responseHandler,
             bool keepConnection = false);
+
+    ///
+    /// \brief sendRequest
+    /// Send request to the FastCGI application
+    /// \param params request parameters
+    /// \param data request data
+    /// \param responseHandler response handler
+    /// \param keepConnection true if FastCGI application should keep the connection alive after response is sent
+    /// \return RequestHandle - object which can be used to cancel request
+    ///
+    std::optional<RequestHandle> sendRequest(
+            std::vector<std::pair<std::string, std::string>> params,
+            std::string data,
+            const std::function<void(std::optional<ResponseData>)>& responseHandler,
+            bool keepConnection = false);
+
     ///
     /// \brief setErrorInfoHandler
     /// Protocol and stream errors are handled internally and silently,

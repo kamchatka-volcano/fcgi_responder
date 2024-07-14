@@ -35,7 +35,7 @@ RequesterImpl::RequesterImpl(std::function<void(const std::string&)> sendData, s
 }
 
 std::optional<RequestHandle> RequesterImpl::sendRequest(
-        std::map<std::string, std::string> params,
+        std::vector<std::pair<std::string, std::string>> params,
         std::string data,
         const std::function<void(std::optional<ResponseData>)>& responseHandler,
         bool keepConnection)
@@ -71,7 +71,7 @@ int RequesterImpl::availableRequestsNumber() const
 }
 
 void RequesterImpl::initConnection(
-        std::map<std::string, std::string> params,
+        std::vector<std::pair<std::string, std::string>> params,
         std::string data,
         std::function<void(std::optional<ResponseData>)> responseHandler,
         bool keepConnection)
@@ -100,7 +100,7 @@ void RequesterImpl::initConnection(
 }
 
 std::optional<RequestHandle> RequesterImpl::doSendRequest(
-        const std::map<std::string, std::string>& params,
+        const std::vector<std::pair<std::string, std::string>>& params,
         const std::string& data,
         std::function<void(std::optional<ResponseData>)> responseHandler,
         bool keepConnection)
